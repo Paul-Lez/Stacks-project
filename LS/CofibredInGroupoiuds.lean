@@ -43,41 +43,25 @@ class IsCofiberedInGroupoids (p : C ⥤ S) : Prop where
   (LiftHom {x : C} {Y : S} (f : p.obj x ⟶ Y) :
     ∃ (y : C) (φ : x ⟶ y) (hy : Y = p.obj y),
       CommSq f (𝟙 (p.obj x)) (eqToHom hy) (p.map φ))
-  (IsCoCartesian { x y z : C} {φ : x ⟶ y} {ψ : x ⟶ z} {f : p.obj y ⟶ p.obj z}
+  (IsCoCartesian {x y z : C} {φ : x ⟶ y} {ψ : x ⟶ z} {f : p.obj y ⟶ p.obj z}
   (hy : (p.map φ) ≫ f = p.map ψ) :
     ∃! (χ : y ⟶ z), CommSq (p.map χ) (𝟙 (p.obj y)) (𝟙 (p.obj z)) f)
 
 -- TODO possibly rewrite proof after making CofiberedInGroupoids "symm" wrt FiberedInGroupoids
 
-lemma IsCofiberedInGroupoidsOpp (p : C ⥤ S) [hp : IsCofiberedInGroupoids p] : IsFiberedInGroupoids p.op :=
+lemma IsCofiberedInGroupoidsOpp (p : C ⥤ S) [hp : IsCofiberedInGroupoids p] :
+  IsFiberedInGroupoids p.op :=
 by
   rcases hp with ⟨hlift, hcart⟩
-  constructor
-  · intro y X f
-    rcases hlift f.unop with ⟨x, φ, unop_obj_lift, unop_hom_lift⟩
-    existsi op x
-    existsi op φ
+  refine ⟨fun f => ?_, fun h_comp => ?_⟩
+  · rcases hlift f.unop with ⟨x, φ, unop_obj_lift, unop_hom_lift⟩
+    existsi op x, op φ
     rw [←op_inj_iff, ←op_obj, op_unop] at unop_obj_lift
     existsi unop_obj_lift.symm
-    rw [op_map, (show Quiver.Hom.unop (op φ) = φ by rfl)]
-    have h2 := CommSq.op unop_hom_lift
-    simp only [op_unop, eqToHom_op, op_id, op_obj, Quiver.Hom.op_unop] at h2
-    exact h2
-  intro x y z φ ψ f h_comp
-  rw [op_map, ←(Quiver.Hom.op_unop f), ←op_comp, op_map] at h_comp
+    simpa only [op_obj, unop_op, op_unop, eqToHom_op, op_id, Quiver.Hom.op_unop] using CommSq.op unop_hom_lift
   rcases hcart (Quiver.Hom.op_inj h_comp) with ⟨χ, χ_comm, χ_unique⟩
-  let χ_op := χ.op
-  simp at χ_op
-  existsi χ_op
-  constructor
-  · simp
-    apply CommSq.op
-    simpa using χ_comm
-  intro g g_comm
-  have h2 := CommSq.unop g_comm
-  simp at h2
-  apply Quiver.Hom.unop_inj
-  exact (χ_unique (g.unop)) h2
+  refine ⟨χ.op, ⟨?_, fun g g_comm => Quiver.Hom.unop_inj ((χ_unique (g.unop)) (CommSq.unop g_comm))⟩⟩
+  simpa only [op_obj, op_map, Quiver.Hom.unop_op, op_obj, Quiver.Hom.op_unop, op_id] using CommSq.op χ_comm
 
 /-
 POSSIBLE TODO:
@@ -94,6 +78,6 @@ class IsFiberedInGroupoidHom (p : C ⥤ S) (q : D ⥤ S) (F : C ⥤ D) : Prop
 
 def IsFiberedInGroupoidHomProp (p : C ⥤ S) (q : D ⥤ S) (f : C ⥤ D) : Prop := f.comp q = p
 
-class IsFiberedInGroupoid2HomProp (p : C ⥤ S) (q : D ⥤ S) (f g : C ⥤ D)
+/- class IsFiberedInGroupoid2HomProp (p : C ⥤ S) (q : D ⥤ S) (f g : C ⥤ D)
   [IsFiberedInGroupoidHom p q f] [IsFiberedInGroupoidHom p q g] (α : f ⟶ g) : Prop where
-  proj_eq_id : ∀ (a : C), p.map (α.app a) = 𝟙 (p.obj a)
+  proj_eq_id : ∀ (a : C), p.map (α.app a) = 𝟙 (p.obj a) -/
