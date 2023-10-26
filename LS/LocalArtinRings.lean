@@ -30,53 +30,57 @@ structure LocalArtinAlgebraWithFixedResidueCat where
   (h :  π = comp (res : carrier ⧸ (maximalIdeal carrier) →+* k)
     (algebraMap R (carrier ⧸ (maximalIdeal carrier))))
 
+-- set_option hygiene false in 
+local notation " 𝔸 R k π " => LocalArtinAlgebraWithFixedResidueCat R k π
+
 attribute [instance] LocalArtinAlgebraWithFixedResidueCat.isCommRing
   LocalArtinAlgebraWithFixedResidueCat.isAlgebra LocalArtinAlgebraWithFixedResidueCat.isLocal
 
---attribute [instance]
-
-instance : CoeSort (LocalArtinAlgebraWithFixedResidueCat R k π) (Type v) :=
-  ⟨LocalArtinAlgebraWithFixedResidueCat.carrier⟩
+instance : CoeSort (𝔸 R k π) (Type v) := ⟨LocalArtinAlgebraWithFixedResidueCat.carrier⟩
 
 attribute [coe] LocalArtinAlgebraWithFixedResidueCat.carrier
 
-def LocalArtinAlgebraWithFixedResidue.proj (A : LocalArtinAlgebraWithFixedResidueCat R k π) :
-  A →+* k := comp A.res (Ideal.Quotient.mk (maximalIdeal A))
+-- variable (A : Art R k π)
+
+--instance : Semiring A := A.isCommRing.toSemiring
+
+def LocalArtinAlgebraWithFixedResidue.proj (A : 𝔸) : A →+* k := comp A.res (Ideal.Quotient.mk (maximalIdeal A))
 
 /- def LocalArtinAlgebraWithFixedResidueHoms (A B : LocalArtinAlgebraWithFixedResidueCat R k π) : Type :=
   {f : A →ₐ[R] B // IsLocalRingHom (f : A →+* B) ∧
     (comp (LocalArtinAlgebraWithFixedResidue.proj R k π B) f) =
       LocalArtinAlgebraWithFixedResidue.proj R k π A} -/
 
-end
 
-variable {R : Type w} [CommRing R] {k : Type w'} [Field k] {π : R → k}
-  (A B C : LocalArtinAlgebraWithFixedResidueCat R k π)
+
+variable (A B C : 𝔸)
 
 structure LocalArtinAlgebraWithFixedResidueHoms where
   func : A →ₐ[R] B
-  (isLocal : IsLocalRingHom (f : A →+* B))
-  (h : (comp (LocalArtinAlgebraWithFixedResidue.proj R k π B) f) =
-      LocalArtinAlgebraWithFixedResidue.proj R k π A)
+  (isLocal : true)
+  (h : true)
 
-instance : Coe (LocalArtinAlgebraWithFixedResidueHoms A B) (A →ₐ[R] B) :=
-  ⟨LocalArtinAlgebraWithFixedResidueHoms.func⟩
+infixr:25 " →ₗ+* " => LocalArtinAlgebraWithFixedResidueHoms
+
+instance : Coe (A →ₗ+* B) (A →ₐ[R] B) := ⟨LocalArtinAlgebraWithFixedResidueHoms.func⟩
 
 attribute [coe] LocalArtinAlgebraWithFixedResidueHoms.func
 
 namespace LocalArtinAlgebraWithFixedResidueHoms
 
 def comp {A B C : LocalArtinAlgebraWithFixedResidueCat R k π}
-  (f : LocalArtinAlgebraWithFixedResidueHoms A B) (g : LocalArtinAlgebraWithFixedResidueHoms B C) :
-  LocalArtinAlgebraWithFixedResidueHoms A C :=
+  (f : A →ₗ+* B) (g : B →ₗ+* C) : A →ₗ+* C :=
 ⟨AlgHom.comp (g : B →ₐ[R] C) f, sorry, sorry⟩
+
+def id {A : Art R k π} : A →ₗ+* A := ⟨by { haveI := A.isAlgebra ; convert @AlgHom.id R A.carrier _ _ this }, 
+ IsLocalRingHom.Id A, sorry⟩
 
 end LocalArtinAlgebraWithFixedResidueHoms
 
 initialize_simps_projections LocalArtinAlgebraWithFixedResidueCat (-isCommRing, -isAlgebra)
 
 instance: CategoryTheory.Category (LocalArtinAlgebraWithFixedResidueCat R k π) where
-  Hom A B := LocalArtinAlgebraWithFixedResidueHoms A B
+  Hom A B := A →ₗ+* B
   id A := ⟨AlgHom.id R A, sorry, sorry⟩
   comp f g := f.comp g
 
@@ -232,7 +236,10 @@ have : x ∈ LocalRing.maximalIdeal A
   convert hy' }
 use Submodule.mkQ _ ⟨x, this⟩
 simp [LocalRingHom.DifferentialLinearMap'_mkQ, hy', hy, hx]
+sorry 
 done
+
+
 
 lemma main₂ {f : LocalArtinAlgebraWithFixedResidueHoms A B}
   (hf : Function.Surjective (LocalRingHom.DifferentialLinearMap'
@@ -242,3 +249,7 @@ letI : IsLocalRingHom (f.func : A →+* B):= sorry
 suffices :  Function.Surjective (LocalRing.ResidueField.map (f.func : A →+* B))
 { sorry } --Nakayama
 sorry
+
+
+
+end 
