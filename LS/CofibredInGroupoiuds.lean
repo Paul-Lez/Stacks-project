@@ -24,6 +24,9 @@ def toIso {p : C ⥤ S} {U : S} {x : C} (hx : ObjLift p U x) : p.obj x ≅ U := 
 
 def toHom {p : C ⥤ S} {U : S} {x : C} (hx : ObjLift p U x) : p.obj x ⟶ U := eqToHom hx
 
+lemma toHom_eq_eqToHom {p : C ⥤ S} {U : S} {x : C} (hx : ObjLift p U x) :
+  toHom hx = eqToHom hx := rfl
+
 end ObjLift
 
 open ObjLift
@@ -42,8 +45,10 @@ class IsFiberedInGroupoids (p : C ⥤ S) : Prop where
     ∃ (x : C) (φ : x ⟶ y) (hx : p.obj x = X),
       CommSq (p.map φ) (eqToHom hx) (𝟙 (p.obj y)) f)
   (IsCartesian {x y z : C} {φ : y ⟶ x} {ψ : z ⟶ x} {f : p.obj z ⟶ p.obj y}
-  (hy : f ≫ (p.map φ) = p.map ψ) :
-    ∃! (χ : z ⟶ y), CommSq f (𝟙 (p.obj z)) (𝟙 (p.obj y)) (p.map χ))
+  (hy : f ≫ (p.map φ) = p.map ψ) : ∃! (χ : z ⟶ y), CommSq f (𝟙 (p.obj z)) (𝟙 (p.obj y)) (p.map χ))
+
+def IsPullback (p : C ⥤ S) {x y : C} {X : S} (f : X ⟶ p.obj y)
+  (φ : x ⟶ y) (hx : ObjLift p X x) : Prop :=  CommSq (p.map φ) (eqToHom hx) (𝟙 (p.obj y)) f
 
 class IsCofiberedInGroupoids (p : C ⥤ S) : Prop where
   (LiftHom {x : C} {Y : S} (f : p.obj x ⟶ Y) :
@@ -52,7 +57,6 @@ class IsCofiberedInGroupoids (p : C ⥤ S) : Prop where
   (IsCoCartesian {x y z : C} {φ : x ⟶ y} {ψ : x ⟶ z} {f : p.obj y ⟶ p.obj z}
   (hy : (p.map φ) ≫ f = p.map ψ) :
     ∃! (χ : y ⟶ z), CommSq (p.map χ) (𝟙 (p.obj y)) (𝟙 (p.obj z)) f)
-
 --def lift
 
 -- TODO possibly rewrite proof after making CofiberedInGroupoids "symm" wrt FiberedInGroupoids
@@ -113,11 +117,105 @@ def IsFiberedInGroupoid2HomProp {p : C ⥤ S} {q : D ⥤ S} (f g : C ⥤ D)
 --#check IsFiberedInGroupoid2HomProp
 
 
-/- variable (J : GrothendieckTopology S)
+variable (J : GrothendieckTopology S)
 
-class Stack {p : C ⥤ S} (hp : IsFiberedInGroupoids p) : Prop where
-  (GlueMorphism : ∀ (S : J.sieves) (a b : C) {pb : S → C} {pbm : ∀ (s : S), (pb s → b)},
-      ) -/
+variable {𝒳 𝒮 : Type u₁} [Category 𝒳] [Category 𝒮]
+
+lemma LiftHom' {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
+  {R S : 𝒮} {b : 𝒳} (hb : ObjLift p S b) (f : R ⟶ S) :
+  ∃ (a : 𝒳) (ha : ObjLift p R a) (φ : a ⟶ b), HomLift p f φ ha hb :=
+by
+  set f' : R ⟶ p.obj b := f ≫ eqToHom hb.symm with hf'
+  rcases hp.LiftHom f' with ⟨a, φ', h, hφ'⟩
+  existsi a, h, φ'
+  rw [HomLift]
+  constructor
+  rcases hφ' with ⟨hφ⟩
+  simp only [hf', Category.comp_id] at hφ
+  simp only [hφ, toHom_eq_eqToHom, toHom_eq_eqToHom, comp_eqToHom_iff, eqToHom_comp_iff, comp_eqToHom_iff, Category.assoc, eqToHom_trans_assoc, eqToHom_refl, Category.id_comp, eqToHom_trans, Category.comp_id]
+
+/-
+(IsCartesian {x y z : C} {φ : y ⟶ x} {ψ : z ⟶ x} {f : p.obj z ⟶ p.obj y}
+  (hy : f ≫ (p.map φ) = p.map ψ) :
+    ∃! (χ : z ⟶ y), CommSq f (𝟙 (p.obj z)) (𝟙 (p.obj y)) (p.map χ))
+-/
+
+
+/- lemma  (p : 𝒳 ⥤ 𝒮) (hp : IsFiberedInGroupoids p)
+  (R S T : 𝒮) (a b c : 𝒳) (ha : ObjLift p R a) (hb : ObjLift p S b) (hc : ObjLift p T c)
+  (f : R ⟶ S) (g : S ⟶ T) (ψ : b ⟶ c)
+  (ρ : a ⟶ c)  -/
+
+
+
+lemma PullbackUniversalProperty {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
+  (R S T : 𝒮) (a b c : 𝒳) (ha : ObjLift p R a) (hb : ObjLift p S b) (hc : ObjLift p T c)
+  (f : R ⟶ S) (g : S ⟶ T) (ψ : b ⟶ c)
+  (ρ : a ⟶ c)
+  (HCS : HomLift p g ψ hb hc)
+  (HCS' : HomLift p (f ≫ g) ρ ha hc) :
+  ∃! φ : a ⟶ b, HomLift p f φ ha hb ∧ ρ = φ ≫ ψ :=
+by
+  set f' : p.obj a ⟶ p.obj b := eqToHom ha ≫ f ≫ eqToHom hb.symm with hf'
+  set g' : p.obj b ⟶ p.obj c := eqToHom hb ≫ g ≫ eqToHom hc.symm with hg'
+  set temp := p.map ψ
+  have : f' ≫ p.map ψ = p.map ρ
+  · sorry
+  rcases hp.IsCartesian this with ⟨χ, hχ⟩
+  existsi χ
+  constructor
+  · simp only
+    constructor
+    · rw [HomLift]
+      constructor
+      rcases hχ.left with ⟨h⟩
+      simp only [Category.comp_id, Category.id_comp] at h
+      rw [←h]
+      simp only [Category.assoc, comp_eqToHom_iff, eqToHom_comp_iff, eqToHom_trans, toHom_eq_eqToHom,
+        eqToHom_refl, Category.comp_id, eqToHom_trans_assoc, Category.id_comp]
+    · sorry
+  · intros y hy
+    apply hχ.right
+    rw [HomLift] at hy
+    rcases hy.left with ⟨hy'⟩
+    constructor
+    rw [hf']
+    sorry
+
+  --rcases HomLift' hp hb f with ⟨a, ha, φ, hφ⟩
+  --existsi φ
+
+
+
+/- lemma test {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
+  (S T : 𝒮) (a a' b : C) (ha : ObjLift p S a) (ha' : ObjLift p S a') -/
+
+
+/- lemma test {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
+  (S : 𝒮) (I : J.sieves S) (a : 𝒳) (ha : ObjLift p S a) : -/
+
+
+def Gluing_Prop {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
+  (S : 𝒮) (I : J.sieves S) (a b : 𝒳) (ha : ObjLift p S a)
+  (hb : ObjLift p S b)
+  {pb : I → 𝒳}
+  {pbm : ∀ (s : I), (pb s → b)}
+  {hpb : ∀ s : I, ObjLift p s (pb s) }
+  {hpbm : ∀ i : I, HomLift p s (pbm s) (hpb s) hb}
+  : true := sorry
+
+
+
+
+/- class Stack {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p) : Prop where
+  (GlueMorphism : ∀ (S : 𝒮) (I : J.sieves S) (a b : 𝒳) (ha : ObjLift p S a)
+  (hb : ObjLift p S b)
+  {pb : I → 𝒳}
+  {pbm : ∀ (s : I), (pb s → b)}
+  {hpb : ∀ s : I, ObjLift p s (pb s) }
+  {hpbm : ∀ i : I, HomLift p s (pbm s) 1
+
+  }, true)   -/
 
 
 --def IsFiberedInGroupoid2CommSq
