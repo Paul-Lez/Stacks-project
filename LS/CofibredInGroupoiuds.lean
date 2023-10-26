@@ -9,22 +9,28 @@ open CategoryTheory Functor Opposite
 
 variable {S : Type u₁} {C : Type u₂} {D : Type u₃} [Category S] [Category C] [Category D]
 
+namespace ObjLift
+
 def ObjLift (p : C ⥤ S) (U : S) (x : C) : Prop := p.obj x = U
 
-lemma ObjLift_image (p : C ⥤ S) (x : C) : ObjLift p (p.obj x) x := rfl
+lemma LiftImage (p : C ⥤ S) (x : C) : ObjLift p (p.obj x) x := rfl
 
-lemma eq_of_ObjLift {p : C ⥤ S} {U : S} {x : C} (h : ObjLift p U x) : p.obj x = U := h
+lemma eq {p : C ⥤ S} {U : S} {x : C} (h : ObjLift p U x) : p.obj x = U := h
 
-lemma ObjLiftOpp (p : C ⥤ S) (U : S) (x : C) : ObjLift p U x ↔ ObjLift p.op (op U) (op x) :=
+lemma Opp (p : C ⥤ S) (U : S) (x : C) : ObjLift p U x ↔ ObjLift p.op (op U) (op x) :=
 by rw [ObjLift, ObjLift, op_obj, unop_op, op_inj_iff]
 
---def Hom_of_ObjLift {p : C ⥤ S} {U : S} (x : C) (hx : ObjLift p U x) :
+def toIso {p : C ⥤ S} {U : S} {x : C} (hx : ObjLift p U x) : p.obj x ≅ U := eqToIso hx
 
---lemma eqToHom (U V : C) (h : U = V) : U ≅ V := by rw [h]
+def toHom {p : C ⥤ S} {U : S} {x : C} (hx : ObjLift p U x) : p.obj x ⟶ U := eqToHom hx
 
-/- def HomLift (p : C ⥤ S) {x y : C} {U V : S} (f : U ⟶ V)
+end ObjLift
+
+open ObjLift
+
+def HomLift (p : C ⥤ S) {x y : C} {U V : S} (f : U ⟶ V)
 (φ : x ⟶ y) (h₁ : ObjLift p U x)
-(h₂ : ObjLift p V y) : Prop := CommSq (p.map φ) (𝟙 (p.obj x)) (𝟙 (p.obj y)) f -/
+(h₂ : ObjLift p V y) : Prop := CommSq (p.map φ) (toHom h₁) (toHom h₂) f
 
 --lemma HomLiftOpp (p : C ⥤ S) {x y : C} {U V : S} (f : U ⟶ V) (φ : x ⟶ y) (h₁ : ObjLift p U x)
 --  (h₂ : ObjLift p V y) : (HomLift p f φ h₁ h₂) ↔ (Homlift p.op f.op φ.op ((ObjLiftOpp p U x).1
@@ -47,6 +53,8 @@ class IsCofiberedInGroupoids (p : C ⥤ S) : Prop where
   (hy : (p.map φ) ≫ f = p.map ψ) :
     ∃! (χ : y ⟶ z), CommSq (p.map χ) (𝟙 (p.obj y)) (𝟙 (p.obj z)) f)
 
+--def lift
+
 -- TODO possibly rewrite proof after making CofiberedInGroupoids "symm" wrt FiberedInGroupoids
 
 lemma IsCofiberedInGroupoidsOpp (p : C ⥤ S) [hp : IsCofiberedInGroupoids p] :
@@ -67,17 +75,49 @@ by
 POSSIBLE TODO:
 1. Define Fiber category + show its a groupoid
 2. Show cats fibered in groupoids form a 2-category
-3. Define cat MOR(F, Gz)
+3. Define cat MOR(F, G)
 
 -/
+namespace IsFiberedInGroupoidHom
 
-class IsFiberedInGroupoidHom (p : C ⥤ S) (q : D ⥤ S) (F : C ⥤ D) : Prop
-  where comp : F.comp q = p
+-- Define morphisms for categories fibred in groupoids
+def IsFiberedInGroupoidHom (p : C ⥤ S) (q : D ⥤ S) (F : C ⥤ D) : Prop := F.comp q = p
 
---notation:25 p " ⥤f "  q => IsFiberedInGroupoidHom p q
+lemma IsFiberedInGroupoidHom.Id (p : C ⥤ S) : IsFiberedInGroupoidHom p p (Functor.id C) := rfl
 
-def IsFiberedInGroupoidHomProp (p : C ⥤ S) (q : D ⥤ S) (f : C ⥤ D) : Prop := f.comp q = p
+lemma comp (p : C ⥤ S) (q : D ⥤ S) (f : C ⥤ D) (h : IsFiberedInGroupoidHom p q f) :
+  f.comp q = p := h
 
-/- class IsFiberedInGroupoid2HomProp (p : C ⥤ S) (q : D ⥤ S) (f g : C ⥤ D)
-  [IsFiberedInGroupoidHom p q f] [IsFiberedInGroupoidHom p q g] (α : f ⟶ g) : Prop where
-  proj_eq_id : ∀ (a : C), p.map (α.app a) = 𝟙 (p.obj a) -/
+lemma ProjEq {p : C ⥤ S} {q : D ⥤ S} {f g : C ⥤ D}
+  (h : IsFiberedInGroupoidHom p q f) (h' : IsFiberedInGroupoidHom p q g) (a : C) :
+   q.obj (f.obj a) = q.obj (g.obj a) :=
+by rw [←Functor.comp_obj, ←Functor.comp_obj, h, h']
+
+lemma IsObjLift_left {p : C ⥤ S} {q : D ⥤ S} {f : C ⥤ D}
+  (hf : IsFiberedInGroupoidHom p q f) (a : C) : ObjLift p (q.obj $ f.obj a) a :=
+by rw [←Functor.comp_obj, hf] ; apply ObjLift.LiftImage
+
+lemma IsObjLift_right {p : C ⥤ S} {q : D ⥤ S} {f : C ⥤ D}
+  (hf : IsFiberedInGroupoidHom p q f) (a : C) : ObjLift q (p.obj a) (f.obj a) :=
+by rw [←hf] ; apply ObjLift.LiftImage
+
+end IsFiberedInGroupoidHom
+
+open ObjLift IsFiberedInGroupoidHom
+
+def IsFiberedInGroupoid2HomProp {p : C ⥤ S} {q : D ⥤ S} (f g : C ⥤ D)
+  (hf : IsFiberedInGroupoidHom p q f) (hg : IsFiberedInGroupoidHom p q g) (α : f ⟶ g) : Prop := ∀ (a : C),
+  HomLift q (eqToHom (ProjEq hf hg a)) (CategoryTheory.NatTrans.app α a) (LiftImage q (f.obj a)) (LiftImage q (g.obj a))
+
+
+--#check IsFiberedInGroupoid2HomProp
+
+
+/- variable (J : GrothendieckTopology S)
+
+class Stack {p : C ⥤ S} (hp : IsFiberedInGroupoids p) : Prop where
+  (GlueMorphism : ∀ (S : J.sieves) (a b : C) {pb : S → C} {pbm : ∀ (s : S), (pb s → b)},
+      ) -/
+
+
+--def IsFiberedInGroupoid2CommSq
