@@ -149,9 +149,9 @@ by
 
 
 lemma PullbackUniversalProperty {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
-  (R S T : 𝒮) (a b c : 𝒳) (ha : ObjLift p R a) (hb : ObjLift p S b) (hc : ObjLift p T c)
-  (f : R ⟶ S) (g : S ⟶ T) (ψ : b ⟶ c)
-  (ρ : a ⟶ c)
+  {R S T : 𝒮} {a b c : 𝒳} {ha : ObjLift p R a} {hb : ObjLift p S b} {hc : ObjLift p T c}
+  {f : R ⟶ S} {g : S ⟶ T} {ψ : b ⟶ c}
+  {ρ : a ⟶ c}
   (HCS : HomLift p g ψ hb hc)
   (HCS' : HomLift p (f ≫ g) ρ ha hc) :
   ∃! φ : a ⟶ b, HomLift p f φ ha hb ∧ ρ = φ ≫ ψ :=
@@ -181,6 +181,67 @@ by
     constructor
     rw [hf']
     sorry
+
+lemma PullbackUniqueₐ {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
+  (R S T : 𝒮) (a b c : 𝒳) (ha : ObjLift p R a) (hb : ObjLift p S b) (hc : ObjLift p T c)
+  (f : R ⟶ S) (g : S ⟶ T) (ψ : b ⟶ c)
+  (ρ : a ⟶ c) (φ φ' : a ⟶ b)
+  (HCSψ : HomLift p g ψ hb hc)
+  (HCSρ : HomLift p (f ≫ g) ρ ha hc) 
+  (HCSφ : HomLift p f φ ha hb)
+  (HCSφ' : HomLift p f φ' ha hb) 
+  (hφ : φ ≫ ψ = ρ)
+  (hφ' : φ' ≫ ψ = ρ) : φ = φ' := 
+by 
+  obtain ⟨φ'', h, h'⟩ := PullbackUniversalProperty hp HCSψ HCSρ 
+  rw [h' φ ⟨HCSφ, hφ.symm⟩, h' φ' ⟨HCSφ', hφ'.symm⟩]
+
+lemma PullbackIsoExists {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
+  {R S : 𝒮} {a a' b : 𝒳} {ha : ObjLift p R a} {ha' : ObjLift p R a'} {hb : ObjLift p S b} 
+  {f : R ⟶ S} {φ : a ⟶ b} {φ' : a' ⟶ b} 
+  (HL : HomLift p f φ ha hb)
+  (HL' : HomLift p f φ' ha' hb)
+  : ∃! ψ : a ≅ a', ψ.hom ≫ φ' = φ :=
+by sorry
+
+noncomputable def PullbackIso {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
+  {R S : 𝒮} {a a' b : 𝒳} {ha : ObjLift p R a} {ha' : ObjLift p R a'} {hb : ObjLift p S b} 
+  {f : R ⟶ S} {φ : a ⟶ b} {φ' : a' ⟶ b} 
+  (HL : HomLift p f φ ha hb)
+  (HL' : HomLift p f φ' ha' hb) : a ≅ a' := 
+Classical.choice $ nonempty_of_exists (ExistsUnique.exists
+  (PullbackIsoExists hp HL HL'))
+
+lemma PullbackIsoComm  {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
+  {R S : 𝒮} {a a' b : 𝒳} {ha : ObjLift p R a} {ha' : ObjLift p R a'} {hb : ObjLift p S b} 
+  {f : R ⟶ S} {φ : a ⟶ b} {φ' : a' ⟶ b}  
+  (HL : HomLift p f φ ha hb)
+  (HL' : HomLift p f φ' ha' hb) : (PullbackIso hp HL HL').hom ≫ φ' = φ := 
+by sorry 
+
+lemma PullbackIsoUnique  {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
+  {R S : 𝒮} {a a' b : 𝒳} {ha : ObjLift p R a} {ha' : ObjLift p R a'} {hb : ObjLift p S b} 
+  {f : R ⟶ S} {φ : a ⟶ b} {φ' : a' ⟶ b}  
+  (HL : HomLift p f φ ha hb)
+  (HL' : HomLift p f φ' ha' hb) 
+  {f : a ⟶ a'}  (hf : f ≫ φ' = φ) : f = (PullbackIso hp HL HL').hom 
+:= sorry 
+
+
+
+
+
+/-  {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
+  (R S : 𝒮) (a a' b : 𝒳) (ha : ObjLift p R a) (ha' : ObjLift p R a') (hb : ObjLift p S b) 
+  (f : R ⟶ S) (φ : a ⟶ b) (φ' : a' ⟶ b) 
+  (HL : HomLift p f φ ha hb)
+  (HL' : HomLift p f φ' ha' hb)-/
+
+
+--lemma PullBackHomUnique 
+
+
+
 
   --rcases HomLift' hp hb f with ⟨a, ha, φ, hφ⟩
   --existsi φ
