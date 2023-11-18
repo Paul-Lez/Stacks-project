@@ -471,7 +471,6 @@ def objects_glue {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
   : Prop := ∃ (b : 𝒳) (hb : ObjLift p S b)
       (φ : ∀ {Y : 𝒮} {f : Y ⟶ S} (hf : I f), PullbackObj hp hb f ≅ a hf)
       (hφ : ∀ {Y : 𝒮} {f : Y ⟶ S} (hf : I f), HomLift p (𝟙 Y) (φ hf).hom (PullbackObjLift hp hb f) (ha hf)),
-<<<<<<< HEAD
      ∀ (Y Y' : 𝒮) (f : Y ⟶ S) (f' : Y' ⟶ S) (hf : I f) (hf' : I f'),
     CommSq (show PullbackObj hp hb (CategoryTheory.Limits.pullback.fst ≫ f) ⟶
       PullbackObj hp (ha hf) (CategoryTheory.Limits.pullback.fst) from
@@ -488,24 +487,6 @@ def objects_glue {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
       PullbackObj hp (ha hf')
       (@CategoryTheory.Limits.pullback.fst _ _ _ _ _ f' f (hI' hf' hf)) from
         objects_glue' J hp S I hI hI' a ha α hα hα' Y' Y f' f hf' hf b hb)
-=======
-
-/-       ∀ (Y Y' : 𝒮) (f : Y ⟶ S) (f' : Y' ⟶ S) (hf : I f) (hf' : I f'),
-
-
-      α hf hf' -- : PullbackObj hp (ha hf) (CategoryTheory.Limits.pullback.fst f f')
-                -- ⟶ PullbackObj hp (ha hf') (CategoryTheory.Limits.pullback.snd f f')
-      ≫  ((φ hf).hom -- : PullbackObj hp hb f ⟶ a hf
-        ≫ PullbackMap hp (ha hf) (@CategoryTheory.Limits.pullback.fst _ _ _ _ _ f f' (hI' hf hf')))
-          -- : PullbackObj hp (ha hf) (CategoryTheory.Limits.pullback.fst f f') ⟶ a hf
-        = -- Composite : PullbackObj hp (ha hf) (CategoryTheory.Limits.pullback.fst f f') ⟶ a hf
-      (PullbackMap hp (ha hf') (@CategoryTheory.Limits.pullback.snd _ _ _ _ _ f f' (hI' hf hf')))
-        -- PullbackObj hp (ha hf) (CategoryTheory.Limits.pullback.snd f f') ⟶ a hf'
-        ≫ (φ hf').hom := sorry -- PullbackObj hp hb f ⟶ a hf'
-
- -/
-
->>>>>>> 8d20640 (Basic fibered category lemmas)
 
 def Gluing_Prop {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
   (S : 𝒮) (I : J.sieves S) (a b : 𝒳) (ha : ObjLift p S a)
