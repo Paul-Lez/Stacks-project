@@ -56,10 +56,9 @@ lemma IsCartesian.comp (p : C ⥤ S) {x y z : C} (ψ : z ⟶ y) (φ : y ⟶ x)
     rcases hψ with ⟨hψ⟩
     rcases hψ hφproj with ⟨π, ⟨hcomp2, hproj2⟩, π_unique⟩
     existsi π
-    refine ⟨⟨?_, ?_⟩, ?_⟩
+    refine ⟨⟨?_, hproj2⟩, ?_⟩
     · rw [←assoc, hcomp2]
       exact hφcomp
-    · exact hproj2
     rintro π' ⟨hπ'comp, hπ'proj⟩
     apply π_unique
     refine ⟨?_, hπ'proj⟩
@@ -104,6 +103,7 @@ lemma iso_iscartesian (p : C ⥤ S) {x y : C} (φ : y ⟶ x) [IsIso φ] : IsCart
     intro ψ' hψ'
     simp only [IsIso.eq_comp_inv, hψ'.1]
 
+-- Probably not the most useful lemma?
 lemma isiso_of_cartesian (p : C ⥤ S) {x y : C} (φ : y ⟶ x) [hiso : IsIso (p.map φ)]
   [hcart : IsCartesian p φ] : IsIso φ :=
   by
@@ -138,8 +138,6 @@ instance Fiber.category (p : C ⥤ S) (s : S) : Category (Fiber p s) where
     by
       simp only [map_comp, assoc, comp_id]
       rw [ψ.prop, φ.prop]⟩
-
-#check Subtype.val
 
 def Fiber.functor (p : C ⥤ S) (s : S) : (Fiber p s) ⥤ C where
   obj := Subtype.val
@@ -209,7 +207,7 @@ instance canonical_fiber (p : C ⥤ S) [hp : IsFibered p] : HasFibers p where
       exact h_cart
 -/
 
-lemma fiber_factorization (p : C ⥤ S) [hp : IsFibered p] (x y : C) (ψ : y ⟶ x) :
+lemma fiber_factorization (p : C ⥤ S) [hp : IsFibered p] {x y : C} (ψ : y ⟶ x) :
   ∃ (z : Fiber p (p.obj y)) (τ : Fiber.self p y ⟶ z) (φ : z.val ⟶ x), IsCartesian p φ ∧
     (τ.val ≫ φ = ψ) :=
   by
@@ -221,7 +219,7 @@ lemma fiber_factorization (p : C ⥤ S) [hp : IsFibered p] (x y : C) (ψ : y ⟶
         rcases hproj with ⟨hproj⟩
         simp only [comp_id] at hproj
         simp only [hproj, eqToHom_trans_assoc, eqToHom_refl, id_comp]
-    rcases (hcart h1) with ⟨τ', ⟨hcomp, hproj⟩, τ'_unique⟩
+    rcases (hcart h1) with ⟨τ', ⟨hcomp, hproj⟩, _⟩
     existsi ⟨τ', by simp only [←hproj, eqToHom_trans, eqToHom_refl]⟩
     existsi φ
     refine ⟨⟨hcart⟩, hcomp⟩
@@ -232,14 +230,85 @@ lemma fiber_factorization (p : C ⥤ S) [hp : IsFibered p] (x y : C) (ψ : y ⟶
 --  fiber_functor := sorry
 --  comp_const := sorry
 
-class FiberedCategoryMorphism (p : C ⥤ S) (q : D ⥤ S) (F : C ⥤ D)
+class Functor.IsBasePreserving (p : C ⥤ S) (q : D ⥤ S) (F : C ⥤ D)
   [IsFibered p] [IsFibered q] : Prop where
   (basePreserving : F ⋙ q = p)
   (preservesCartesian (φ : y ⟶ x) [IsCartesian p φ] : IsCartesian q (F.map φ))
 
+lemma samefiber (p : C ⥤ S) (q : D ⥤ S) (F : C ⥤ D) (G : C ⥤ D)
+  [IsFibered p] [IsFibered q] [hF : Functor.IsBasePreserving p q F] [hG : Functor.IsBasePreserving p q G]
+  (x : C) : q.obj (F.obj x) = q.obj (G.obj x) :=
+  by
+    rcases hF with ⟨hFcomm, _⟩
+    rcases hG with ⟨hGcomm, _⟩
+    rw [←comp_obj, ←comp_obj, hFcomm, hGcomm]
 
+-- To make into a category I first have to define the type of Fibered categories
+--instance IsFibered.category (p : C ⥤ D) [IsFibered p] : Category p where sorry
 
+class NatTrans.IsBasePreserving (p : C ⥤ S) (q : D ⥤ S) [IsFibered p] [IsFibered q] {F : C ⥤ D}
+  (G : C ⥤ D) [Functor.IsBasePreserving p q F] [Functor.IsBasePreserving p q G] (α : F ⟶ G) : Prop where
+  (pointwiseInFiber : ∀ (x : C), q.map (α.app x) = eqToHom (samefiber p q F G x))
 
+-- TODO DEFINE COERCION
+--def NatTrans.lift (p : C ⥤ S) (q : D ⥤ S) [IsFibered p] [IsFibered q] {F : C ⥤ D}
+--  (G : C ⥤ D) [Functor.IsBasePreserving p q F] [Functor.IsBasePreserving p q G] (α : F ⟶ G)
+--  [NatTrans.IsBasePreserving p q α] (x : C) :
+
+class IsFiberedInGroupoids (p : C ⥤ S) : Prop where
+  (isCartesian {x y : C} (φ : y ⟶ x) :  IsCartesian p φ)
+  (LiftHom {y : C} {X : S} (f : X ⟶ p.obj y) :
+    ∃ (x : C) (φ : x ⟶ y) (hx : p.obj x = X),
+      CommSq (p.map φ) (eqToHom hx) (𝟙 (p.obj y)) f)
+
+lemma IsFiberedInGroupoids_iff (p : C ⥤ S) : IsFiberedInGroupoids p ↔
+  (IsFibered p ∧ (∀ (s : S) {x y : (Fiber p s)} (φ : x ⟶ y), IsIso φ)) :=
+  by
+    constructor
+    · rintro ⟨hfiber, hlift⟩
+      refine ⟨⟨?_⟩, ?_⟩
+      · intro x s f
+        rcases hlift f with ⟨z, ψ, hz, hcomm⟩
+        existsi z
+        existsi ψ
+        existsi hz
+        refine ⟨hcomm, hfiber ψ⟩
+      intro s x y ψ
+      haveI hiso : IsIso (p.map ψ.val) :=
+        by
+          have hψ := ψ.prop
+          rw [comp_eqToHom_iff, eqToHom_trans] at hψ
+          rw [hψ]
+          sorry -- TODO SHOULD BE FINE ALREADY? This instance exists in EqToHom...
+      haveI hψiso : IsIso (ψ.val) := isiso_of_cartesian p ψ.val
+      sorry -- Need iso is in fiber... separate lemma
+    rintro ⟨hfiber, hiso⟩
+    constructor
+    · intro x y φ
+      rcases fiber_factorization p φ with ⟨z, ψ, τ, hτ, hcomp⟩
+      rw [←hcomp]
+      haveI hiso := hiso (p.obj y) ψ
+      haveI : IsCartesian p ψ.val :=
+        by
+          haveI : IsIso ψ.val := sorry -- TODO INSTANCE SHOULD ALREADY EXIST
+          exact iso_iscartesian p ψ.val
+      apply IsCartesian.comp
+    intro x Y f
+    rcases hfiber with ⟨hfiber⟩
+    rcases hfiber f with ⟨y, φ, hy, hcomm, hcart⟩
+    existsi y
+    existsi φ
+    existsi hy
+    exact hcomm
+
+/-
+class IsFiberedInGroupoids (p : C ⥤ S) : Prop where
+  (LiftHom {y : C} {X : S} (f : X ⟶ p.obj y) :
+    ∃ (x : C) (φ : x ⟶ y) (hx : p.obj x = X),
+      CommSq (p.map φ) (eqToHom hx) (𝟙 (p.obj y)) f)
+  (IsCartesian {x y z : C} {φ : y ⟶ x} {ψ : z ⟶ x} {f : p.obj z ⟶ p.obj y} :
+    f ≫ (p.map φ) = p.map ψ →  ∃! (χ : z ⟶ y), CommSq f (𝟙 (p.obj z)) (𝟙 (p.obj y)) (p.map χ))
+-/
 
 
 --class IsFiberedInGroupoids (p : C ⥤ S) : Prop where
