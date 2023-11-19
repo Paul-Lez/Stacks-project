@@ -262,7 +262,7 @@ lemma PullbackUniversalPropertyDiagram {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGrou
   (HCS' : HomLift p (f ≫ g) ρ ha hc) :
     PullbackUniversalPropertyMap hp HCS HCS' ≫ ψ = ρ := sorry
 
-def PullbackInducedMap {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
+def PullbackObjInducedMap {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
   {R R' S : 𝒮} {b : 𝒳} /- {ha : ObjLift p R a} {ha' : ObjLift p R a'} -/ (hb : ObjLift p S b)
   (f : R ⟶ S) (f' : R' ⟶ S)
   {g : R' ⟶ R}
@@ -272,7 +272,34 @@ def PullbackInducedMap {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
   : PullbackObj hp hb f' ⟶ PullbackObj hp hb f :=
 sorry
 
-def PullbackIsoOfIso {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
+def IsPullbackInducedMap {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
+  {R R' S : 𝒮} {a a' b : 𝒳} (hb : ObjLift p S b)
+  {f : R ⟶ S} {f' : R' ⟶ S} {g : R' ⟶ R}
+  (H : g ≫ f = f') {φ : a ⟶ b} {φ' : a' ⟶ b}
+  (hφ : IsPullback hb f φ) (hφ' : IsPullback hb f' φ') : a' ⟶ a :=
+by sorry
+
+lemma IsPullbackInducedMapDiagram {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
+  {R R' S : 𝒮} {a a' b : 𝒳} (hb : ObjLift p S b)
+  {f : R ⟶ S} {f' : R' ⟶ S} {g : R' ⟶ R}
+  (H : g ≫ f = f') {φ : a ⟶ b} {φ' : a' ⟶ b}
+  (hφ : IsPullback hb f φ) (hφ' : IsPullback hb f' φ') :
+IsPullbackInducedMap hp hb H hφ hφ' ≫ φ = φ' := sorry
+
+def IsPullbackIsoOfIso {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
+  {R R' S : 𝒮} {a a' b : 𝒳} (hb : ObjLift p S b)
+  {f : R ⟶ S} {f' : R' ⟶ S} {g : R' ≅ R}
+  (H : g.hom ≫ f = f') {φ : a ⟶ b} {φ' : a' ⟶ b}
+  (hφ : IsPullback hb f φ) (hφ' : IsPullback hb f' φ') : a' ≅ a := sorry
+
+lemma IsPullbackIsoOfIso_hom {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
+  {R R' S : 𝒮} {a a' b : 𝒳} (hb : ObjLift p S b)
+  {f : R ⟶ S} {f' : R' ⟶ S} {g : R' ≅ R}
+  (H : g.hom ≫ f = f') {φ : a ⟶ b} {φ' : a' ⟶ b}
+  (hφ : IsPullback hb f φ) (hφ' : IsPullback hb f' φ') :
+  (IsPullbackIsoOfIso hp hb H hφ hφ').hom = IsPullbackInducedMap hp hb H hφ hφ' := sorry
+
+def PullbackObjIsoOfIso {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
   {R R' S : 𝒮} {b : 𝒳} (hb : ObjLift p S b)
   (f : R ⟶ S) (f' : R' ⟶ S)
   (g : R' ≅ R)
@@ -282,7 +309,7 @@ lemma PullbackIso_of_Iso_hom {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
   {R R' S : 𝒮} {b : 𝒳} (hb : ObjLift p S b)
   (f : R ⟶ S) (f' : R' ⟶ S)
   (g : R' ≅ R)
-  (H : g.hom ≫ f = f') : (PullbackIsoOfIso hp hb f f' g H).hom = PullbackInducedMap hp hb f f' H := sorry
+  (H : g.hom ≫ f = f') : (PullbackObjIsoOfIso hp hb f f' g H).hom = PullbackObjInducedMap hp hb f f' H := sorry
 
 lemma PullbackUniqueₐ {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
   (R S T : 𝒮) (a b c : 𝒳) (ha : ObjLift p R a) (hb : ObjLift p S b) (hc : ObjLift p T c)
@@ -331,7 +358,6 @@ lemma PullbackIsoUnique {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
 
 attribute [local instance] CategoryTheory.Limits.hasPullback_symmetry
 
-
 /- Given a diagram
       R × T ≅ T × R ----> R
                 |       f |
@@ -348,10 +374,12 @@ by
   have lem₁ : IsPullback ha (@CategoryTheory.Limits.pullback.fst _ _ _ _ _ f g _≫ f)  (PullbackMap hp ha
     (@CategoryTheory.Limits.pullback.fst _ _ _ _ _ f g _≫ f))
   · apply PullbackIsPullback hp ha (@CategoryTheory.Limits.pullback.fst _ _ _ _ _ f g _≫ f)
-  have lem₂ : IsPullback ha (@CategoryTheory.Limits.pullback.fst _ _ _ _ _ f g _≫ f)  (PullbackMap hp ha
+  have lem₂ : IsPullback ha (@CategoryTheory.Limits.pullback.fst _ _ _ _ _ g f _≫ g)  (PullbackMap hp ha
     (@CategoryTheory.Limits.pullback.fst _ _ _ _ _ g f (CategoryTheory.Limits.hasPullback_symmetry f g) ≫ g))
-  · sorry
-  exact IsPullbackIso hp lem₁ lem₂
+  · apply PullbackIsPullback hp ha
+  have H : (Limits.pullbackSymmetry f g).hom ≫ (@CategoryTheory.Limits.pullback.fst _ _ _ _ _ g f (CategoryTheory.Limits.hasPullback_symmetry f g) ≫ g) = (@CategoryTheory.Limits.pullback.fst _ _ _ _ _ f g _≫ f)
+  · rw [Limits.pullbackSymmetry_hom_comp_fst_assoc, Limits.pullback.condition]
+  apply IsPullbackIsoOfIso hp ha H lem₂ lem₁
 
 /- Given a diagram
       R × T ≅ T × R ----> R
@@ -370,17 +398,12 @@ by
   · apply PullbackIsPullback hp ha (@CategoryTheory.Limits.pullback.fst _ _ _ _ _ f g _)
   have lem₂ : IsPullback ha (@CategoryTheory.Limits.pullback.fst _ _ _ _ _ f g _)  (PullbackMap hp ha
     (@CategoryTheory.Limits.pullback.snd _ _ _ _ _ g f _))
+  have H : (Limits.pullbackSymmetry f g).hom ≫ (@CategoryTheory.Limits.pullback.fst _ _ _ _ _ f g _)
+    =  (@CategoryTheory.Limits.pullback.snd _ _ _ _ _ g f _)
   · sorry
-  sorry
-
--- redundant: this is just `PullbackPullbackIso'` stated in a different way
-def PullbackPullbackIso'' {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
-  {R S T : 𝒮} {a : 𝒳} (ha : ObjLift p T a) (f : R ⟶ S) (g : T ⟶ S) [CategoryTheory.Limits.HasPullback f g] :
-    PullbackObj hp ha (@CategoryTheory.Limits.pullback.snd _ _ _ _ _ f g _) ≅
-      PullbackObj hp ha (@CategoryTheory.Limits.pullback.fst _ _ _ _ _ g f _) :=
-by sorry
-  --have isPB : IsPullbackDef ha f
-
+  apply IsPullbackIsoOfIso hp ha _ lem₂ lem₁
+  · exact Iso.refl _
+  · simp only [Iso.refl_hom, Category.id_comp]
 
 def pullbackfibredprod {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
   {R R' S : 𝒮} {a a' b : 𝒳} (ha : ObjLift p R a) (ha' : ObjLift p R' a') (hb : ObjLift p S b)
@@ -421,8 +444,7 @@ def Pullback_family {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
     Eventually this should maybe be inlined/reduced to more elementary definition -/
 def objects_glue' {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
   (S : 𝒮) (I : Sieve S) (hI : I ∈ J.sieves S) [Limits.HasPullbacks 𝒮]
-  (hI' : ∀ {Y Y' : 𝒮} {f : Y ⟶ S} {f' : Y' ⟶ S} (hf : I f) (hf' : I f'),
-    CategoryTheory.Limits.HasPullback f f')
+  (hI' : ∀ {Y Y' : 𝒮} {f : Y ⟶ S} {f' : Y' ⟶ S} (hf : I f) (hf' : I f'), CategoryTheory.Limits.HasPullback f f')
   (a : ∀ {Y : 𝒮} {f : Y ⟶ S} (hf : I f), 𝒳)
   (ha : ∀ {Y : 𝒮} {f : Y ⟶ S} (hf : I f), ObjLift p Y (a hf))
   (α : ∀ {Y Y' : 𝒮} {f : Y ⟶ S} {f' : Y' ⟶ S} (hf : I f) (hf' : I f'),
@@ -431,7 +453,7 @@ def objects_glue' {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
   (hα : ∀ (Y Y' Y''': 𝒮) (f : Y ⟶ S) (f' : Y' ⟶ S) (f'' : Y'' ⟶ S) (hf : I f) (hf' : I f')
     (hf'' : I f''), true) -- fixme (Cocyle condition)
   (hα' : ∀ {Y Y' : 𝒮} {f : Y ⟶ S} {f' : Y' ⟶ S} (hf : I f) (hf' : I f'),
-    HomLift p (𝟙 (@CategoryTheory.Limits.pullback _ _ _ _ _ f f' sorry )) (α hf hf').hom sorry sorry):
+    HomLift p (𝟙 (@CategoryTheory.Limits.pullback _ _ _ _ _ f f' (hI' hf hf'))) (α hf hf').hom sorry sorry):
   ∀ (Y Y' : 𝒮) (f : Y ⟶ S) (f' : Y' ⟶ S) (hf : I f) (hf' : I f') (b : 𝒳) (hb : ObjLift p S b),
   PullbackObj hp hb (@CategoryTheory.Limits.pullback.fst _ _ _ _ _ f f' (hI' hf hf') ≫ f) ⟶
     PullbackObj hp (ha hf) (@CategoryTheory.Limits.pullback.fst _ _ _ _ _ f f' (hI' hf hf')) :=
@@ -482,23 +504,11 @@ def objects_glue {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
       PullbackObj hp (ha hf') (CategoryTheory.Limits.pullback.fst) from
       ((α hf hf').hom ≫ (show PullbackObj hp (ha hf') (@CategoryTheory.Limits.pullback.snd _ _ _ _ _ f f' (hI' hf hf'))
           ⟶ PullbackObj hp (ha hf') (@CategoryTheory.Limits.pullback.fst _ _ _ _ _ f' f (hI' hf' hf))
-            from (@PullbackPullbackIso''  _ _ _ _ _ hp _ _ _ _ (ha hf') f f' (hI' hf hf')).hom)))
+            from (@PullbackPullbackIso'  _ _ _ _ _ hp _ _ _ _ (ha hf') f' f (hI' hf' hf)).symm.hom)))
     (show PullbackObj hp hb (@CategoryTheory.Limits.pullback.fst _ _ _ _ _ f' f (hI' hf' hf) ≫ f') ⟶
       PullbackObj hp (ha hf')
       (@CategoryTheory.Limits.pullback.fst _ _ _ _ _ f' f (hI' hf' hf)) from
         objects_glue' J hp S I hI hI' a ha α hα hα' Y' Y f' f hf' hf b hb)
-
-def Gluing_Prop {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
-  (S : 𝒮) (I : J.sieves S) (a b : 𝒳) (ha : ObjLift p S a)
-  (hb : ObjLift p S b)
-  {pb : I → 𝒳}
-  {pbm : ∀ (s : I), (pb s → b)}
-  {hpb : ∀ s : I, ObjLift p s (pb s) }
-  {hpbm : ∀ i : I, HomLift p s (pbm s) (hpb s) hb}
-  : Prop := sorry
-
-
-
 
 /- class Stack {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p) : Prop where
   (GlueMorphism : ∀ (S : 𝒮) (I : J.sieves S) (a b : 𝒳) (ha : ObjLift p S a)
