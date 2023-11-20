@@ -392,6 +392,14 @@ def pullback_comp_iso_pullback_pullback {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGro
   PullbackObj hp ha (g ≫ f) ≅ PullbackObj hp (PullbackObjLift hp ha f) g :=
 sorry
 
+def pullback_iso_pullback  {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
+  {R S T : 𝒮} {a : 𝒳} (ha : ObjLift p S a) (f : R ⟶ S) (g : T ⟶ S)
+  [CategoryTheory.Limits.HasPullback f g] :
+  PullbackObj hp (PullbackObjLift hp ha f) (@CategoryTheory.Limits.pullback.fst _ _ _ _ _ f g _)
+    ≅ PullbackObj hp (PullbackObjLift hp ha g) (@CategoryTheory.Limits.pullback.snd _ _ _ _ _ f g
+      _) := sorry
+
+
 /- Given a diagram
       R × T ≅ T × R ----> R
                 |       f |
@@ -413,40 +421,23 @@ by
   · apply PullbackIsPullback hp ha
   apply IsPullbackIsoOfIso hp ha (Limits.pullbackSymmetry_hom_comp_snd _ _) lem₂ lem₁
 
-def pullbackfibredprod {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
-  {R R' S : 𝒮} {a a' b : 𝒳} (ha : ObjLift p R a) (ha' : ObjLift p R' a') (hb : ObjLift p S b)
-  {f : R ⟶ S} {f' : R' ⟶ S} [CategoryTheory.Limits.HasPullback f f'] :
-  PullbackObj hp (PullbackObjLift hp hb f) (show Limits.pullback f f' ⟶ R from CategoryTheory.Limits.pullback.fst) ≅
-    PullbackObj hp (PullbackObjLift hp hb f') (show Limits.pullback f f' ⟶ R' from CategoryTheory.Limits.pullback.snd)
-    := sorry
-
 variable (J : GrothendieckTopology 𝒮) (S Y : 𝒮) (I : Sieve S) (hI : I ∈ J.sieves S) (f : Y ⟶ S) (hf : I f)
 
--- TODO : rewrite this in terms of API
-def pullback_family_iso  {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
-  (S : 𝒮) (I : Sieve S) (hI : I ∈ J.sieves S)
-  (hI' : ∀ {Y Y' : 𝒮} {f : Y ⟶ S} {f' : Y' ⟶ S} (hf : I f) (hf' : I f'), CategoryTheory.Limits.HasPullback f f')
-  (a b : 𝒳) (ha : ObjLift p S a) (hb : ObjLift p S b)
-  (φ : ∀ (Y : 𝒮) (f : Y ⟶ S) (hf : I f), PullbackObj hp ha f ⟶ b) : ∀ (Y Y' : 𝒮) (f : Y ⟶ S) (f' : Y' ⟶ S) (hf : I f) (hf' : I f'),
-  PullbackObj hp (PullbackObjLift hp ha f) (@CategoryTheory.Limits.pullback.fst _ _ _ _ _ f f' (hI' hf hf')) ≅
-  PullbackObj hp (PullbackObjLift hp ha f') (@CategoryTheory.Limits.pullback.snd _ _ _ _ _ f f' (hI' hf hf')) :=
-fun (Y Y' : 𝒮) (f : Y ⟶ S) (f' : Y' ⟶ S) (hf : I f) (hf' : I f') =>
-by
-  haveI := hI' hf hf'
-  apply pullbackfibredprod hp (PullbackObjLift hp ha f) (PullbackObjLift hp ha f')
-
 -- *** Morphisms glue ***.
--- (this is the hypothesis that the morphisms agree on intersections. Still need to state the existence of the Φ)!
-def Pullback_family {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p) : Prop :=
+def morphisms_glue  {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p) : Prop :=
   ∀ (S : 𝒮) (I : Sieve S) (hI : I ∈ J.sieves S)
   (hI' : ∀ {Y Y' : 𝒮} {f : Y ⟶ S} {f' : Y' ⟶ S} (hf : I f) (hf' : I f'),
     CategoryTheory.Limits.HasPullback f f')
   (a b : 𝒳) (ha : ObjLift p S a) (hb : ObjLift p S b)
   (φ : ∀ (Y : 𝒮) (f : Y ⟶ S) (hf : I f), PullbackObj hp ha f ⟶ b)
-  (Y Y' : 𝒮) (f : Y ⟶ S) (f' : Y' ⟶ S) (hf : I f) (hf' : I f'),
-  (PullbackMap hp (PullbackObjLift hp ha f) (@CategoryTheory.Limits.pullback.fst _ _ _ _ _ f f' (hI' hf hf')) ≫ (φ Y f hf))
-  = (pullback_family_iso J hp S I hI hI' a b ha hb φ Y Y' f f' hf hf').hom ≫
-    (PullbackMap hp (PullbackObjLift hp ha f') (@CategoryTheory.Limits.pullback.snd _ _ _ _ _ f f' (hI' hf hf')) ≫ (φ Y' f' hf'))
+  (Y Y' : 𝒮) (f : Y ⟶ S) (f' : Y' ⟶ S) (hf : I f) (hf' : I f')
+  (hφ : (PullbackMap hp (PullbackObjLift hp ha f) (@CategoryTheory.Limits.pullback.fst _ _ _ _ _ f f' (hI' hf hf')) ≫ (φ Y f hf))
+  = (show PullbackObj hp (PullbackObjLift hp ha f) (@CategoryTheory.Limits.pullback.fst _ _ _ _ _ f f' (hI' hf hf')) ≅
+      PullbackObj hp (PullbackObjLift hp ha f') (@CategoryTheory.Limits.pullback.snd _ _ _ _ _ f f' (hI' hf hf')) by
+      haveI := hI' hf hf'
+      exact pullback_iso_pullback hp ha f f').hom ≫
+    (PullbackMap hp (PullbackObjLift hp ha f') (@CategoryTheory.Limits.pullback.snd _ _ _ _ _ f f' (hI' hf hf')) ≫ (φ Y' f' hf'))),
+  ∃! Φ : a ⟶ b, HomLift p (𝟙 S) Φ ha hb ∧ ∀ (Y : 𝒮) (f : Y ⟶ S) (hf : I f), φ Y f hf = PullbackMap hp ha f ≫ Φ
 
 --TODO: *** State the cocyle condition ***
 def CocyleCondition {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
@@ -459,7 +450,7 @@ def CocyleCondition {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
     PullbackObj hp (ha hf) (@CategoryTheory.Limits.pullback.fst _ _ _ _ _ f f' (hI' hf hf'))
     ≅ PullbackObj hp (ha hf') (@CategoryTheory.Limits.pullback.snd _ _ _ _ _ f f' (hI' hf hf'))) : Prop :=
    ∀ (Y Y' Y'': 𝒮) (f : Y ⟶ S) (f' : Y' ⟶ S) (f'' : Y'' ⟶ S) (hf : I f) (hf' : I f')
-    (hf'' : I f''), true
+    (hf'' : I f''), sorry
 
 -- *** Ojects glue ***
 def objects_glue {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
