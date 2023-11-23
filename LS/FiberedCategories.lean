@@ -1,50 +1,44 @@
+/-
+Copyright (c) 2023 Calle Sönne. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Calle Sönne, Paul Lezeau
+-/
+
 import Mathlib.CategoryTheory.Functor.Category
 import Mathlib.CategoryTheory.CommSq
 import Mathlib.CategoryTheory.Functor.Const
+
+/-!
+
+# Fibered categories
+
+This file defines fibered categories.
+
+## Implementation
+-/
 
 
 universe u₁ v₁ u₂ v₂ u₃ w
 
 open CategoryTheory Functor Category
 
+-- TODO move variable D later
 variable {S : Type u₁} {C : Type u₂} {D : Type u₃} [Category S] [Category C] [Category D]
-
-namespace ObjLift
-
-def ObjLift (p : C ⥤ S) (U : S) (x : C) : Prop := p.obj x = U
-
-lemma LiftImage (p : C ⥤ S) (x : C) : ObjLift p (p.obj x) x := rfl
-
-lemma eq {p : C ⥤ S} {U : S} {x : C} (h : ObjLift p U x) : p.obj x = U := h
-
-def toIso {p : C ⥤ S} {U : S} {x : C} (hx : ObjLift p U x) : p.obj x ≅ U := eqToIso hx
-
-def toHom {p : C ⥤ S} {U : S} {x : C} (hx : ObjLift p U x) : p.obj x ⟶ U := eqToHom hx
-
-end ObjLift
-
-open ObjLift
-
-def HomLift (p : C ⥤ S) {x y : C} {U V : S} (f : U ⟶ V)
-(φ : x ⟶ y) (h₁ : ObjLift p U x)
-(h₂ : ObjLift p V y) : Prop := CommSq (p.map φ) (toHom h₁) (toHom h₂) f
-
---lemma HomLiftOpp (p : C ⥤ S) {x y : C} {U V : S} (f : U ⟶ V) (φ : x ⟶ y) (h₁ : ObjLift p U x)
---  (h₂ : ObjLift p V y) : (HomLift p f φ h₁ h₂) ↔ (Homlift p.op f.op φ.op ((ObjLiftOpp p U x).1
---   h₁) ((ObjLiftOpp p V y).1 h₂)) :=
---by sorry
 
 /-
 Defining when an arrow is cartesian (see Olssons book)
 Strongly cartesian in the stacks project
+
 -/
 
 class IsCartesian (p : C ⥤ S) {x y : C} (φ : y ⟶ x) : Prop where
   (isCartesian {z : C} {ψ : z ⟶ x} {f : p.obj z ⟶ p.obj y} (hy : f ≫ (p.map φ) = p.map ψ) :
     ∃! (χ : z ⟶ y), (χ ≫ φ = ψ) ∧ f = p.map χ)
 
-#check Iso
 
+/--
+The composition of two cartesian arrows is cartesian
+-/
 lemma IsCartesian.comp (p : C ⥤ S) {x y z : C} (ψ : z ⟶ y) (φ : y ⟶ x)
   [hψ : IsCartesian p ψ] [hφ : IsCartesian p φ] : IsCartesian p (ψ ≫ φ) :=
   by
@@ -68,6 +62,9 @@ lemma IsCartesian.comp (p : C ⥤ S) {x y z : C} (ψ : z ⟶ y) (φ : y ⟶ x)
       exact hπ'comp
     simp only [hπ'proj, map_comp]
 
+/--
+Given a cartesian morphism ψ ≫ φ such that φ is cartesian, then so must ψ be. (TODO: make iff)
+-/
 lemma IsCartesian.comp_of_cartesian (p : C ⥤ S) {x y z : C} (ψ : z ⟶ y) (φ : y ⟶ x) [hφ : IsCartesian p φ]
   [hcomp : IsCartesian p (ψ ≫ φ)] : IsCartesian p ψ :=
   by
@@ -91,6 +88,9 @@ lemma IsCartesian.comp_of_cartesian (p : C ⥤ S) {x y z : C} (ψ : z ⟶ y) (φ
     refine ⟨?_, hπ'proj⟩
     simp only [←hπ'comp, assoc]
 
+/--
+Isomorphisms are cartesian.
+-/
 lemma iso_iscartesian (p : C ⥤ S) {x y : C} (φ : y ⟶ x) [IsIso φ] : IsCartesian p φ :=
   by
     constructor
@@ -103,7 +103,9 @@ lemma iso_iscartesian (p : C ⥤ S) {x y : C} (φ : y ⟶ x) [IsIso φ] : IsCart
     intro ψ' hψ'
     simp only [IsIso.eq_comp_inv, hψ'.1]
 
--- Probably not the most useful lemma?
+/--
+A cartesian arrow such that its projection is an isomorphism, must also be an isomorphism.
+-/
 lemma isiso_of_cartesian (p : C ⥤ S) {x y : C} (φ : y ⟶ x) [hiso : IsIso (p.map φ)]
   [hcart : IsCartesian p φ] : IsIso φ :=
   by
@@ -111,12 +113,26 @@ lemma isiso_of_cartesian (p : C ⥤ S) {x y : C} (φ : y ⟶ x) [hiso : IsIso (p
     rcases hcart with ⟨hcart⟩
     have heq : inv (p.map φ) ≫ p.map φ = p.map (𝟙 x) :=
       by simp only [IsIso.inv_hom_id, map_id]
-    rcases (hcart heq) with ⟨φinv, ⟨hcomp, hproj⟩, hunique⟩
+    rcases (hcart heq) with ⟨φinv, ⟨hcomp, hproj⟩, _⟩
     existsi φinv
     refine ⟨?_, hcomp⟩
-    sorry -- TODO AFTER MOVING PAULS API OVER HERE... Or need to use is_iscartesian
+    have heq2 : p.map (φ ≫ φinv) ≫ p.map φ = p.map (φ) :=
+      by
+        simp only [map_comp]
+        rw [←hproj]
+        simp only [IsIso.hom_inv_id, id_comp]
+    rcases (hcart heq2) with ⟨φ', _, hunique2⟩
+    have hh : 𝟙 y = φ' :=
+      by
+        apply hunique2
+        simp only [id_comp, map_comp, map_id, true_and]
+        rw [←hproj]
+        simp only [IsIso.hom_inv_id]
+    rw [hh]
+    apply hunique2
+    simp only [assoc, hcomp, comp_id, map_comp, and_self]
 
-
+/-- Definition of a Fibered category. -/
 class IsFibered (p : C ⥤ S) : Prop where
   (cartesian_lift {x : C} {Y : S} (f : Y ⟶ p.obj x) :
     ∃ (y : C) (φ : y ⟶ x) (hy : p.obj y = Y),
@@ -142,6 +158,13 @@ instance Fiber.category (p : C ⥤ S) (s : S) : Category (Fiber p s) where
 def Fiber.functor (p : C ⥤ S) (s : S) : (Fiber p s) ⥤ C where
   obj := Subtype.val
   map := Subtype.val
+
+class HasFibers (p : C ⥤ S) where
+  Fib (s : S) : Type v₁
+  [isCategory : Category (Fib s)]
+  (fiber_equiv (s : S) : Fib s ≌ Fiber p s)
+
+-- def HasFibers.functor (p : C ⥤ S) (s : S) [hp : HasFibers p] := (hp.fiber_equiv s).functor
 
 /-
 def Fiber.comp_const (p : C ⥤ S) (s : S) : (Fiber.functor p s) ⋙ p ≅ (const (Fiber p s)).obj s where
@@ -261,6 +284,8 @@ class IsFiberedInGroupoids (p : C ⥤ S) : Prop where
     ∃ (x : C) (φ : x ⟶ y) (hx : p.obj x = X),
       CommSq (p.map φ) (eqToHom hx) (𝟙 (p.obj y)) f)
 
+
+-- TODO BREAK UP INTO SMALLER PIECES
 lemma IsFiberedInGroupoids_iff (p : C ⥤ S) : IsFiberedInGroupoids p ↔
   (IsFibered p ∧ (∀ (s : S) {x y : (Fiber p s)} (φ : x ⟶ y), IsIso φ)) :=
   by
@@ -281,7 +306,7 @@ lemma IsFiberedInGroupoids_iff (p : C ⥤ S) : IsFiberedInGroupoids p ↔
           rw [hψ]
           sorry -- TODO SHOULD BE FINE ALREADY? This instance exists in EqToHom...
       haveI hψiso : IsIso (ψ.val) := isiso_of_cartesian p ψ.val
-      sorry -- Need iso is in fiber... separate lemma
+      sorry -- Need iso is in fiber... separate lemma (after better definition of fibers)
     rintro ⟨hfiber, hiso⟩
     constructor
     · intro x y φ
