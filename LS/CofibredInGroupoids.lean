@@ -195,26 +195,19 @@ def IsPullback {p : 𝒳 ⥤ 𝒮}
   HomLift p f φ ha hb
 
 def IsPullbackObjLift {p : 𝒳 ⥤ 𝒮}
-  {R S : 𝒮} {a b : 𝒳} {hb : ObjLift p S b} {f : R ⟶ S} {φ : a ⟶ b} (hφ : IsPullback hb f φ) : ObjLift p R a := sorry
+  {R S : 𝒮} {a b : 𝒳} {hb : ObjLift p S b} {f : R ⟶ S} {φ : a ⟶ b} (hφ : IsPullback hb f φ) :
+  ObjLift p R a :=
+Classical.choose hφ
 
 lemma PullbackIsPullback {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
   {R S : 𝒮} {b : 𝒳} (hb : ObjLift p S b) (f : R ⟶ S) :
-    IsPullback hb f (PullbackMap hp hb f) := by sorry
+    IsPullback hb f (PullbackMap hp hb f) := by
+  use (PullbackObjLift hp hb f) ; exact PullbackHomLift hp hb f
 
 lemma IsPullback_HomLift {p : 𝒳 ⥤ 𝒮}
-  {R S : 𝒮} {a b : 𝒳} {φ : a ⟶ b} {hb : ObjLift p S b} {f : R ⟶ S} (ha : IsPullback hb f φ) :
-  HomLift p f φ (IsPullbackObjLift ha) hb := sorry
-
-
-def IsPullbackIso {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
-  {R S : 𝒮} {a a' b : 𝒳} {hb : ObjLift p S b} {f : R ⟶ S} {φ : a ⟶ b} {φ' : a' ⟶ b}
-   (hφ : IsPullback hb f φ) (hφ' : IsPullback hb f φ') : a ≅ a' :=
-by sorry
-
-
-/- def IsPullbackInducedMapExists {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a a' b b' : 𝒳} (hb : ObjLift p S b)
-  (hb' : ObjLift p S b') (f : R ⟶ S) (φ : a ⟶ b) (φ' : a' ⟶ b') (ψ : a' ⟶ a)
-  (hφ : IsPullbackDef hb f φ) (hφ' : IsPullbackDef hb' f φ') : ∃    -/
+  {R S : 𝒮} {a b : 𝒳} {φ : a ⟶ b} {hb : ObjLift p S b} {f : R ⟶ S} (hφ : IsPullback hb f φ) :
+  HomLift p f φ (IsPullbackObjLift hφ) hb :=
+Classical.choose_spec hφ
 
 lemma PullbackUniversalPropertyExistsUnique {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
   {R S T : 𝒮} {a b c : 𝒳} {ha : ObjLift p R a} {hb : ObjLift p S b} {hc : ObjLift p T c}
@@ -284,6 +277,9 @@ lemma PullbackUniversalMap_unique {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids
   (HCS' : HomLift p (f ≫ g) ρ ha hc) : φ = PullbackUniversalPropertyMap hp HCS HCS' :=
 (Classical.choose_spec (PullbackUniversalPropertyExistsUnique hp HCS HCS')).right _ ⟨hφ', hφ.symm⟩
 
+-- In this section we prove various properties about the naturality of pullbacks
+section Pullback_Induced_maps
+
 noncomputable def IsPullbackInducedMap {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
   {R R' S : 𝒮} {a a' b : 𝒳} (hb : ObjLift p S b)
   {f : R ⟶ S} {f' : R' ⟶ S} {g : R' ⟶ R}
@@ -291,6 +287,15 @@ noncomputable def IsPullbackInducedMap {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGrou
   (hφ : IsPullback hb f φ) (hφ' : IsPullback hb f' φ') : a' ⟶ a :=
 PullbackUniversalPropertyMap hp (IsPullback_HomLift hφ)
   (IsPullback_HomLift (show IsPullback hb (g ≫ f ) φ' by rwa [←H] at hφ'))
+
+lemma IsPullbackInducedMap_self_eq_id {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
+  {R S : 𝒮} {a b : 𝒳} (hb : ObjLift p S b) {f : R ⟶ S} {φ : a ⟶ b}
+  (hφ : IsPullback hb f φ) : IsPullbackInducedMap hp hb (show 𝟙 R ≫ f = f by simp) hφ hφ = 𝟙 a := by
+apply (PullbackUniversalMap_unique _ _ _ _ _).symm
+· simp only [Category.id_comp]
+· rw [HomLift]
+  constructor
+  simp only [map_id, Category.id_comp, Category.comp_id]
 
 lemma IsPullbackInducedMap_eq_PullbackUniversalPropertyMap {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
   {R R' S : 𝒮} {a a' b : 𝒳} (hb : ObjLift p S b)
@@ -315,18 +320,27 @@ lemma IsPullbackInducedMapDiagram {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids
   IsPullbackInducedMap hp hb H hφ hφ' ≫ φ = φ' := by
   rw [IsPullbackInducedMap_eq_PullbackUniversalPropertyMap, PullbackUniversalPropertyDiagram]
 
-def IsPullbackIsoOfIso {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
+noncomputable def IsPullbackIsoOfIso {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
   {R R' S : 𝒮} {a a' b : 𝒳} (hb : ObjLift p S b)
   {f : R ⟶ S} {f' : R' ⟶ S} {g : R' ≅ R}
   (H : g.hom ≫ f = f') {φ : a ⟶ b} {φ' : a' ⟶ b}
-  (hφ : IsPullback hb f φ) (hφ' : IsPullback hb f' φ') : a' ≅ a := sorry
+  (hφ : IsPullback hb f φ) (hφ' : IsPullback hb f' φ') : a' ≅ a where
+    hom := IsPullbackInducedMap hp hb H hφ hφ'
+    inv :=  IsPullbackInducedMap hp hb (show g.symm.hom ≫ f' = f by sorry) hφ' hφ
+    hom_inv_id := sorry
+    inv_hom_id := sorry
 
 lemma IsPullbackIsoOfIso_hom {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
   {R R' S : 𝒮} {a a' b : 𝒳} (hb : ObjLift p S b)
   {f : R ⟶ S} {f' : R' ⟶ S} {g : R' ≅ R}
   (H : g.hom ≫ f = f') {φ : a ⟶ b} {φ' : a' ⟶ b}
   (hφ : IsPullback hb f φ) (hφ' : IsPullback hb f' φ') :
-  (IsPullbackIsoOfIso hp hb H hφ hφ').hom = IsPullbackInducedMap hp hb H hφ hφ' := sorry
+(IsPullbackIsoOfIso hp hb H hφ hφ').hom = IsPullbackInducedMap hp hb H hφ hφ' := rfl
+
+def IsPullbackIso {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
+  {R S : 𝒮} {a a' b : 𝒳} {hb : ObjLift p S b} {f : R ⟶ S} {φ : a ⟶ b} {φ' : a' ⟶ b}
+   (hφ : IsPullback hb f φ) (hφ' : IsPullback hb f φ') : a ≅ a' :=
+by sorry
 
 def PullbackObjIsoOfIso {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
   {R R' S : 𝒮} {b : 𝒳} (hb : ObjLift p S b)
@@ -387,7 +401,7 @@ attribute [local instance] CategoryTheory.Limits.hasPullback_symmetry
                 |    g    |
                 T ------> S
 and a : 𝒳 above S, we have a canonical isomorphism a|_R×T ≅ a|_T×R -/
-def PullbackPullbackIso {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
+noncomputable def PullbackPullbackIso {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
   {R S T : 𝒮} {a : 𝒳} (ha : ObjLift p S a) (f : R ⟶ S) (g : T ⟶ S)
   [CategoryTheory.Limits.HasPullback f g] :
   PullbackObj hp ha (@CategoryTheory.Limits.pullback.fst _ _ _ _ _ f g _≫ f)
@@ -416,14 +430,13 @@ def pullback_iso_pullback  {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
     ≅ PullbackObj hp (PullbackObjLift hp ha g) (@CategoryTheory.Limits.pullback.snd _ _ _ _ _ f g
       _) := sorry
 
-
 /- Given a diagram
       R × T ≅ T × R ----> R
                 |       f |
                 |    g    |
                 T ------> S
 and a : 𝒳 above R, we have a canonical isomorphism a|_R×T ≅ a|_T×R -/
-def PullbackPullbackIso' {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
+noncomputable def PullbackPullbackIso' {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
   {R S T : 𝒮} {a : 𝒳} (ha : ObjLift p R a) (f : R ⟶ S) (g : T ⟶ S)
   [CategoryTheory.Limits.HasPullback f g] :
     PullbackObj hp ha (@CategoryTheory.Limits.pullback.fst _ _ _ _ _ f g _) ≅
@@ -437,6 +450,8 @@ by
     (@CategoryTheory.Limits.pullback.snd _ _ _ _ _ g f _))
   · apply PullbackIsPullback hp ha
   apply IsPullbackIsoOfIso hp ha (Limits.pullbackSymmetry_hom_comp_snd _ _) lem₂ lem₁
+
+end Pullback_Induced_maps
 
 variable (J : GrothendieckTopology 𝒮) (S Y : 𝒮) (I : Sieve S) (hI : I ∈ J.sieves S) (f : Y ⟶ S) (hf : I f)
 
