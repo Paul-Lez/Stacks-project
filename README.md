@@ -1,3 +1,3 @@
-# SchlessingerLean
+# Stacks project 
 
-An ongoing project aiming to formalize [*Schlessinger's Theorem*](https://stacks.math.columbia.edu/tag/06G7) using Lean
+An ongoing project to formalize the definition of a stack in Lean (following the exposition in *Stacks and Moduli* by Jarod Alper)
