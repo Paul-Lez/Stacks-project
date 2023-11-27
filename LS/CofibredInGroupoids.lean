@@ -195,11 +195,16 @@ def IsPullback {p : 𝒳 ⥤ 𝒮}
   HomLift p f φ ha hb
 
 def IsPullbackObjLift {p : 𝒳 ⥤ 𝒮}
-  {R S : 𝒮} {a b : 𝒳} (hb : ObjLift p S b) (f : R ⟶ S) (φ : a ⟶ b) (hφ : IsPullback hb f φ) : ObjLift p R a := sorry
+  {R S : 𝒮} {a b : 𝒳} {hb : ObjLift p S b} {f : R ⟶ S} {φ : a ⟶ b} (hφ : IsPullback hb f φ) : ObjLift p R a := sorry
 
 lemma PullbackIsPullback {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
   {R S : 𝒮} {b : 𝒳} (hb : ObjLift p S b) (f : R ⟶ S) :
-    IsPullback hb f (PullbackMap hp hb f) := sorry
+    IsPullback hb f (PullbackMap hp hb f) := by sorry
+
+lemma IsPullback_HomLift {p : 𝒳 ⥤ 𝒮}
+  {R S : 𝒮} {a b : 𝒳} {φ : a ⟶ b} {hb : ObjLift p S b} {f : R ⟶ S} (ha : IsPullback hb f φ) :
+  HomLift p f φ (IsPullbackObjLift ha) hb := sorry
+
 
 def IsPullbackIso {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
   {R S : 𝒮} {a a' b : 𝒳} {hb : ObjLift p S b} {f : R ⟶ S} {φ : a ⟶ b} {φ' : a' ⟶ b}
@@ -245,13 +250,13 @@ by
     rw [hf']
     sorry
 
-def PullbackUniversalPropertyMap {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
+noncomputable def PullbackUniversalPropertyMap {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
   {R S T : 𝒮} {a b c : 𝒳} {ha : ObjLift p R a} {hb : ObjLift p S b} {hc : ObjLift p T c}
   {f : R ⟶ S} {g : S ⟶ T} {ψ : b ⟶ c}
   {ρ : a ⟶ c}
   (HCS : HomLift p g ψ hb hc)
   (HCS' : HomLift p (f ≫ g) ρ ha hc) : a ⟶ b :=
-sorry
+Classical.choose (PullbackUniversalPropertyExistsUnique hp HCS HCS')
 
 lemma PullbackUniversalPropertyDiagram {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
   {R S T : 𝒮} {a b c : 𝒳} {ha : ObjLift p R a} {hb : ObjLift p S b} {hc : ObjLift p T c}
@@ -259,24 +264,41 @@ lemma PullbackUniversalPropertyDiagram {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGrou
   {ρ : a ⟶ c}
   (HCS : HomLift p g ψ hb hc)
   (HCS' : HomLift p (f ≫ g) ρ ha hc) :
-    PullbackUniversalPropertyMap hp HCS HCS' ≫ ψ = ρ := sorry
+    PullbackUniversalPropertyMap hp HCS HCS' ≫ ψ = ρ :=
+(Classical.choose_spec (PullbackUniversalPropertyExistsUnique hp HCS HCS')).left.right.symm
 
+lemma PullbackUniversalPropertyMap_HomLift {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
+  {R S T : 𝒮} {a b c : 𝒳} {ha : ObjLift p R a} {hb : ObjLift p S b} {hc : ObjLift p T c}
+  {f : R ⟶ S} {g : S ⟶ T} {ψ : b ⟶ c}
+  {ρ : a ⟶ c}
+  (HCS : HomLift p g ψ hb hc)
+  (HCS' : HomLift p (f ≫ g) ρ ha hc) :
+  HomLift p f (PullbackUniversalPropertyMap hp HCS HCS') ha hb :=
+(Classical.choose_spec (PullbackUniversalPropertyExistsUnique hp HCS HCS')).left.left
 
--- This should just be a consequence of the following
-def PullbackObjInducedMap {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
-  {R R' S : 𝒮} {b : 𝒳} /- {ha : ObjLift p R a} {ha' : ObjLift p R a'} -/ (hb : ObjLift p S b)
-  (f : R ⟶ S) (f' : R' ⟶ S)
-  {g : R' ⟶ R}
-  (H : g ≫ f = f')
-  : PullbackObj hp hb f' ⟶ PullbackObj hp hb f :=
-sorry
+lemma PullbackUniversalMap_unique {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
+  {R S T : 𝒮} {a b c : 𝒳} {ha : ObjLift p R a} {hb : ObjLift p S b} {hc : ObjLift p T c}
+  {f : R ⟶ S} {g : S ⟶ T} {ψ : b ⟶ c}
+  {ρ : a ⟶ c} {φ : a ⟶ b} (hφ : φ ≫ ψ = ρ) (hφ' : HomLift p f φ ha hb)
+  (HCS : HomLift p g ψ hb hc)
+  (HCS' : HomLift p (f ≫ g) ρ ha hc) : φ = PullbackUniversalPropertyMap hp HCS HCS' :=
+(Classical.choose_spec (PullbackUniversalPropertyExistsUnique hp HCS HCS')).right _ ⟨hφ', hφ.symm⟩
 
-def IsPullbackInducedMap {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
+noncomputable def IsPullbackInducedMap {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
   {R R' S : 𝒮} {a a' b : 𝒳} (hb : ObjLift p S b)
   {f : R ⟶ S} {f' : R' ⟶ S} {g : R' ⟶ R}
   (H : g ≫ f = f') {φ : a ⟶ b} {φ' : a' ⟶ b}
   (hφ : IsPullback hb f φ) (hφ' : IsPullback hb f' φ') : a' ⟶ a :=
-by sorry
+PullbackUniversalPropertyMap hp (IsPullback_HomLift hφ)
+  (IsPullback_HomLift (show IsPullback hb (g ≫ f ) φ' by rwa [←H] at hφ'))
+
+lemma IsPullbackInducedMap_eq_PullbackUniversalPropertyMap {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
+  {R R' S : 𝒮} {a a' b : 𝒳} (hb : ObjLift p S b)
+  {f : R ⟶ S} {f' : R' ⟶ S} {g : R' ⟶ R}
+  (H : g ≫ f = f') {φ : a ⟶ b} {φ' : a' ⟶ b}
+  (hφ : IsPullback hb f φ) (hφ' : IsPullback hb f' φ') :
+  IsPullbackInducedMap hp hb H hφ hφ' = PullbackUniversalPropertyMap hp (IsPullback_HomLift hφ)
+  (IsPullback_HomLift (show IsPullback hb (g ≫ f ) φ' by rwa [←H] at hφ')) := rfl
 
 def IsPullbackNaturality {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
   {R S : 𝒮} {a a' b b' : 𝒳} {hb : ObjLift p S b} {hb' : ObjLift p S b'}
@@ -290,7 +312,8 @@ lemma IsPullbackInducedMapDiagram {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids
   {f : R ⟶ S} {f' : R' ⟶ S} {g : R' ⟶ R}
   (H : g ≫ f = f') {φ : a ⟶ b} {φ' : a' ⟶ b}
   (hφ : IsPullback hb f φ) (hφ' : IsPullback hb f' φ') :
-IsPullbackInducedMap hp hb H hφ hφ' ≫ φ = φ' := sorry
+  IsPullbackInducedMap hp hb H hφ hφ' ≫ φ = φ' := by
+  rw [IsPullbackInducedMap_eq_PullbackUniversalPropertyMap, PullbackUniversalPropertyDiagram]
 
 def IsPullbackIsoOfIso {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
   {R R' S : 𝒮} {a a' b : 𝒳} (hb : ObjLift p S b)
@@ -310,12 +333,6 @@ def PullbackObjIsoOfIso {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
   (f : R ⟶ S) (f' : R' ⟶ S)
   (g : R' ≅ R)
   (H : g.hom ≫ f = f') : PullbackObj hp hb f' ≅ PullbackObj hp hb f := sorry
-
-lemma PullbackIso_of_Iso_hom {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
-  {R R' S : 𝒮} {b : 𝒳} (hb : ObjLift p S b)
-  (f : R ⟶ S) (f' : R' ⟶ S)
-  (g : R' ≅ R)
-  (H : g.hom ≫ f = f') : (PullbackObjIsoOfIso hp hb f f' g H).hom = PullbackObjInducedMap hp hb f f' H := sorry
 
 lemma PullbackUniqueₐ {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
   (R S T : 𝒮) (a b c : 𝒳) (ha : ObjLift p R a) (hb : ObjLift p S b) (hc : ObjLift p T c)
