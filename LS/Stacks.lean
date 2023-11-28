@@ -84,19 +84,15 @@ def CocyleCondition {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
   (α : ∀ {Y Y' : 𝒮} {f : Y ⟶ S} {f' : Y' ⟶ S} (hf : I f) (hf' : I f'),
     PullbackObj hp (ha hf) (pb1 f f') ≅ PullbackObj hp (ha hf') (pb2 f f')) : Prop :=
    ∀ {Y Y' Y'': 𝒮} {f : Y ⟶ S} {f' : Y' ⟶ S} {f'' : Y'' ⟶ S} (hf : I f) (hf' : I f') (hf'' : I f''),
-
     ((show PullbackObj hp (PullbackObjLift hp (ha hf) (pb1 f f')) (dpb1 f f' f'') ≅
       PullbackObj hp (PullbackObjLift hp (ha hf') (pb2 f f')) (dpb1 f f' f'') by
-      sorry
-      ).hom ≫
+      sorry).hom ≫
     (show PullbackObj hp (PullbackObjLift hp (ha hf') (pb2 f f')) (dpb1 f f' f'') ≅
       PullbackObj hp (PullbackObjLift hp (ha hf') (pb1 f' f'')) (dpb1 f' f'' f) from dpbi J hp hI hf hf' hf'').hom) ≫
-
     ((show PullbackObj hp (PullbackObjLift hp (ha hf') (pb1 f' f'')) (dpb1 f' f'' f) ≅
       PullbackObj hp (PullbackObjLift hp (ha hf'') (pb2 f' f'')) (dpb1 f' f'' f) from sorry).hom ≫
     (show PullbackObj hp (PullbackObjLift hp (ha hf'') (pb2 f' f'')) (dpb1 f' f'' f) ≅
       PullbackObj hp (PullbackObjLift hp (ha hf'') (pb1 f'' f)) (dpb1 f'' f f') from dpbi J hp hI hf' hf'' hf).hom) ≫
-
     ((show PullbackObj hp (PullbackObjLift hp (ha hf'') (pb1 f'' f)) (dpb1 f'' f f') ≅
       PullbackObj hp (PullbackObjLift hp (ha hf) (pb2 f'' f)) (dpb1 f'' f f') from sorry).hom ≫
     (show PullbackObj hp (PullbackObjLift hp (ha hf) (pb2 f'' f)) (dpb1 f'' f f') ≅
@@ -129,21 +125,20 @@ def objects_glue {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
     CommSq (show PullbackObj hp (PullbackObjLift hp hb f) (pb1 f f') ⟶
       PullbackObj hp (ha hf) (CategoryTheory.Limits.pullback.fst) from
         IsPullbackNaturality hp (PullbackIsPullback hp (PullbackObjLift hp hb f)
-    (@CategoryTheory.Limits.pullback.fst _ _ _ _ _ f f' (hI' hf hf')))  (PullbackIsPullback hp (ha hf) CategoryTheory.Limits.pullback.fst) (φ hf).hom (hφ hf))
-    (show PullbackObj hp (PullbackObjLift hp hb f) (@CategoryTheory.Limits.pullback.fst _ _ _ _ _ f f' (hI' hf hf')) ⟶
+    (pb1 f f'))  (PullbackIsPullback hp (ha hf) CategoryTheory.Limits.pullback.fst) (φ hf).hom (hφ hf))
+    (show PullbackObj hp (PullbackObjLift hp hb f) (pb1 f f') ⟶
       PullbackObj hp (PullbackObjLift hp hb f') (@CategoryTheory.Limits.pullback.fst _ _ _ _ _ f' f (hI' hf' hf)) from
         (pullback_comp_iso_pullback_pullback hp hb f
-    (@CategoryTheory.Limits.pullback.fst _ _ _ _ _ f f' (hI' hf hf'))).symm.hom ≫ (PullbackPullbackIso hp hb f f').hom ≫
+    (pb1 f f')).symm.hom ≫ (PullbackPullbackIso hp hb f f').hom ≫
     (pullback_comp_iso_pullback_pullback hp _ _ _).hom)
-    (show PullbackObj hp (ha hf) (@CategoryTheory.Limits.pullback.fst _ _ _ _ _ f f' (hI' hf hf')) ⟶
+    (show PullbackObj hp (ha hf) (pb1 f f') ⟶
       PullbackObj hp (ha hf') (CategoryTheory.Limits.pullback.fst) from
-      ((α hf hf').hom ≫ (show PullbackObj hp (ha hf') (@CategoryTheory.Limits.pullback.snd _ _ _ _ _ f f' (hI' hf hf'))
-          ⟶ PullbackObj hp (ha hf') (@CategoryTheory.Limits.pullback.fst _ _ _ _ _ f' f (hI' hf' hf))
-            from (@PullbackPullbackIso'  _ _ _ _ _ hp _ _ _ _ (ha hf') f' f (hI' hf' hf)).symm.hom)))
-    (show PullbackObj hp (PullbackObjLift hp hb f') (@CategoryTheory.Limits.pullback.fst _ _ _ _ _ f' f (hI' hf' hf)) ⟶
-      PullbackObj hp (ha hf') (@CategoryTheory.Limits.pullback.fst _ _ _ _ _ f' f (hI' hf' hf)) from
+      ((α hf hf').hom ≫ (show PullbackObj hp (ha hf') (pb2 f f') ⟶ PullbackObj hp (ha hf') (pb1 f' f)
+        from (@PullbackPullbackIso'  _ _ _ _ _ hp _ _ _ _ (ha hf') f' f (hI' hf' hf)).symm.hom)))
+    (show PullbackObj hp (PullbackObjLift hp hb f') (pb1 f' f) ⟶
+      PullbackObj hp (ha hf') (pb1 f' f) from
         IsPullbackNaturality hp (PullbackIsPullback hp (PullbackObjLift hp hb f')
-    (@CategoryTheory.Limits.pullback.fst _ _ _ _ _ f' f (hI' hf' hf)))  (PullbackIsPullback hp (ha hf') CategoryTheory.Limits.pullback.fst) (φ hf').hom (hφ hf'))
+    (pb1 f' f))  (PullbackIsPullback hp (ha hf') CategoryTheory.Limits.pullback.fst) (φ hf').hom (hφ hf'))
 
 /-- A **Stack** `p : 𝒳 ⥤ 𝒮` is a functor fibered in groupoids that satisfies the object gluing and morphism gluing
   properties -/
