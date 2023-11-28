@@ -319,6 +319,12 @@ lemma IsPullbackInducedMapDiagram {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids
   (hφ : IsPullback hb f φ) (hφ' : IsPullback hb f' φ') :
   IsPullbackInducedMap hp hb H hφ hφ' ≫ φ = φ' := by
   rw [IsPullbackInducedMap_eq_PullbackUniversalPropertyMap, PullbackUniversalPropertyDiagram]
+/-
+lemma IsPullbackInducedMap_comp {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
+  {R R' S T T': 𝒮} {a a' b : 𝒳} (hb : ObjLift p S b)
+  {f : R ⟶ S} {f' : R' ⟶ S} {g : R' ⟶ R}
+  (H : g ≫ f = f') {φ : a ⟶ b} {φ' : a' ⟶ b}
+  (hφ : IsPullback hb f φ) (hφ' : IsPullback hb f' φ') : -/
 
 noncomputable def IsPullbackIsoOfIso {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
   {R R' S : 𝒮} {a a' b : 𝒳} (hb : ObjLift p S b)
@@ -406,8 +412,7 @@ noncomputable def PullbackPullbackIso {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroup
   [CategoryTheory.Limits.HasPullback f g] :
   PullbackObj hp ha (@CategoryTheory.Limits.pullback.fst _ _ _ _ _ f g _≫ f)
     ≅ PullbackObj hp ha (@CategoryTheory.Limits.pullback.fst _ _ _ _ _ g f
-      (CategoryTheory.Limits.hasPullback_symmetry f g) ≫ g) :=
-by
+      (CategoryTheory.Limits.hasPullback_symmetry f g) ≫ g) := by
   have lem₁ : IsPullback ha (@CategoryTheory.Limits.pullback.fst _ _ _ _ _ f g _≫ f)  (PullbackMap hp ha
     (@CategoryTheory.Limits.pullback.fst _ _ _ _ _ f g _≫ f))
   · apply PullbackIsPullback hp ha (@CategoryTheory.Limits.pullback.fst _ _ _ _ _ f g _≫ f)
@@ -453,9 +458,17 @@ by
 
 end Pullback_Induced_maps
 
+section Stack
+
 variable (J : GrothendieckTopology 𝒮) (S Y : 𝒮) (I : Sieve S) (hI : I ∈ J.sieves S) (f : Y ⟶ S) (hf : I f)
 
--- *** Morphisms glue ***.
+/--  Say `S_i ⟶ S` is a cover in `𝒮`, `a b` elements of `𝒳` lying over `S`. The **morphism gluing condition**
+  states that if we have a family of morphisms `φ_i : a|S_i ⟶ b` such that `φ_i|S_ij = φ_j|S_ij` then there exists a unique
+  morphism `φ : a ⟶ b` such that the following triangle commutes
+                                                        a|S_i ⟶ a
+                                                          φ_i ↘  ↓ φ
+                                                                 b
+-/
 def morphisms_glue  {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p) : Prop :=
   ∀ (S : 𝒮) (I : Sieve S) (hI : I ∈ J.sieves S)
   (hI' : ∀ {Y Y' : 𝒮} {f : Y ⟶ S} {f' : Y' ⟶ S} (hf : I f) (hf' : I f'),
@@ -472,6 +485,9 @@ def morphisms_glue  {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p) : Prop :=
   ∃! Φ : a ⟶ b, HomLift p (𝟙 S) Φ ha hb ∧ ∀ (Y : 𝒮) (f : Y ⟶ S) (hf : I f), φ Y f hf = PullbackMap hp ha f ≫ Φ
 
 --TODO: *** State the cocyle condition ***
+/-- Say `S_i ⟶ S` is a cover in `𝒮` and `a_i` lies over `S_i`
+  The **cocyle condition** for a family of isomorphisms `α_ij : a_i|S_ij ⟶ a_j|S_ij ` above the identity states that
+  `α_jk|S_ijk ∘ α_ij|S_ijk = α_ik|S_ijk` -/
 def CocyleCondition {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
   {S : 𝒮} {I : Sieve S} (hI : I ∈ J.sieves S) [Limits.HasPullbacks 𝒮]
   (hI' : ∀ {Y Y' : 𝒮} {f : Y ⟶ S} {f' : Y' ⟶ S} (hf : I f) (hf' : I f'),
@@ -484,7 +500,11 @@ def CocyleCondition {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
    ∀ (Y Y' Y'': 𝒮) (f : Y ⟶ S) (f' : Y' ⟶ S) (f'' : Y'' ⟶ S) (hf : I f) (hf' : I f')
     (hf'' : I f''), sorry
 
--- *** Ojects glue ***
+/-TODO: the following should be defined in terms of a `descent datum` data type, which should have a predicate `effective`.-/
+
+/-- Say `S_i ⟶ S` is a cover in `𝒮` and `a_i` lies over `S_i`. The **object gluing condition** states that if we have a
+  family of isomorphisms `α_ij : a_i|S_ij ⟶ a_j|S_ij ` above the identity that verify the cocyle condition then there
+  exists an object `a` lying over `S` together with maps `φ_i : a|S_i ⟶ a_i` such that `φ_j|S_ij ∘ α_ij = φ_i|S_ij` -/
 def objects_glue {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
   [Limits.HasPullbacks 𝒮] : Prop :=
   ∀ (S : 𝒮) (I : Sieve S) (hI : I ∈ J.sieves S)
@@ -525,3 +545,5 @@ def objects_glue {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
 class Stack {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p) [Limits.HasPullbacks 𝒮]  : Prop where
   (GlueMorphism : true)
   (ObjectsGlue : objects_glue J hp)
+
+end Stack
