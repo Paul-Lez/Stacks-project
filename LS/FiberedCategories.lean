@@ -278,13 +278,7 @@ class NatTrans.IsBasePreserving (p : C ⥤ S) (q : D ⥤ S) [IsFibered p] [IsFib
 --  (G : C ⥤ D) [Functor.IsBasePreserving p q F] [Functor.IsBasePreserving p q G] (α : F ⟶ G)
 --  [NatTrans.IsBasePreserving p q α] (x : C) :
 
-class IsFiberedInGroupoids (p : C ⥤ S) : Prop where
-  (isCartesian {x y : C} (φ : y ⟶ x) :  IsCartesian p φ)
-  (LiftHom {y : C} {X : S} (f : X ⟶ p.obj y) :
-    ∃ (x : C) (φ : x ⟶ y) (hx : p.obj x = X),
-      CommSq (p.map φ) (eqToHom hx) (𝟙 (p.obj y)) f)
-
-
+/-
 -- TODO BREAK UP INTO SMALLER PIECES
 lemma IsFiberedInGroupoids_iff (p : C ⥤ S) : IsFiberedInGroupoids p ↔
   (IsFibered p ∧ (∀ (s : S) {x y : (Fiber p s)} (φ : x ⟶ y), IsIso φ)) :=
@@ -325,7 +319,7 @@ lemma IsFiberedInGroupoids_iff (p : C ⥤ S) : IsFiberedInGroupoids p ↔
     existsi φ
     existsi hy
     exact hcomm
-
+-/
 /-
 class IsFiberedInGroupoids (p : C ⥤ S) : Prop where
   (LiftHom {y : C} {X : S} (f : X ⟶ p.obj y) :
@@ -334,6 +328,7 @@ class IsFiberedInGroupoids (p : C ⥤ S) : Prop where
   (IsCartesian {x y z : C} {φ : y ⟶ x} {ψ : z ⟶ x} {f : p.obj z ⟶ p.obj y} :
     f ≫ (p.map φ) = p.map ψ →  ∃! (χ : z ⟶ y), CommSq f (𝟙 (p.obj z)) (𝟙 (p.obj y)) (p.map χ))
 -/
+
 
 
 --class IsFiberedInGroupoids (p : C ⥤ S) : Prop where

@@ -2,6 +2,7 @@ import Mathlib.CategoryTheory.Functor.Category
 import Mathlib.CategoryTheory.Opposites
 import Mathlib.CategoryTheory.CommSq
 import Mathlib.CategoryTheory.Sites.Grothendieck
+import LS.FiberedCategories
 
 
 universe u₁ v₁ u₂ v₂ u₃ w
@@ -45,18 +46,10 @@ class IsFiberedInGroupoids (p : C ⥤ S) : Prop where
   (LiftHom {y : C} {X : S} (f : X ⟶ p.obj y) :
     ∃ (x : C) (φ : x ⟶ y) (hx : p.obj x = X),
       CommSq (p.map φ) (eqToHom hx) (𝟙 (p.obj y)) f)
-  (IsCartesian {x y z : C} {φ : y ⟶ x} {ψ : z ⟶ x} {f : p.obj z ⟶ p.obj y} :
-    f ≫ (p.map φ) = p.map ψ →  ∃! (χ : z ⟶ y), CommSq f (𝟙 (p.obj z)) (𝟙 (p.obj y)) (p.map χ))
+  (IsCartesian {x y : C} (φ : y ⟶ x) :  IsCartesian p φ)
 
 /- def IsPullback (p : C ⥤ S) {x y : C} {X : S} (f : X ⟶ p.obj y)
   (φ : x ⟶ y) (hx : ObjLift p X x) : Prop :=  CommSq (p.map φ) (eqToHom hx) (𝟙 (p.obj y)) f -/
-
-class IsCofiberedInGroupoids (p : C ⥤ S) : Prop where
-  (LiftHom {x : C} {Y : S} (f : p.obj x ⟶ Y) :
-    ∃ (y : C) (φ : x ⟶ y) (hy : Y = p.obj y),
-      CommSq f (𝟙 (p.obj x)) (eqToHom hy) (p.map φ))
-  (IsCoCartesian {x y z : C} {φ : x ⟶ y} {ψ : x ⟶ z} {f : p.obj y ⟶ p.obj z} :
-    (p.map φ) ≫ f = p.map ψ → ∃! (χ : y ⟶ z), CommSq (p.map χ) (𝟙 (p.obj y)) (𝟙 (p.obj z)) f)
 
 lemma IsFiberedInGroupoids.id : IsFiberedInGroupoids (Functor.id S) :=
 by
@@ -66,58 +59,16 @@ by
     simp only [id_obj, Functor.id_map, eqToHom_refl, exists_prop, true_and, Category.comp_id, Category.id_comp]
     constructor
     simp only [Category.comp_id, Category.id_comp]
-  · intros x y z φ ψ f h
-    existsi f
-    constructor
-    simp only [id_obj, Functor.id_map]
-    constructor
-    simp only [Category.comp_id, Category.id_comp]
-    intros y hy
-    simp only [id_obj, Functor.id_map] at hy
-    obtain ⟨w⟩ := hy
-    simp only [Category.comp_id, Category.id_comp] at w
-    exact w.symm
+  intros x y φ
+  constructor
+  intros z ψ f h
+  existsi f
+  simp only [id_obj, Functor.id_map, and_true, and_imp]
+  simp only [id_obj, Functor.id_map] at h
+  refine ⟨h, ?_⟩
+  intros y hy hyy
+  exact hyy.symm
 
---def lift
-
--- TODO possibly rewrite proof after making CofiberedInGroupoids "symm" wrt FiberedInGroupoids
-
-lemma IsCofiberedInGroupoidsOpp (p : C ⥤ S) (hp : IsCofiberedInGroupoids p) :
-  IsFiberedInGroupoids p.op :=
-by
-  rcases hp with ⟨hlift, hcart⟩
-  refine ⟨fun f => ?_, fun h_comp => ?_⟩
-  · rcases hlift f.unop with ⟨x, φ, unop_obj_lift, unop_hom_lift⟩
-    existsi op x, op φ
-    rw [←op_inj_iff, ←op_obj, op_unop] at unop_obj_lift
-    existsi unop_obj_lift.symm
-    simpa only [op_obj, unop_op, op_unop, eqToHom_op, op_id, Quiver.Hom.op_unop] using CommSq.op unop_hom_lift
-  rcases hcart (Quiver.Hom.op_inj h_comp) with ⟨χ, χ_comm, χ_unique⟩
-  refine ⟨χ.op, ⟨?_, fun g g_comm => Quiver.Hom.unop_inj ((χ_unique (g.unop)) (CommSq.unop g_comm))⟩⟩
-  simpa only [op_obj, op_map, Quiver.Hom.unop_op, op_obj, Quiver.Hom.op_unop, op_id] using CommSq.op χ_comm
-
-lemma IsFiberedInGroupoidsOpp (p : C ⥤ S) (hp : IsFiberedInGroupoids p):
-  IsCofiberedInGroupoids p.op :=
-by
-  rcases hp with ⟨hlift, hcart⟩
-  refine ⟨fun f => ?_, fun h_comp => ?_⟩
-  · rcases hlift f.unop with ⟨x, φ, unop_obj_lift, unop_hom_lift⟩
-    existsi op x, op φ
-    rw [←op_inj_iff, ←op_obj, op_unop] at unop_obj_lift
-    existsi unop_obj_lift.symm
-    simpa only [op_obj, unop_op, op_unop, eqToHom_op, op_id, Quiver.Hom.op_unop] using CommSq.op unop_hom_lift
-  rcases hcart (Quiver.Hom.op_inj h_comp) with ⟨χ, χ_comm, χ_unique⟩
-  refine ⟨χ.op, ⟨?_, fun g g_comm => Quiver.Hom.unop_inj ((χ_unique (g.unop)) (CommSq.unop g_comm))⟩⟩
-  simpa only [op_obj, op_map, Quiver.Hom.unop_op, op_obj, Quiver.Hom.op_unop, op_id] using CommSq.op χ_comm
-
-lemma IsFiberedInGroupoids_iff_Op (p : C ⥤ S) : IsFiberedInGroupoids p ↔ IsCofiberedInGroupoids p.op :=
-by
-  refine ⟨fun hp => IsFiberedInGroupoidsOpp p hp, fun hp =>  sorry --apply IsCofiberedInGroupoidsOpp p hp}
-  ⟩
-
-lemma IsCoiberedInGroupoids.id : IsCofiberedInGroupoids (Functor.id Sᵒᵖ) :=
-by simpa [show Functor.id Sᵒᵖ = (Functor.id S).op from rfl, ←IsFiberedInGroupoids_iff_Op]
-  using IsFiberedInGroupoids.id
 /-
 POSSIBLE TODO:
 1. Define Fiber category + show its a groupoid
@@ -222,16 +173,15 @@ by
   set temp := p.map ψ
   have : f' ≫ p.map ψ = p.map ρ
   · sorry
-  rcases hp.IsCartesian this with ⟨χ, hχ⟩
+  rcases (hp.IsCartesian ψ).isCartesian this with ⟨χ, hχ⟩
   existsi χ
   constructor
   · simp only
     constructor
     · rw [HomLift]
       constructor
-      rcases hχ.left with ⟨h⟩
-      simp only [Category.comp_id, Category.id_comp] at h
-      rw [←h]
+      rcases hχ.left with ⟨_, h⟩
+      rw [←h, hf']
       simp only [Category.assoc, comp_eqToHom_iff, eqToHom_comp_iff, eqToHom_trans, toHom_eq_eqToHom,
         eqToHom_refl, Category.comp_id, eqToHom_trans_assoc, Category.id_comp]
     · sorry
@@ -240,7 +190,7 @@ by
     rw [HomLift] at hy
     rcases hy.left with ⟨hy'⟩
     constructor
-    rw [hf']
+    exact hy.2.symm
     sorry
 
 noncomputable def PullbackUniversalPropertyMap {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
