@@ -83,23 +83,28 @@ def CocyleCondition {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
   (ha : ∀ {Y : 𝒮} {f : Y ⟶ S} (hf : I f), ObjLift p Y (a hf))
   (α : ∀ {Y Y' : 𝒮} {f : Y ⟶ S} {f' : Y' ⟶ S} (hf : I f) (hf' : I f'),
     PullbackObj hp (ha hf) (pb1 f f') ≅ PullbackObj hp (ha hf') (pb2 f f')) : Prop :=
-   ∀ (Y Y' Y'': 𝒮) (f : Y ⟶ S) (f' : Y' ⟶ S) (f'' : Y'' ⟶ S) (hf : I f) (hf' : I f')
-    (hf'' : I f''),
+   ∀ {Y Y' Y'': 𝒮} {f : Y ⟶ S} {f' : Y' ⟶ S} {f'' : Y'' ⟶ S} (hf : I f) (hf' : I f') (hf'' : I f''),
+
     ((show PullbackObj hp (PullbackObjLift hp (ha hf) (pb1 f f')) (dpb1 f f' f'') ≅
-      PullbackObj hp (PullbackObjLift hp (ha hf') (pb2 f f')) (dpb1 f f' f'') from sorry).hom ≫
+      PullbackObj hp (PullbackObjLift hp (ha hf') (pb2 f f')) (dpb1 f f' f'') by
+      sorry
+      ).hom ≫
     (show PullbackObj hp (PullbackObjLift hp (ha hf') (pb2 f f')) (dpb1 f f' f'') ≅
       PullbackObj hp (PullbackObjLift hp (ha hf') (pb1 f' f'')) (dpb1 f' f'' f) from dpbi J hp hI hf hf' hf'').hom) ≫
+
     ((show PullbackObj hp (PullbackObjLift hp (ha hf') (pb1 f' f'')) (dpb1 f' f'' f) ≅
       PullbackObj hp (PullbackObjLift hp (ha hf'') (pb2 f' f'')) (dpb1 f' f'' f) from sorry).hom ≫
     (show PullbackObj hp (PullbackObjLift hp (ha hf'') (pb2 f' f'')) (dpb1 f' f'' f) ≅
-      PullbackObj hp (PullbackObjLift hp (ha hf'') (pb2 f f'')) (dpb1 f f'' f') from sorry).hom) ≫
-    ((show PullbackObj hp (PullbackObjLift hp (ha hf'') (pb2 f f'')) (dpb1 f f'' f') ≅
+      PullbackObj hp (PullbackObjLift hp (ha hf'') (pb1 f'' f)) (dpb1 f'' f f') from dpbi J hp hI hf' hf'' hf).hom) ≫
+
+    ((show PullbackObj hp (PullbackObjLift hp (ha hf'') (pb1 f'' f)) (dpb1 f'' f f') ≅
       PullbackObj hp (PullbackObjLift hp (ha hf) (pb2 f'' f)) (dpb1 f'' f f') from sorry).hom ≫
     (show PullbackObj hp (PullbackObjLift hp (ha hf) (pb2 f'' f)) (dpb1 f'' f f') ≅
-      PullbackObj hp (PullbackObjLift hp (ha hf) (pb1 f f')) (dpb1 f f' f'') from sorry).hom)
-    = 𝟙 (PullbackObj hp (PullbackObjLift hp (ha hf) (pb1 f f')) (dpb1 f f' f''))
+      PullbackObj hp (PullbackObjLift hp (ha hf) (pb1 f f')) (dpb1 f f' f'') from dpbi J hp hI hf'' hf hf').hom)
+    = 𝟙 _
 
-/-TODO: the following should be defined in terms of a `descent datum` data type, which should have a predicate `effective`.-/
+/-TODO: the following should be defined in terms of a `descent datum` data type, which should have a predicate
+  saying when it is effective.-/
 
 /-- Say `S_i ⟶ S` is a cover in `𝒮` and `a_i` lies over `S_i`. The **object gluing condition** states that if we have a
   family of isomorphisms `α_ij : a_i|S_ij ⟶ a_j|S_ij ` above the identity that verify the cocyle condition then there
@@ -121,7 +126,7 @@ def objects_glue {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
       (φ : ∀ {Y : 𝒮} {f : Y ⟶ S} (hf : I f), PullbackObj hp hb f ≅ a hf)
       (hφ : ∀ {Y : 𝒮} {f : Y ⟶ S} (hf : I f), HomLift p (𝟙 Y) (φ hf).hom (PullbackObjLift hp hb f) (ha hf)),
      ∀ (Y Y' : 𝒮) (f : Y ⟶ S) (f' : Y' ⟶ S) (hf : I f) (hf' : I f'),
-    CommSq (show PullbackObj hp (PullbackObjLift hp hb f) (@CategoryTheory.Limits.pullback.fst _ _ _ _ _ f f' (hI' hf hf')) ⟶
+    CommSq (show PullbackObj hp (PullbackObjLift hp hb f) (pb1 f f') ⟶
       PullbackObj hp (ha hf) (CategoryTheory.Limits.pullback.fst) from
         IsPullbackNaturality hp (PullbackIsPullback hp (PullbackObjLift hp hb f)
     (@CategoryTheory.Limits.pullback.fst _ _ _ _ _ f f' (hI' hf hf')))  (PullbackIsPullback hp (ha hf) CategoryTheory.Limits.pullback.fst) (φ hf).hom (hφ hf))
