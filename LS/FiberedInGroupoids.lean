@@ -255,12 +255,18 @@ lemma IsPullbackInducedMap_eq_PullbackUniversalPropertyMap {p : 𝒳 ⥤ 𝒮} (
   IsPullbackInducedMap hp hb H hφ hφ' = PullbackUniversalPropertyMap hp (IsPullback_HomLift hφ)
   (IsPullback_HomLift (show IsPullback hb (g ≫ f ) φ' by rwa [←H] at hφ')) := rfl
 
-def IsPullbackNaturality {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
+def IsPullbackNaturalityHom {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
   {R S : 𝒮} {a a' b b' : 𝒳} {hb : ObjLift p S b} {hb' : ObjLift p S b'}
   {f : R ⟶ S} {φ : a ⟶ b} {φ' : a' ⟶ b'}
   (hφ : IsPullback hb f φ) (hφ' : IsPullback hb' f φ')
   (ψ : b ⟶ b') (hψ : HomLift p (𝟙 S) ψ hb hb')
   : a ⟶ a' := sorry
+
+def IsPullbackNaturalityIso {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
+  {R S : 𝒮} {a a' b b' : 𝒳} {hb : ObjLift p S b} {hb' : ObjLift p S b'}
+  {f : R ⟶ S} {φ : a ⟶ b} {φ' : a' ⟶ b'}
+  (hφ : IsPullback hb f φ) (hφ' : IsPullback hb' f φ')
+  (ψ : b ≅ b') (hψ : HomLift p (𝟙 S) ψ.hom hb hb') : a ≅ a' := sorry
 
 lemma IsPullbackInducedMapDiagram {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
   {R R' S : 𝒮} {a a' b : 𝒳} (hb : ObjLift p S b)
