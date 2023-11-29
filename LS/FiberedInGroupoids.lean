@@ -172,7 +172,15 @@ by
   set g' : p.obj b ⟶ p.obj c := eqToHom hb ≫ g ≫ eqToHom hc.symm with hg'
   set temp := p.map ψ
   have : f' ≫ p.map ψ = p.map ρ
-  · sorry
+  · rcases HCS' with ⟨HCS'⟩
+    rw [toHom_eq_eqToHom, comp_eqToHom_iff] at HCS' -- TODO: what does toHom do???
+    rw [HCS']
+    rw [toHom_eq_eqToHom]
+    rcases HCS with ⟨HCS⟩
+    rw [toHom_eq_eqToHom, comp_eqToHom_iff] at HCS
+    rw [HCS]
+    rw [toHom_eq_eqToHom]
+    simp only [Category.assoc, eqToHom_trans_assoc, eqToHom_refl, Category.id_comp]
   rcases (hp.IsCartesian ψ).isCartesian this with ⟨χ, hχ⟩
   existsi χ
   constructor
@@ -184,14 +192,17 @@ by
       rw [←h, hf']
       simp only [Category.assoc, comp_eqToHom_iff, eqToHom_comp_iff, eqToHom_trans, toHom_eq_eqToHom,
         eqToHom_refl, Category.comp_id, eqToHom_trans_assoc, Category.id_comp]
-    · sorry
+    · exact hχ.left.1.symm
   · intros y hy
     apply hχ.right
     rw [HomLift] at hy
     rcases hy.left with ⟨hy'⟩
     constructor
     exact hy.2.symm
-    sorry
+    rw [hf']
+    rw [toHom_eq_eqToHom, toHom_eq_eqToHom] at hy' -- TODO: toHom stuff
+    rw [←Category.assoc, ←hy']
+    simp only [Category.assoc, eqToHom_trans, eqToHom_refl, Category.comp_id]
 
 noncomputable def PullbackUniversalPropertyMap {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
   {R S T : 𝒮} {a b c : 𝒳} {ha : ObjLift p R a} {hb : ObjLift p S b} {hc : ObjLift p T c}
