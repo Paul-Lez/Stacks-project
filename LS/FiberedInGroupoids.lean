@@ -281,7 +281,7 @@ noncomputable def IsPullbackNaturalityHom {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInG
   {f : R ⟶ S} {φ : a ⟶ b} {φ' : a' ⟶ b'}
   (hφ : IsPullback hb f φ) (hφ' : IsPullback hb' f φ')
   (ψ : b ⟶ b') (hψ : HomLift p (𝟙 S) ψ hb hb')
-  : a ⟶ a' := IsPullbackInducedMap hp hb' (show 𝟙 R ≫ f = f by simp) hφ'
+  : a ⟶ a' := IsPullbackInducedMap hp (show 𝟙 R ≫ f = f by simp) hφ'
     (show IsPullback hb' f (φ ≫ ψ) by
       constructor
       constructor
