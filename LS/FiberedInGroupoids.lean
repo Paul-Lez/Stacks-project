@@ -241,6 +241,8 @@ lemma PullbackUniversalMap_unique {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids
 -- In this section we prove various properties about the naturality of pullbacks
 section Pullback_Induced_maps
 
+-- Should be just PullbackInducedMap?
+
 noncomputable def IsPullbackInducedMap {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
   {R R' S : 𝒮} {a a' b : 𝒳} (hb : ObjLift p S b)
   {f : R ⟶ S} {f' : R' ⟶ S} {g : R' ⟶ R}
