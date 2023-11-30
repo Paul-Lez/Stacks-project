@@ -138,31 +138,74 @@ MORE FLEXIBLE API
 -/
 
 def HomLift' {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} (f : R ⟶ S) (φ : a ⟶ b)
- (h₁ : p.obj a = R) (h₂ : p.obj b = S) : Prop :=
-  CommSq (p.map φ) (eqToHom h₁) (eqToHom h₂) f
+ (ha : p.obj a = R) (hb : p.obj b = S) : Prop :=
+  CommSq (p.map φ) (eqToHom ha) (eqToHom hb) f
 
--- TODO HOMLIFT COMP
+lemma HomLift'_id {p : 𝒳 ⥤ 𝒮} {R : 𝒮} {a : 𝒳} (ha : p.obj a = R) : HomLift' (𝟙 R) (𝟙 a) ha ha :=
+  by
+    constructor
+    simp only [map_id, id_comp, comp_id]
+
+lemma HomLift'_comp {p : 𝒳 ⥤ 𝒮} {R S T : 𝒮} {a b c : 𝒳} (ha : p.obj a = R) (hb : p.obj b = S)
+  (hc : p.obj c = T) {f : R ⟶ S} {g : S ⟶ T} {φ : a ⟶ b} {ψ : b ⟶ c} (hφ : HomLift' f φ ha hb)
+  (hψ : HomLift' g ψ hb hc) : HomLift' (f ≫ g) (φ ≫ ψ) ha hc :=
+  by
+    constructor
+    rw [←Category.assoc, ←hφ.1]
+    simp only [map_comp, assoc, hψ.1]
+
 
 class IsPullback' (p : 𝒳 ⥤ 𝒮) {R S : 𝒮} {a b : 𝒳} (f : R ⟶ S) (φ : a ⟶ b) : Prop where
   (ObjLiftDomain : p.obj a = R)
   (ObjLiftCodomain : p.obj b = S)
   (Homlift : HomLift' f φ ObjLiftDomain ObjLiftCodomain)
-  (UniversalProperty {R' : 𝒮} {a' : 𝒳} (g : R' ⟶ R) {ha' : p.obj a' = R'} {φ' : a' ⟶ b}
-    (hφ' : HomLift' (g ≫ f) φ' ha' ObjLiftCodomain) : ∃! χ : a' ⟶ a,
-      HomLift' g χ ha' ObjLiftDomain ∧ χ ≫ φ = φ')
+  (UniversalProperty {R' : 𝒮} {a' : 𝒳} {g : R' ⟶ R} {f' : R' ⟶ S} (hf' : f' = g ≫ f)
+  {ha' : p.obj a' = R'} {φ' : a' ⟶ b} (hφ' : HomLift' f' φ' ha' ObjLiftCodomain) :
+    ∃! χ : a' ⟶ a, HomLift' g χ ha' ObjLiftDomain ∧ χ ≫ φ = φ')
 
+/--
+Given:
+a'        a --φ--> b
+|         |        |
+v         v        v
+R' --g--> R --f--> S
+
+With φ a pullback and φ' : a' ⟶ b, gets the induced map from a' to a from the universal property.
+-/
 noncomputable def IsPullback'InducedMap {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} {f : R ⟶ S} {φ : a ⟶ b}
-  (hφ : IsPullback' p f φ) {R' : 𝒮} {a' : 𝒳} (g : R' ⟶ R) {ha' : p.obj a' = R'} {φ' : a' ⟶ b}
-  (hφ' : HomLift' (g ≫ f) φ' ha' hφ.ObjLiftCodomain) : a' ⟶ a :=
-  Classical.choose $ hφ.UniversalProperty g hφ'
+  (hφ : IsPullback' p f φ) {R' : 𝒮} {a' : 𝒳} {g : R' ⟶ R} {f' : R' ⟶ S} (hf' : f' = g ≫ f)
+  {ha' : p.obj a' = R'} {φ' : a' ⟶ b} (hφ' : HomLift' f' φ' ha' hφ.ObjLiftCodomain) : a' ⟶ a :=
+  Classical.choose $ hφ.UniversalProperty hf' hφ'
 
---@[simp]
---lemma IsPullback'InducedMap_self_eq_id : IsPullback'InducedMap
+lemma IsPullback'InducedMap_HomLift {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} {f : R ⟶ S} {φ : a ⟶ b}
+  (hφ : IsPullback' p f φ) {R' : 𝒮} {a' : 𝒳} {g : R' ⟶ R} {f' : R' ⟶ S} (hf' : f' = g ≫ f)
+  {ha' : p.obj a' = R'} {φ' : a' ⟶ b} (hφ' : HomLift' f' φ' ha' hφ.ObjLiftCodomain) :
+  HomLift' g (IsPullback'InducedMap hφ hf' hφ') ha' hφ.ObjLiftDomain :=
+  (Classical.choose_spec (hφ.UniversalProperty hf' hφ')).1.1
+
+-- TODO Diagram lemma???
+
+lemma IsPullback'InducedMap_unique {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} {f : R ⟶ S} {φ : a ⟶ b}
+  (hφ : IsPullback' p f φ) {R' : 𝒮} {a' : 𝒳} {g : R' ⟶ R} {f' : R' ⟶ S} (hf' : f' = g ≫ f)
+  {ha' : p.obj a' = R'} {φ' : a' ⟶ b} (hφ' : HomLift' f' φ' ha' hφ.ObjLiftCodomain)
+  {ψ : a' ⟶ a} (hψ : HomLift' g ψ ha' hφ.ObjLiftDomain) (hcomp : ψ ≫ φ = φ'):
+  ψ = IsPullback'InducedMap hφ hf' hφ' :=
+  (Classical.choose_spec (hφ.UniversalProperty hf' hφ')).2 ψ ⟨hψ, hcomp⟩
+
+@[simp]
+lemma IsPullback'InducedMap_self_eq_id {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} {f : R ⟶ S} {φ : a ⟶ b}
+  (hφ : IsPullback' p f φ) : 𝟙 a = IsPullback'InducedMap hφ (show f = 𝟙 R ≫ f by simp) hφ.Homlift :=
+  IsPullback'InducedMap_unique hφ (show f = 𝟙 R ≫ f by simp) hφ.Homlift (HomLift'_id _) (id_comp _)
+
+--noncomputable def IsPullbackNaturalityHom
+
+
+
+
 
 
 /-
 TODO:
-IsPullbackInducedMap_self_eq_id
 Naturality
 
 IsCartesian analogues
