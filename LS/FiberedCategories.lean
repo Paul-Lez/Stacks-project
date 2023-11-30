@@ -138,6 +138,27 @@ class IsFibered (p : C ⥤ S) : Prop where
     ∃ (y : C) (φ : y ⟶ x) (hy : p.obj y = Y),
       CommSq (p.map φ) (eqToHom hy) (𝟙 (p.obj x)) f ∧ IsCartesian p φ)
 
+/- TODO: PORT API TO THIS FILE
+
+variable {𝒮 : Type u₁} {𝒳 : Type u₂} [Category 𝒳] [Category 𝒮]
+
+/-- API to work with Fibered categories -/
+lemma LiftHom'' {p : 𝒳 ⥤ 𝒮} (hp : IsFibered p)
+  {R S : 𝒮} {b : 𝒳} (hb : ObjLift p S b) (f : R ⟶ S) :
+  ∃ (a : 𝒳) (ha : ObjLift p R a) (φ : a ⟶ b), HomLift p f φ ha hb :=
+by
+  set f' : R ⟶ p.obj b := f ≫ eqToHom hb.symm with hf'
+  rcases hp.LiftHom f' with ⟨a, φ', h, hφ'⟩
+  existsi a, h, φ'
+  rw [HomLift]
+  constructor
+  rcases hφ' with ⟨hφ⟩
+  simp only [hf', Category.comp_id] at hφ
+  simp only [hφ, toHom_eq_eqToHom, toHom_eq_eqToHom, comp_eqToHom_iff, eqToHom_comp_iff, comp_eqToHom_iff, Category.assoc, eqToHom_trans_assoc, eqToHom_refl, Category.id_comp, eqToHom_trans, Category.comp_id]
+-/
+
+
+
 def Fiber (p : C ⥤ S) (s : S) := {x : C // p.obj x = s}
 
 def Fiber.self (p : C ⥤ S) (x : C) : Fiber p (p.obj x) := ⟨x, rfl⟩
