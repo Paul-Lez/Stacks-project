@@ -33,6 +33,7 @@ end ObjLift
 
 open ObjLift
 
+-- TODO REWRITE TO AVOID toHom
 def HomLift (p : C ⥤ S) {x y : C} {U V : S} (f : U ⟶ V)
 (φ : x ⟶ y) (h₁ : ObjLift p U x)
 (h₂ : ObjLift p V y) : Prop := CommSq (p.map φ) (toHom h₁) (toHom h₂) f
@@ -275,12 +276,21 @@ lemma IsPullbackInducedMap_eq_PullbackUniversalPropertyMap {p : 𝒳 ⥤ 𝒮} (
   IsPullbackInducedMap hp H hφ hφ' = PullbackUniversalPropertyMap hp (IsPullback_HomLift hφ)
   (IsPullback_HomLift (show IsPullback hb (g ≫ f ) φ' by rwa [←H] at hφ')) := rfl
 
-def IsPullbackNaturalityHom {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
+noncomputable def IsPullbackNaturalityHom {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
   {R S : 𝒮} {a a' b b' : 𝒳} {hb : ObjLift p S b} {hb' : ObjLift p S b'}
   {f : R ⟶ S} {φ : a ⟶ b} {φ' : a' ⟶ b'}
   (hφ : IsPullback hb f φ) (hφ' : IsPullback hb' f φ')
   (ψ : b ⟶ b') (hψ : HomLift p (𝟙 S) ψ hb hb')
-  : a ⟶ a' := sorry
+  : a ⟶ a' := IsPullbackInducedMap hp hb' (show 𝟙 R ≫ f = f by simp) hφ'
+    (show IsPullback hb' f (φ ≫ ψ) by
+      constructor
+      constructor
+      simp only [map_comp, Category.assoc, Category.comp_id]
+      rw [hψ.1, ←Category.assoc, hφ.2.1]
+      simp only [Category.comp_id]
+      -- TODO: I feel like this shouldnt be needed
+      -- Maybe "issue" with defn of Ispullback (the exists?)
+      exact hφ.1)
 
 @[simp]
 lemma IsPullbackInducedMapDiagram {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
