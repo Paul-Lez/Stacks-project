@@ -35,7 +35,6 @@ class IsCartesian (p : C ⥤ S) {x y : C} (φ : y ⟶ x) : Prop where
   (isCartesian {z : C} {ψ : z ⟶ x} {f : p.obj z ⟶ p.obj y} (hy : f ≫ (p.map φ) = p.map ψ) :
     ∃! (χ : z ⟶ y), (χ ≫ φ = ψ) ∧ f = p.map χ)
 
-
 /--
 The composition of two cartesian arrows is cartesian
 -/
@@ -131,6 +130,44 @@ lemma isiso_of_cartesian (p : C ⥤ S) {x y : C} (φ : y ⟶ x) [hiso : IsIso (p
     rw [hh]
     apply hunique2
     simp only [assoc, hcomp, comp_id, map_comp, and_self]
+
+
+variable {𝒮 : Type u₁} {𝒳 : Type u₂} [Category 𝒳] [Category 𝒮]
+/--
+MORE FLEXIBLE API
+-/
+
+def HomLift' {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} (f : R ⟶ S) (φ : a ⟶ b)
+ (h₁ : p.obj a = R) (h₂ : p.obj b = S) : Prop :=
+  CommSq (p.map φ) (eqToHom h₁) (eqToHom h₂) f
+
+-- TODO HOMLIFT COMP
+
+class IsPullback' (p : 𝒳 ⥤ 𝒮) {R S : 𝒮} {a b : 𝒳} (f : R ⟶ S) (φ : a ⟶ b) : Prop where
+  (ObjLiftDomain : p.obj a = R)
+  (ObjLiftCodomain : p.obj b = S)
+  (Homlift : HomLift' f φ ObjLiftDomain ObjLiftCodomain)
+  (UniversalProperty {R' : 𝒮} {a' : 𝒳} (g : R' ⟶ R) {ha' : p.obj a' = R'} {φ' : a' ⟶ b}
+    (hφ' : HomLift' (g ≫ f) φ' ha' ObjLiftCodomain) : ∃! χ : a' ⟶ a,
+      HomLift' g χ ha' ObjLiftDomain ∧ χ ≫ φ = φ')
+
+noncomputable def IsPullback'InducedMap {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} {f : R ⟶ S} {φ : a ⟶ b}
+  (hφ : IsPullback' p f φ) {R' : 𝒮} {a' : 𝒳} (g : R' ⟶ R) {ha' : p.obj a' = R'} {φ' : a' ⟶ b}
+  (hφ' : HomLift' (g ≫ f) φ' ha' hφ.ObjLiftCodomain) : a' ⟶ a :=
+  Classical.choose $ hφ.UniversalProperty g hφ'
+
+--@[simp]
+--lemma IsPullback'InducedMap_self_eq_id : IsPullback'InducedMap
+
+
+/-
+TODO:
+IsPullbackInducedMap_self_eq_id
+Naturality
+
+IsCartesian analogues
+-/
+
 
 /-- Definition of a Fibered category. -/
 class IsFibered (p : C ⥤ S) : Prop where
