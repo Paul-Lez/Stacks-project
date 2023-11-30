@@ -296,8 +296,8 @@ lemma IsPullbackInducedMap_HomLift {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoid
   {f : R ⟶ S} {f' : R' ⟶ S} {g : R' ⟶ R}
   (H : g ≫ f = f') {φ : a ⟶ b} {φ' : a' ⟶ b}
   (hφ : IsPullback hb f φ) (hφ' : IsPullback hb f' φ') :
-  HomLift p g (IsPullbackInducedMap hp H hφ hφ') (IsPullbackObjLift hφ') (IsPullbackObjLift hφ) :=
-sorry
+  HomLift p g (IsPullbackInducedMap hp H hφ hφ') (IsPullbackObjLift hφ') (IsPullbackObjLift hφ) := by
+  apply PullbackUniversalPropertyMap_HomLift
 
 lemma IsPullbackInducedMap_unique {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
   {R R' S : 𝒮} {a a' b : 𝒳} (hb : ObjLift p S b)
@@ -305,7 +305,8 @@ lemma IsPullbackInducedMap_unique {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids
   (H : g ≫ f = f') {φ : a ⟶ b} {φ' : a' ⟶ b} {ψ : a' ⟶ a}
   {hφ : IsPullback hb f φ} {hφ' : IsPullback hb f' φ'}
   (hψ : HomLift p g ψ (IsPullbackObjLift hφ') (IsPullbackObjLift hφ))
-  (hψ' : ψ ≫ φ = φ') : ψ = IsPullbackInducedMap hp H hφ hφ' := sorry
+  (hψ' : ψ ≫ φ = φ') : ψ = IsPullbackInducedMap hp H hφ hφ' := by
+  apply PullbackUniversalMap_unique ;  all_goals { assumption }
 
 @[simp]
 lemma IsPullbackInducedMap_comp {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
@@ -327,7 +328,7 @@ noncomputable def IsPullbackIsoOfIso {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupo
   (H : g.hom ≫ f = f') {φ : a ⟶ b} {φ' : a' ⟶ b}
   (hφ : IsPullback hb f φ) (hφ' : IsPullback hb f' φ') : a' ≅ a where
     hom := IsPullbackInducedMap hp H hφ hφ'
-    inv :=  IsPullbackInducedMap hp (show g.symm.hom ≫ f' = f by sorry) hφ' hφ
+    inv := IsPullbackInducedMap hp ((Iso.eq_inv_comp g.symm).mp (id H.symm)) hφ' hφ
     hom_inv_id := by simp
     inv_hom_id := by simp
 
@@ -342,23 +343,21 @@ lemma IsPullbackIsoOfIso_hom {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
   {f : R ⟶ S} {f' : R' ⟶ S} {g : R' ≅ R}
   (H : g.hom ≫ f = f') {φ : a ⟶ b} {φ' : a' ⟶ b}
   (hφ : IsPullback hb f φ) (hφ' : IsPullback hb f' φ') :
-(IsPullbackIsoOfIso hp hb H hφ hφ').hom = IsPullbackInducedMap hp hb H hφ hφ' := rfl
+(IsPullbackIsoOfIso hp hb H hφ hφ').hom = IsPullbackInducedMap hp H hφ hφ' := rfl
 
-def IsPullbackIso {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
+noncomputable def IsPullbackIso {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
   {R S : 𝒮} {a a' b : 𝒳} {hb : ObjLift p S b} {f : R ⟶ S} {φ : a ⟶ b} {φ' : a' ⟶ b}
-   (hφ : IsPullback hb f φ) (hφ' : IsPullback hb f φ') : a ≅ a' where
-     hom := _ --IsPullbackNaturalityHom hp
-     inv := _
-     hom_inv_id := _
-     inv_hom_id := _
+   (hφ : IsPullback hb f φ) (hφ' : IsPullback hb f φ') : a' ≅ a :=
+  IsPullbackIsoOfIso hp hb (show (Iso.refl R).hom ≫ f = f by simp
+    only [Iso.refl_hom, Category.id_comp]) hφ hφ'
 
-def PullbackObjIsoOfIso {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
+/- def PullbackObjIsoOfIso {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
   {R R' S : 𝒮} {b : 𝒳} (hb : ObjLift p S b)
   (f : R ⟶ S) (f' : R' ⟶ S)
   (g : R' ≅ R)
-  (H : g.hom ≫ f = f') : PullbackObj hp hb f' ≅ PullbackObj hp hb f := sorry
+  (H : g.hom ≫ f = f') : PullbackObj hp hb f' ≅ PullbackObj hp hb f := sorry -/
 
-lemma PullbackUniqueₐ {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
+/- lemma PullbackUniqueₐ {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
   (R S T : 𝒮) (a b c : 𝒳) (ha : ObjLift p R a) (hb : ObjLift p S b) (hc : ObjLift p T c)
   (f : R ⟶ S) (g : S ⟶ T) (ψ : b ⟶ c)
   (ρ : a ⟶ c) (φ φ' : a ⟶ b)
@@ -378,8 +377,8 @@ lemma PullbackIsoExists {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
   (HL' : HomLift p f φ' ha' hb)
   : ∃! ψ : a ≅ a', ψ.hom ≫ φ' = φ :=
 by sorry
-
-noncomputable def PullbackIso {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
+ -/
+/- noncomputable def PullbackIso {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
   {R S : 𝒮} {a a' b : 𝒳} {ha : ObjLift p R a} {ha' : ObjLift p R a'} {hb : ObjLift p S b}
   {f : R ⟶ S} {φ : a ⟶ b} {φ' : a' ⟶ b}
   (HL : HomLift p f φ ha hb)
@@ -399,8 +398,8 @@ lemma PullbackIsoUnique {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
   {f : R ⟶ S} {φ : a ⟶ b} {φ' : a' ⟶ b}
   (HL : HomLift p f φ ha hb)
   (HL' : HomLift p f φ' ha' hb)
-  {f : a ⟶ a'}  (hf : f ≫ φ' = φ) : f = (PullbackIso hp HL HL').hom
-:= sorry
+  {f : a ⟶  a'}  (hf : f ≫ φ' = φ) : f = (PullbackIso hp HL HL').hom
+:= sorry-/
 
 attribute [local instance] CategoryTheory.Limits.hasPullback_symmetry
 

@@ -23,7 +23,8 @@ noncomputable abbrev dpb2 [Limits.HasPullbacks 𝒮] {S : 𝒮}
  := (@CategoryTheory.Limits.pullback.snd _ _ _ _ _ (pb1 f f' ≫ f) f'' _)
 
 noncomputable abbrev dpb3 [Limits.HasPullbacks 𝒮] {S : 𝒮}
-  {Y Y' Y'' : 𝒮} (f : Y ⟶ S) (f' : Y' ⟶ S) (f'' : Y'' ⟶ S)  := (@CategoryTheory.Limits.pullback.snd _ _ _ _ _ (pb1 f f' ≫ f) f'' _)
+  {Y Y' Y'' : 𝒮} (f : Y ⟶ S) (f' : Y' ⟶ S) (f'' : Y'' ⟶ S) :=
+(@CategoryTheory.Limits.pullback.snd _ _ _ _ _ (pb1 f f' ≫ f) f'' _)
 
 variable (J : GrothendieckTopology 𝒮) (S Y : 𝒮) (I : Sieve S) (hI : I ∈ J.sieves S) (f : Y ⟶ S) (hf : I f)
 
