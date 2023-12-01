@@ -146,19 +146,18 @@ lemma HomLift'_id {p : 𝒳 ⥤ 𝒮} {R : 𝒮} {a : 𝒳} (ha : p.obj a = R) :
     constructor
     simp only [map_id, id_comp, comp_id]
 
-lemma HomLift'_comp {p : 𝒳 ⥤ 𝒮} {R S T : 𝒮} {a b c : 𝒳} (ha : p.obj a = R) (hb : p.obj b = S)
-  (hc : p.obj c = T) {f : R ⟶ S} {g : S ⟶ T} {φ : a ⟶ b} {ψ : b ⟶ c} (hφ : HomLift' f φ ha hb)
+lemma HomLift'_comp {p : 𝒳 ⥤ 𝒮} {R S T : 𝒮} {a b c : 𝒳} {ha : p.obj a = R} {hb : p.obj b = S}
+  {hc : p.obj c = T} {f : R ⟶ S} {g : S ⟶ T} {φ : a ⟶ b} {ψ : b ⟶ c} (hφ : HomLift' f φ ha hb)
   (hψ : HomLift' g ψ hb hc) : HomLift' (f ≫ g) (φ ≫ ψ) ha hc :=
   by
     constructor
     rw [←Category.assoc, ←hφ.1]
     simp only [map_comp, assoc, hψ.1]
 
-
 class IsPullback' (p : 𝒳 ⥤ 𝒮) {R S : 𝒮} {a b : 𝒳} (f : R ⟶ S) (φ : a ⟶ b) : Prop where
   (ObjLiftDomain : p.obj a = R)
   (ObjLiftCodomain : p.obj b = S)
-  (Homlift : HomLift' f φ ObjLiftDomain ObjLiftCodomain)
+  (HomLifts : HomLift' f φ ObjLiftDomain ObjLiftCodomain)
   (UniversalProperty {R' : 𝒮} {a' : 𝒳} {g : R' ⟶ R} {f' : R' ⟶ S} (hf' : f' = g ≫ f)
   {ha' : p.obj a' = R'} {φ' : a' ⟶ b} (hφ' : HomLift' f' φ' ha' ObjLiftCodomain) :
     ∃! χ : a' ⟶ a, HomLift' g χ ha' ObjLiftDomain ∧ χ ≫ φ = φ')
@@ -172,6 +171,8 @@ R' --g--> R --f--> S
 
 With φ a pullback and φ' : a' ⟶ b, gets the induced map from a' to a from the universal property.
 -/
+
+-- TODO IsPullback' should be in []??
 noncomputable def IsPullback'InducedMap {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} {f : R ⟶ S} {φ : a ⟶ b}
   (hφ : IsPullback' p f φ) {R' : 𝒮} {a' : 𝒳} {g : R' ⟶ R} {f' : R' ⟶ S} (hf' : f' = g ≫ f)
   {ha' : p.obj a' = R'} {φ' : a' ⟶ b} (hφ' : HomLift' f' φ' ha' hφ.ObjLiftCodomain) : a' ⟶ a :=
@@ -183,8 +184,24 @@ lemma IsPullback'InducedMap_HomLift {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳
   HomLift' g (IsPullback'InducedMap hφ hf' hφ') ha' hφ.ObjLiftDomain :=
   (Classical.choose_spec (hφ.UniversalProperty hf' hφ')).1.1
 
--- TODO Diagram lemma???
+@[simp]
+lemma IsPullback'InducedMap_Diagram {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} {f : R ⟶ S} {φ : a ⟶ b}
+  (hφ : IsPullback' p f φ) {R' : 𝒮} {a' : 𝒳} {g : R' ⟶ R} {f' : R' ⟶ S} (hf' : f' = g ≫ f)
+  {ha' : p.obj a' = R'} {φ' : a' ⟶ b} (hφ' : HomLift' f' φ' ha' hφ.ObjLiftCodomain) :
+  (IsPullback'InducedMap hφ hf' hφ') ≫ φ = φ' :=
+  (Classical.choose_spec (hφ.UniversalProperty hf' hφ')).1.2
 
+
+/--
+Given:
+a' --ψ-->a --φ--> b
+|         |        |
+v         v        v
+R' --g--> R --f--> S
+
+With φ a pullback φ' : a' ⟶ b, s.t. ψ ≫ φ = φ'. Then ψ is the induced Pullback map
+
+-/
 lemma IsPullback'InducedMap_unique {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} {f : R ⟶ S} {φ : a ⟶ b}
   (hφ : IsPullback' p f φ) {R' : 𝒮} {a' : 𝒳} {g : R' ⟶ R} {f' : R' ⟶ S} (hf' : f' = g ≫ f)
   {ha' : p.obj a' = R'} {φ' : a' ⟶ b} (hφ' : HomLift' f' φ' ha' hφ.ObjLiftCodomain)
@@ -194,14 +211,57 @@ lemma IsPullback'InducedMap_unique {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳}
 
 @[simp]
 lemma IsPullback'InducedMap_self_eq_id {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} {f : R ⟶ S} {φ : a ⟶ b}
-  (hφ : IsPullback' p f φ) : 𝟙 a = IsPullback'InducedMap hφ (show f = 𝟙 R ≫ f by simp) hφ.Homlift :=
-  IsPullback'InducedMap_unique hφ (show f = 𝟙 R ≫ f by simp) hφ.Homlift (HomLift'_id _) (id_comp _)
+  (hφ : IsPullback' p f φ) : 𝟙 a = IsPullback'InducedMap hφ (show f = 𝟙 R ≫ f by simp) hφ.HomLifts :=
+  IsPullback'InducedMap_unique hφ (show f = 𝟙 R ≫ f by simp) hφ.HomLifts (HomLift'_id _) (id_comp _)
+
+--lemma IsPullback'InducedMap_comp
+
+def IsPullback'_comp {p : 𝒳 ⥤ 𝒮} {R S T : 𝒮} {a b c: 𝒳} {f : R ⟶ S} {g : S ⟶ T} {φ : a ⟶ b}
+  {ψ : b ⟶ c} (hφ : IsPullback' p f φ) (hψ : IsPullback' p g ψ) : IsPullback' p (f ≫ g) (φ ≫ ψ) where
+    ObjLiftDomain := hφ.ObjLiftDomain
+    ObjLiftCodomain := hψ.ObjLiftCodomain
+    HomLifts := HomLift'_comp hφ.HomLifts hψ.HomLifts
+    UniversalProperty := by
+      intro U d h i hi_comp hd τ hi
+      rw [←assoc] at hi_comp
+      set τ' := IsPullback'InducedMap hψ hi_comp hi
+      set π := IsPullback'InducedMap hφ rfl (IsPullback'InducedMap_HomLift hψ hi_comp hi)
+      existsi π
+      refine ⟨⟨IsPullback'InducedMap_HomLift hφ rfl (IsPullback'InducedMap_HomLift hψ hi_comp hi), ?_⟩, ?_⟩
+      · rw [←(IsPullback'InducedMap_Diagram hψ hi_comp hi)]
+        rw [←(IsPullback'InducedMap_Diagram hφ rfl (IsPullback'InducedMap_HomLift hψ hi_comp hi)), assoc]
+      intro π' hπ'
+      apply IsPullback'InducedMap_unique hφ _ _ hπ'.1
+      apply IsPullback'InducedMap_unique hψ _ _ (HomLift'_comp hπ'.1 hφ.HomLifts)
+      simp only [assoc]
+      exact hπ'.2
 
 --noncomputable def IsPullbackNaturalityHom
 
-
-
-
+def IsPullback'_of_comp {p : 𝒳 ⥤ 𝒮} {R S T : 𝒮} {a b c: 𝒳} {f : R ⟶ S} {g : S ⟶ T} {φ : a ⟶ b}
+  {ψ : b ⟶ c} (hψ : IsPullback' p g ψ) (hcomp : IsPullback' p (f ≫ g) (φ ≫ ψ))
+  (hφ : HomLift' f φ hcomp.1 hψ.1) : IsPullback' p f φ where
+    ObjLiftDomain := hcomp.ObjLiftDomain
+    ObjLiftCodomain := hψ.ObjLiftDomain
+    HomLifts := hφ
+    UniversalProperty := by
+      intro U d h i hi_comp hd τ hi
+      have h₁ := HomLift'_comp hi hψ.HomLifts
+      have h₂ : i ≫ g = h ≫ f ≫ g := by rw [hi_comp, assoc]
+      set π := IsPullback'InducedMap hcomp h₂ h₁ with hπ
+      existsi π
+      refine ⟨⟨IsPullback'InducedMap_HomLift hcomp h₂ h₁, ?_⟩,?_⟩
+      · have h₃ := IsPullback'InducedMap_HomLift hcomp h₂ h₁
+        rw [←assoc] at h₂
+        have h₄ := HomLift'_comp h₃ hφ
+        have h₅ : τ = IsPullback'InducedMap hψ h₂ h₁ :=
+          IsPullback'InducedMap_unique hψ h₂ h₁ (by rwa [←hi_comp]) rfl
+        rw [h₅]
+        apply IsPullback'InducedMap_unique hψ h₂ h₁ h₄ _
+        rw [assoc] at h₂
+        rw [assoc, (IsPullback'InducedMap_Diagram hcomp h₂ h₁)]
+      intro π' hπ'
+      apply IsPullback'InducedMap_unique _ _ _ hπ'.1 (by rw [←hπ'.2, assoc])
 
 
 /-
