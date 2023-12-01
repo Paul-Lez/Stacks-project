@@ -263,6 +263,64 @@ def IsPullback'_of_comp {p : 𝒳 ⥤ 𝒮} {R S T : 𝒮} {a b c: 𝒳} {f : R 
       intro π' hπ'
       apply IsPullback'InducedMap_unique _ _ _ hπ'.1 (by rw [←hπ'.2, assoc])
 
+lemma IsPullback'IsoofIso {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} {f : R ⟶ S} {φ : a ⟶ b}
+  (hφ : IsPullback' p f φ) (hf : IsIso f): IsIso φ :=
+  by
+    constructor
+    set φ' := IsPullback'InducedMap hφ (IsIso.inv_hom_id f).symm (HomLift'_id _)
+    existsi φ'
+    refine ⟨?_, IsPullback'InducedMap_Diagram hφ (IsIso.inv_hom_id f).symm (HomLift'_id _)⟩
+    have h₁ : HomLift' (𝟙 R) (φ ≫ φ') hφ.1 hφ.1 :=
+      by
+        constructor
+        simp only [map_comp, assoc, comp_id]
+        have h₁ := hφ.3.1
+        rw [comp_eqToHom_iff] at h₁
+        rw [h₁]
+        have h₂ := (IsPullback'InducedMap_HomLift hφ (IsIso.inv_hom_id f).symm (HomLift'_id _)).1
+        rw [comp_eqToHom_iff] at h₂
+        rw [h₂]
+        simp only [assoc, eqToHom_trans, eqToHom_refl, comp_id, eqToHom_trans_assoc, id_comp, IsIso.hom_inv_id]
+    have h₂ : HomLift' f (φ ≫ φ' ≫ φ) hφ.1 hφ.2 :=
+      by
+        rw [IsPullback'InducedMap_Diagram hφ (IsIso.inv_hom_id f).symm (HomLift'_id _)]
+        rw [comp_id]
+        apply hφ.3
+    rw [IsPullback'InducedMap_unique hφ (show f = 𝟙 R ≫ f by simp) h₂ h₁ (by apply Category.assoc)]
+    apply (IsPullback'InducedMap_unique hφ (show f = 𝟙 R ≫ f by simp) _ (HomLift'_id hφ.1) _).symm
+    rw [IsPullback'InducedMap_Diagram hφ (IsIso.inv_hom_id f).symm (HomLift'_id _)]
+    simp only [id_comp, comp_id]
+
+--def IsPullback'InducedMapIsoofIso NEED TWO PULLBACKS...!
+
+/--
+A cartesian arrow such that its projection is an isomorphism, must also be an isomorphism.
+-/
+lemma isiso_of_cartesian' (p : C ⥤ S) {x y : C} (φ : y ⟶ x) [hiso : IsIso (p.map φ)]
+  [hcart : IsCartesian p φ] : IsIso φ :=
+  by
+    constructor
+    rcases hcart with ⟨hcart⟩
+    have heq : inv (p.map φ) ≫ p.map φ = p.map (𝟙 x) :=
+      by simp only [IsIso.inv_hom_id, map_id]
+    rcases (hcart heq) with ⟨φinv, ⟨hcomp, hproj⟩, _⟩
+    existsi φinv
+    refine ⟨?_, hcomp⟩
+    have heq2 : p.map (φ ≫ φinv) ≫ p.map φ = p.map (φ) :=
+      by
+        simp only [map_comp]
+        rw [←hproj]
+        simp only [IsIso.hom_inv_id, id_comp]
+    rcases (hcart heq2) with ⟨φ', _, hunique2⟩
+    have hh : 𝟙 y = φ' :=
+      by
+        apply hunique2
+        simp only [id_comp, map_comp, map_id, true_and]
+        rw [←hproj]
+        simp only [IsIso.hom_inv_id]
+    rw [hh]
+    apply hunique2
+    simp only [assoc, hcomp, comp_id, map_comp, and_self]
 
 /-
 TODO:
