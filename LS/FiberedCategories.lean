@@ -149,6 +149,9 @@ lemma HomLift'_id {p : 𝒳 ⥤ 𝒮} {R : 𝒮} {a : 𝒳} (ha : p.obj a = R) :
     constructor
     simp only [map_id, id_comp, comp_id]
 
+def HomLift'_self (p : 𝒳 ⥤ 𝒮) {a b : 𝒳} (φ : a ⟶ b) : HomLift' (p.map φ) φ rfl rfl :=
+  ⟨by simp only [eqToHom_refl, comp_id, id_comp]⟩
+
 -- TODO make instance somehow
 lemma IsIsoofHomlift'Iso {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} {ha : p.obj a = R} {hb : p.obj b = S}
   {f : R ⟶ S} {φ : a ⟶ b} (hlift : HomLift' f φ ha hb) (hφ : IsIso φ) : IsIso f :=
@@ -393,7 +396,7 @@ Given a diagram
                 |    g    |
                 T ------> S
 and a : 𝒳 above S, we have a canonical isomorphism a|_R×T ≅ a|_T×R -/
-noncomputable def PullbackPullbackIso' {p : 𝒳 ⥤ 𝒮} (hp : IsFibered p)
+noncomputable def PullbackPullbackIso'' {p : 𝒳 ⥤ 𝒮} (hp : IsFibered p)
   {R S T : 𝒮} {a : 𝒳} (ha : p.obj a = S) (f : R ⟶ S) (g : T ⟶ S)
   [Limits.HasPullback f g] :
     PullbackObj' hp ha (@Limits.pullback.fst _ _ _ _ _ f g _≫ f)
@@ -411,18 +414,17 @@ noncomputable def PullbackPullbackIso' {p : 𝒳 ⥤ 𝒮} (hp : IsFibered p)
     · rw [Limits.pullbackSymmetry_hom_comp_fst_assoc, Limits.pullback.condition]
     exact IsPullback'InducedMapIsoofIso H.symm lem₂ lem₁
 
+def Fiber (p : 𝒳 ⥤ 𝒮) (S : 𝒮) := {a : 𝒳 // p.obj a = S}
 
-
-def Fiber (p : C ⥤ S) (s : S) := {x : C // p.obj x = s}
-
-def Fiber.self (p : C ⥤ S) (x : C) : Fiber p (p.obj x) := ⟨x, rfl⟩
+def Fiber.self (p : 𝒳 ⥤ 𝒮) (a : 𝒳) : Fiber p (p.obj a) := ⟨a, rfl⟩
 
 -- TODO DO I EVEN NEED?
-lemma Fiber.self_coe (p : C ⥤ S) (x : C) : (Fiber.self p x).val = x := rfl
+@[simp]
+lemma Fiber.self_coe (p : 𝒳 ⥤ 𝒮) (a : 𝒳) : (Fiber.self p a).val = a := rfl
 
-instance Fiber.category (p : C ⥤ S) (s : S) : Category (Fiber p s) where
-  Hom x y := {φ : x.val ⟶ y.val // (p.map φ) ≫ (eqToHom y.prop) = (eqToHom x.prop)}
-  id x := ⟨𝟙 x.val,
+instance Fiber.category (p : 𝒳 ⥤ 𝒮) (S : 𝒮) : Category (Fiber p S) where
+  Hom a b := {φ : a.val ⟶ b.val // (p.map φ) ≫ (eqToHom b.prop) = (eqToHom a.prop)}
+  id a := ⟨𝟙 a.val,
     by
       simp only [map_id, id_comp, comp_id]⟩
   comp φ ψ := ⟨φ.val ≫ ψ.val,
@@ -430,14 +432,15 @@ instance Fiber.category (p : C ⥤ S) (s : S) : Category (Fiber p s) where
       simp only [map_comp, assoc, comp_id]
       rw [ψ.prop, φ.prop]⟩
 
-def Fiber.functor (p : C ⥤ S) (s : S) : (Fiber p s) ⥤ C where
+def Fiber.functor (p : 𝒳 ⥤ 𝒮) (S : 𝒮) : (Fiber p S) ⥤ 𝒳 where
   obj := Subtype.val
   map := Subtype.val
 
-class HasFibers (p : C ⥤ S) where
-  Fib (s : S) : Type v₁
-  [isCategory : Category (Fib s)]
-  (fiber_equiv (s : S) : Fib s ≌ Fiber p s)
+/-
+class HasFibers (p : 𝒳 ⥤ 𝒮) where
+  Fib (S : 𝒮) : Type v₁
+  [isCategory : Category (Fib (S : 𝒮))]
+  (fiber_equiv (S : 𝒮)  : Fib S ≌ Fiber p S) -/
 
 -- def HasFibers.functor (p : C ⥤ S) (s : S) [hp : HasFibers p] := (hp.fiber_equiv s).functor
 
@@ -505,28 +508,19 @@ instance canonical_fiber (p : C ⥤ S) [hp : IsFibered p] : HasFibers p where
       exact h_cart
 -/
 
-lemma fiber_factorization (p : C ⥤ S) [hp : IsFibered p] {x y : C} (ψ : y ⟶ x) :
-  ∃ (z : Fiber p (p.obj y)) (τ : Fiber.self p y ⟶ z) (φ : z.val ⟶ x), IsCartesian p φ ∧
-    (τ.val ≫ φ = ψ) :=
+lemma fiber_factorization {p : 𝒳 ⥤ 𝒮} (hp : IsFibered p) {a b : 𝒳} (ψ : b ⟶ a) :
+  ∃ (c : Fiber p (p.obj b)) (τ : Fiber.self p b ⟶ c) (φ : c.val ⟶ a),
+    IsPullback' p (p.map ψ) φ ∧ (τ.val ≫ φ = ψ) :=
   by
-    rcases hp with ⟨hp⟩
-    rcases hp (p.map ψ) with ⟨z', φ, hproj_eq, ⟨hproj, ⟨hcart⟩⟩⟩
-    existsi ⟨z', hproj_eq⟩
-    have h1 : eqToHom hproj_eq.symm ≫ p.map φ = p.map ψ :=
-      by
-        rcases hproj with ⟨hproj⟩
-        simp only [comp_id] at hproj
-        simp only [hproj, eqToHom_trans_assoc, eqToHom_refl, id_comp]
-    rcases (hcart h1) with ⟨τ', ⟨hcomp, hproj⟩, _⟩
-    existsi ⟨τ', by simp only [←hproj, eqToHom_trans, eqToHom_refl]⟩
+    rcases hp.1 rfl (p.map ψ) with ⟨c', φ, hφ⟩
+    existsi ⟨c', hφ.1⟩
+    have h₃ : p.map ψ = 𝟙 (p.obj b)  ≫ p.map ψ := by simp only [id_comp]
+    set τ' := IsPullback'InducedMap hφ h₃ (HomLift'_self p ψ)
+    existsi ⟨τ', ?_⟩
+    · rw [(IsPullback'InducedMap_HomLift hφ h₃ (HomLift'_self p ψ)).1]
+      simp only [Fiber.self_coe, eqToHom_refl, comp_id]
     existsi φ
-    refine ⟨⟨hcart⟩, hcomp⟩
-
-
---instance PreimageFibers (p : C ⥤ S) : HasFibers p where
---  fiber s := Fiber p s
---  fiber_functor := sorry
---  comp_const := sorry
+    refine ⟨hφ, by simp only [IsPullback'InducedMap_Diagram]⟩
 
 class Functor.IsBasePreserving (p : C ⥤ S) (q : D ⥤ S) (F : C ⥤ D)
   [IsFibered p] [IsFibered q] : Prop where
@@ -541,7 +535,7 @@ lemma samefiber (p : C ⥤ S) (q : D ⥤ S) (F : C ⥤ D) (G : C ⥤ D)
     rcases hG with ⟨hGcomm, _⟩
     rw [←comp_obj, ←comp_obj, hFcomm, hGcomm]
 
--- To make into a category I first have to define the type of Fibered categories
+-- To make into a category I first have to define the type of Fibered categories....
 --instance IsFibered.category (p : C ⥤ D) [IsFibered p] : Category p where sorry
 
 class NatTrans.IsBasePreserving (p : C ⥤ S) (q : D ⥤ S) [IsFibered p] [IsFibered q] {F : C ⥤ D}
@@ -595,21 +589,3 @@ lemma IsFiberedInGroupoids_iff (p : C ⥤ S) : IsFiberedInGroupoids p ↔
     existsi hy
     exact hcomm
 -/
-/-
-class IsFiberedInGroupoids (p : C ⥤ S) : Prop where
-  (LiftHom {y : C} {X : S} (f : X ⟶ p.obj y) :
-    ∃ (x : C) (φ : x ⟶ y) (hx : p.obj x = X),
-      CommSq (p.map φ) (eqToHom hx) (𝟙 (p.obj y)) f)
-  (IsCartesian {x y z : C} {φ : y ⟶ x} {ψ : z ⟶ x} {f : p.obj z ⟶ p.obj y} :
-    f ≫ (p.map φ) = p.map ψ →  ∃! (χ : z ⟶ y), CommSq f (𝟙 (p.obj z)) (𝟙 (p.obj y)) (p.map χ))
--/
-
-
-
---class IsFiberedInGroupoids (p : C ⥤ S) : Prop where
---  (liftHom {x : C} {Y : S} (f : Y ⟶ p.obj x) :
---    ∃ (y : C) (φ : y ⟶ x) (hx : p.obj y = Y),
---      CommSq (p.map φ) (eqToHom hx) (𝟙 (p.obj x)) f)
---  (isCartesian {x y z : C} {φ : y ⟶ x} {ψ : z ⟶ x} {f : p.obj z ⟶ p.obj y}
---  (hy : f ≫ (p.map φ) = p.map ψ) :
---    ∃! (χ : z ⟶ y), CommSq f (𝟙 (p.obj z)) (𝟙 (p.obj y)) (p.map χ))

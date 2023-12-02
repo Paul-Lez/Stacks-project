@@ -448,7 +448,7 @@ noncomputable def PullbackPullbackIso {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroup
   · rw [Limits.pullbackSymmetry_hom_comp_fst_assoc, Limits.pullback.condition]
   apply IsPullbackIsoOfIso hp ha H lem₂ lem₁
 
-/- def pullback_comp_iso_pullback_pullback {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
+def pullback_comp_iso_pullback_pullback {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
   {R S T : 𝒮} {a : 𝒳} (ha : ObjLift p S a) (f : R ⟶ S) (g : T ⟶ R) :
   PullbackObj hp ha (g ≫ f) ≅ PullbackObj hp (PullbackObjLift hp ha f) g :=
 sorry
@@ -459,7 +459,7 @@ def pullback_iso_pullback  {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
   PullbackObj hp (PullbackObjLift hp ha f) (@CategoryTheory.Limits.pullback.fst _ _ _ _ _ f g _)
     ≅ PullbackObj hp (PullbackObjLift hp ha g) (@CategoryTheory.Limits.pullback.snd _ _ _ _ _ f g
       _) := sorry
- -/
+
 /- Given a diagram
       R × T ≅ T × R ----> R
                 |       f |
