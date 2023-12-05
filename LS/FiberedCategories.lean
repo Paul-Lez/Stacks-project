@@ -25,116 +25,6 @@ universe u₁ v₁ u₂ v₂ u₃ w
 
 open CategoryTheory Functor Category
 
--- TODO move variable D later
-variable {S : Type u₁} {C : Type u₂} {D : Type u₃} [Category S] [Category C] [Category D]
-
-/-
-Defining when an arrow is cartesian (see Olssons book)
-Strongly cartesian in the stacks project
-
--/
-
-class IsCartesian (p : C ⥤ S) {x y : C} (φ : y ⟶ x) : Prop where
-  (isCartesian {z : C} {ψ : z ⟶ x} {f : p.obj z ⟶ p.obj y} (hy : f ≫ (p.map φ) = p.map ψ) :
-    ∃! (χ : z ⟶ y), (χ ≫ φ = ψ) ∧ f = p.map χ)
-
-/--
-The composition of two cartesian arrows is cartesian
--/
-lemma IsCartesian.comp (p : C ⥤ S) {x y z : C} (ψ : z ⟶ y) (φ : y ⟶ x)
-  [hψ : IsCartesian p ψ] [hφ : IsCartesian p φ] : IsCartesian p (ψ ≫ φ) :=
-  by
-    constructor
-    intro a τ f hfcomp
-    rcases hφ with ⟨hφ⟩
-    rw [map_comp, ←assoc] at hfcomp
-    rcases hφ hfcomp with ⟨τ', ⟨hφcomp, hφproj⟩, τ'_unique⟩
-    rcases hψ with ⟨hψ⟩
-    rcases hψ hφproj with ⟨π, ⟨hcomp2, hproj2⟩, π_unique⟩
-    existsi π
-    refine ⟨⟨?_, hproj2⟩, ?_⟩
-    · rw [←assoc, hcomp2]
-      exact hφcomp
-    rintro π' ⟨hπ'comp, hπ'proj⟩
-    apply π_unique
-    refine ⟨?_, hπ'proj⟩
-    apply τ'_unique
-    constructor
-    · rw [assoc]
-      exact hπ'comp
-    simp only [hπ'proj, map_comp]
-
-/--
-Given a cartesian morphism ψ ≫ φ such that φ is cartesian, then so must ψ be. (TODO: make iff)
--/
-lemma IsCartesian.comp_of_cartesian (p : C ⥤ S) {x y z : C} (ψ : z ⟶ y) (φ : y ⟶ x) [hφ : IsCartesian p φ]
-  [hcomp : IsCartesian p (ψ ≫ φ)] : IsCartesian p ψ :=
-  by
-    constructor
-    intro a τ f hfcomp
-    rcases hcomp with ⟨hcomp⟩
-    have h1 : f ≫ p.map (ψ ≫ φ) = p.map (τ ≫ φ) :=
-      by rw [map_comp, ←assoc, hfcomp, map_comp]
-    rcases hcomp h1 with ⟨π, ⟨hπcomp, hπproj⟩, π_unique⟩
-    existsi π
-    refine ⟨⟨?_, hπproj⟩, ?_⟩
-    · have h2 : (f ≫ p.map ψ) ≫ p.map φ = p.map (τ ≫ φ) :=
-        by simp only [hπproj, assoc, ←hπcomp, map_comp]
-      rcases hφ with ⟨hφ⟩
-      rcases hφ h2 with ⟨τ', ⟨_, hτ'proj⟩, τ'_unique⟩
-      rw [τ'_unique τ ⟨rfl, hfcomp⟩]
-      apply τ'_unique
-      aesop -- TODO REPLACE?
-    rintro π' ⟨hπ'comp, hπ'proj⟩
-    apply π_unique
-    refine ⟨?_, hπ'proj⟩
-    simp only [←hπ'comp, assoc]
-
-/--
-Isomorphisms are cartesian.
--/
-lemma iso_iscartesian (p : C ⥤ S) {x y : C} (φ : y ⟶ x) [IsIso φ] : IsCartesian p φ :=
-  by
-    constructor
-    intros z ψ f hy
-    existsi ψ ≫ inv φ
-    constructor
-    · constructor
-      · simp only [assoc, IsIso.inv_hom_id, comp_id]
-      simp only [map_comp, map_inv, IsIso.eq_comp_inv, hy]
-    intro ψ' hψ'
-    simp only [IsIso.eq_comp_inv, hψ'.1]
-
-/--
-A cartesian arrow such that its projection is an isomorphism, must also be an isomorphism.
--/
-lemma isiso_of_cartesian (p : C ⥤ S) {x y : C} (φ : y ⟶ x) [hiso : IsIso (p.map φ)]
-  [hcart : IsCartesian p φ] : IsIso φ :=
-  by
-    constructor
-    rcases hcart with ⟨hcart⟩
-    have heq : inv (p.map φ) ≫ p.map φ = p.map (𝟙 x) :=
-      by simp only [IsIso.inv_hom_id, map_id]
-    rcases (hcart heq) with ⟨φinv, ⟨hcomp, hproj⟩, _⟩
-    existsi φinv
-    refine ⟨?_, hcomp⟩
-    have heq2 : p.map (φ ≫ φinv) ≫ p.map φ = p.map (φ) :=
-      by
-        simp only [map_comp]
-        rw [←hproj]
-        simp only [IsIso.hom_inv_id, id_comp]
-    rcases (hcart heq2) with ⟨φ', _, hunique2⟩
-    have hh : 𝟙 y = φ' :=
-      by
-        apply hunique2
-        simp only [id_comp, map_comp, map_id, true_and]
-        rw [←hproj]
-        simp only [IsIso.hom_inv_id]
-    rw [hh]
-    apply hunique2
-    simp only [assoc, hcomp, comp_id, map_comp, and_self]
-
-
 variable {𝒮 : Type u₁} {𝒳 : Type u₂} [Category 𝒳] [Category 𝒮]
 /--
 MORE FLEXIBLE API
@@ -362,11 +252,23 @@ noncomputable def IsPullback'InducedMapIsoofIso {p : 𝒳 ⥤ 𝒮}
     inv_hom_id := by
       simp only [Iso.inv_hom_id_assoc, IsPullback'InducedMap_comp, Iso.inv_hom_id, ←IsPullback'InducedMap_self_eq_id]
 
+noncomputable def IsPullback'Iso {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a' a b : 𝒳} {f : R ⟶ S} {φ : a ⟶ b}
+  {φ' : a' ⟶ b} (hφ : IsPullback' p f φ) (hφ' : IsPullback' p f φ') : a' ≅ a :=
+  IsPullback'InducedMapIsoofIso (show f = (Iso.refl R).hom ≫ f by simp) hφ hφ'
+
 
 /-
-TODO:
-Naturality (Do we really need this? Maybe not if we work w/ isos instead of ids on base)
+Naturality API: TODO IS IT NEEDED, minimal for now.
+
 -/
+
+-- TODO: make ψ non-explicit... Need to fix Stacks2 first for this
+noncomputable def IsPullback'NaturalityHom {p : 𝒳 ⥤ 𝒮}
+  {R S : 𝒮} {a a' b b' : 𝒳} {f : R ⟶ S} {φ : a ⟶ b} {φ' : a' ⟶ b'}
+  (hφ : IsPullback' p f φ) (hφ' : IsPullback' p f φ')
+  (ψ : b ⟶ b') (hψ : HomLift' (𝟙 S) ψ hφ.2 hφ'.2) : a ⟶ a' :=
+  IsPullback'InducedMap hφ' (show (f ≫ 𝟙 S = 𝟙 R ≫ f) by simp) (HomLift'_comp hφ.3 hψ)
+
 
 /-- Definition of a Fibered category. -/
 class IsFibered (p : 𝒳 ⥤ 𝒮) : Prop where
@@ -388,6 +290,23 @@ noncomputable def PullbackMap' {p : 𝒳 ⥤ 𝒮} (hp : IsFibered p)
 lemma PullbackMap'IsPullback {p : 𝒳 ⥤ 𝒮} (hp : IsFibered p)
   {R S : 𝒮} {a : 𝒳} (ha : p.obj a = S) (f : R ⟶ S) : IsPullback' p f (PullbackMap' hp ha f) :=
   Classical.choose_spec (Classical.choose_spec (hp.1 ha f))
+
+lemma PullbackObjLiftDomain {p : 𝒳 ⥤ 𝒮} (hp : IsFibered p)
+  {R S : 𝒮} {a : 𝒳} (ha : p.obj a = S) (f : R ⟶ S) : p.obj (PullbackObj' hp ha f) = R := (PullbackMap'IsPullback hp ha f).1
+
+-- TODO make more readable? Then need more API. Might need to split up PullbackMap'IsPullback
+noncomputable def pullback_comp_iso_pullback_pullback' {p : 𝒳 ⥤ 𝒮} (hp : IsFibered p)
+  {R S T : 𝒮} {a : 𝒳} (ha : p.obj a = S) (f : R ⟶ S) (g : T ⟶ R) :
+  PullbackObj' hp ha (g ≫ f) ≅ PullbackObj' hp (PullbackObjLiftDomain hp ha f) g :=
+  IsPullback'Iso (IsPullback'_comp (PullbackMap'IsPullback hp (PullbackObjLiftDomain hp ha f) g) (PullbackMap'IsPullback hp ha f))
+      (PullbackMap'IsPullback hp ha (g ≫ f))
+
+noncomputable def pullback_iso_pullback'  {p : 𝒳 ⥤ 𝒮} (hp : IsFibered p)
+  {R S T : 𝒮} {a : 𝒳} (ha : p.obj a = S) (f : R ⟶ S) (g : T ⟶ S)
+  [CategoryTheory.Limits.HasPullback f g] :
+  PullbackObj' hp (PullbackObjLiftDomain hp ha f) (@CategoryTheory.Limits.pullback.fst _ _ _ _ _ f g _)
+    ≅ PullbackObj' hp (PullbackObjLiftDomain hp ha g) (@CategoryTheory.Limits.pullback.snd _ _ _ _ _ f g _)
+    := sorry
 
 /-
 Given a diagram
@@ -413,6 +332,24 @@ noncomputable def PullbackPullbackIso'' {p : 𝒳 ⥤ 𝒮} (hp : IsFibered p)
       (Limits.hasPullback_symmetry f g) ≫ g) = (@Limits.pullback.fst _ _ _ _ _ f g _≫ f)
     · rw [Limits.pullbackSymmetry_hom_comp_fst_assoc, Limits.pullback.condition]
     exact IsPullback'InducedMapIsoofIso H.symm lem₂ lem₁
+
+#check Limits.pullbackSymmetry_hom_comp_snd
+
+noncomputable def PullbackPullbackIso''' {p : 𝒳 ⥤ 𝒮} (hp : IsFibered p)
+  {R S T : 𝒮} {a : 𝒳} (ha : p.obj a = R) (f : R ⟶ S) (g : T ⟶ S)
+  [Limits.HasPullback f g] :
+    PullbackObj' hp ha (@Limits.pullback.fst _ _ _ _ _ f g _) ≅
+      PullbackObj' hp ha (@Limits.pullback.snd _ _ _ _ _ g f (Limits.hasPullback_symmetry f g)) :=
+by
+  --For now this is a tactic "proof" to make it more readable. This will be easy to inline!
+  have lem₁ : IsPullback' p (@CategoryTheory.Limits.pullback.fst _ _ _ _ _ f g _)
+    (PullbackMap' hp ha (@CategoryTheory.Limits.pullback.fst _ _ _ _ _ f g _))
+  · apply PullbackMap'IsPullback hp ha (@CategoryTheory.Limits.pullback.fst _ _ _ _ _ f g _)
+  have lem₂ : IsPullback' p (@CategoryTheory.Limits.pullback.snd _ _ _ _ _ g f (Limits.hasPullback_symmetry f g) )
+    (PullbackMap' hp ha (@CategoryTheory.Limits.pullback.snd _ _ _ _ _ g f (Limits.hasPullback_symmetry f g) ))
+  · apply PullbackMap'IsPullback hp ha
+  sorry
+  --apply IsPullback'InducedMapIsoofIso (Limits.pullbackSymmetry_hom_comp_snd f g) lem₂ lem₁
 
 def Fiber (p : 𝒳 ⥤ 𝒮) (S : 𝒮) := {a : 𝒳 // p.obj a = S}
 
@@ -522,30 +459,75 @@ lemma fiber_factorization {p : 𝒳 ⥤ 𝒮} (hp : IsFibered p) {a b : 𝒳} (�
     existsi φ
     refine ⟨hφ, by simp only [IsPullback'InducedMap_Diagram]⟩
 
-class Functor.IsBasePreserving (p : C ⥤ S) (q : D ⥤ S) (F : C ⥤ D)
+variable {𝒴 : Type u₃} [Category 𝒴]
+
+class IsFiberedFunctor (p : 𝒳 ⥤ 𝒮) (q : 𝒴 ⥤ 𝒮) (F : 𝒳 ⥤ 𝒴)
   [IsFibered p] [IsFibered q] : Prop where
   (basePreserving : F ⋙ q = p)
-  (preservesCartesian (φ : y ⟶ x) [IsCartesian p φ] : IsCartesian q (F.map φ))
+  (preservesPullbacks {R S : 𝒮} (f : R ⟶ S) (φ : a ⟶ b) [IsPullback' p f φ] : IsPullback' q f (F.map φ))
 
-lemma samefiber (p : C ⥤ S) (q : D ⥤ S) (F : C ⥤ D) (G : C ⥤ D)
-  [IsFibered p] [IsFibered q] [hF : Functor.IsBasePreserving p q F] [hG : Functor.IsBasePreserving p q G]
-  (x : C) : q.obj (F.obj x) = q.obj (G.obj x) :=
+lemma IsFiberedFunctorObj (p : 𝒳 ⥤ 𝒮) (q : 𝒴 ⥤ 𝒮) (F : 𝒳 ⥤ 𝒴)
+  [IsFibered p] [IsFibered q] [hF : IsFiberedFunctor p q F] (a : 𝒳) : q.obj (F.obj a) = p.obj a :=
+  by simp only [←comp_obj, hF.1]
+
+-- TODO BETTER NAME... + better proof using above
+lemma IsFiberedFunctorPresFiberObj (p : 𝒳 ⥤ 𝒮) (q : 𝒴 ⥤ 𝒮) (F : 𝒳 ⥤ 𝒴) (G : 𝒳 ⥤ 𝒴)
+  [IsFibered p] [IsFibered q] [hF : IsFiberedFunctor p q F] [hG : IsFiberedFunctor p q G]
+  (a : 𝒳) : q.obj (F.obj a) = q.obj (G.obj a) := by simp only [←comp_obj, hF.1, hG.1]
+
+lemma IsFiberedFunctorCOMM (p : 𝒳 ⥤ 𝒮) (q : 𝒴 ⥤ 𝒮) (F : 𝒳 ⥤ 𝒴) (G : 𝒳 ⥤ 𝒴)
+  [IsFibered p] [IsFibered q] [hF : IsFiberedFunctor p q F] [hG : IsFiberedFunctor p q G] :
+  F ⋙ q = G ⋙ q := by simp only [hF.1, hG.1]
+
+-- TODO Formulate w/ CommSq?
+lemma IsFiberedFunctorPresFiberHom (p : 𝒳 ⥤ 𝒮) (q : 𝒴 ⥤ 𝒮) (F : 𝒳 ⥤ 𝒴) (G : 𝒳 ⥤ 𝒴)
+  [IsFibered p] [IsFibered q] [hF : IsFiberedFunctor p q F] [hG : IsFiberedFunctor p q G]
+  {a b: 𝒳} (φ : a ⟶ b) : CommSq (q.map (F.map φ))
+    (eqToHom (IsFiberedFunctorPresFiberObj p q F G a))
+    (eqToHom (IsFiberedFunctorPresFiberObj p q F G b)) (q.map (G.map φ)) :=
   by
-    rcases hF with ⟨hFcomm, _⟩
-    rcases hG with ⟨hGcomm, _⟩
-    rw [←comp_obj, ←comp_obj, hFcomm, hGcomm]
+    constructor
+    rw [←Functor.comp_map, ←Functor.comp_map]
+    sorry
+
+def IsFiberedFunctorOnFiber (p : 𝒳 ⥤ 𝒮) (q : 𝒴 ⥤ 𝒮) (F : 𝒳 ⥤ 𝒴) [IsFibered p]
+  [IsFibered q] [hF : IsFiberedFunctor p q F] (S : 𝒮) : Fiber p S ⥤ Fiber q S where
+    -- THIS SHOULD HAVE BEEN PUT IN AN API
+    obj := fun ⟨a, ha⟩ => ⟨F.obj a, show q.obj (F.obj a) = S by rwa [←comp_obj, hF.1]⟩
+    map := by
+      intro a b φ
+      have hb : q.obj (F.obj b.1) = p.obj b.1 := IsFiberedFunctorObj p q F b.1
+      have ha : q.obj (F.obj a.1) = p.obj a.1 := IsFiberedFunctorObj p q F a.1
+      have : q.map (F.map φ.val) ≫ (eqToHom hb) ≫ (eqToHom b.2) = eqToHom ha ≫ eqToHom a.2 :=
+        by
+          simp only [eqToHom_trans]
+          rw [←Functor.comp_map, comp_eqToHom_iff, eqToHom_trans]
+          -- TODO WHY CANT I APPLY?
+          --rw [eqToHom_refl]
+          sorry
+      -- NEED API TO DEAL WITH THIS
+      sorry
+    map_id := sorry
+    map_comp := sorry
+
+/-
+TODO: Full / Faithfull IFF ON FIBERS
+
+-/
 
 -- To make into a category I first have to define the type of Fibered categories....
 --instance IsFibered.category (p : C ⥤ D) [IsFibered p] : Category p where sorry
 
-class NatTrans.IsBasePreserving (p : C ⥤ S) (q : D ⥤ S) [IsFibered p] [IsFibered q] {F : C ⥤ D}
-  (G : C ⥤ D) [Functor.IsBasePreserving p q F] [Functor.IsBasePreserving p q G] (α : F ⟶ G) : Prop where
-  (pointwiseInFiber : ∀ (x : C), q.map (α.app x) = eqToHom (samefiber p q F G x))
+class IsFiberedNatTrans (p : 𝒳 ⥤ 𝒮) (q : 𝒴 ⥤ 𝒮) [hp : IsFibered p] [hq : IsFibered q] {F : 𝒳 ⥤ 𝒴}
+  {G : 𝒳 ⥤ 𝒴} [IsFiberedFunctor p q F] [IsFiberedFunctor p q G] (α : F ⟶ G) : Prop where
+  (pointwiseInFiber : ∀ (a : 𝒳), q.map (α.app a) = eqToHom (IsFiberedFunctorPresFiberObj p q F G a))
 
+
+/-
 -- TODO DEFINE COERCION
---def NatTrans.lift (p : C ⥤ S) (q : D ⥤ S) [IsFibered p] [IsFibered q] {F : C ⥤ D}
---  (G : C ⥤ D) [Functor.IsBasePreserving p q F] [Functor.IsBasePreserving p q G] (α : F ⟶ G)
---  [NatTrans.IsBasePreserving p q α] (x : C) :
+def NatTrans.lift (p : C ⥤ S) (q : D ⥤ S) [IsFibered p] [IsFibered q] {F : C ⥤ D}
+  (G : C ⥤ D) [Functor.IsBasePreserving p q F] [Functor.IsBasePreserving p q G] (α : F ⟶ G)
+  [NatTrans.IsBasePreserving p q α] (x : C) : -/
 
 /-
 -- TODO BREAK UP INTO SMALLER PIECES
