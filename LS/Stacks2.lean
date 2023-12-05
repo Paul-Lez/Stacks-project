@@ -9,7 +9,6 @@ variable {𝒮 : Type u₁} {𝒳 : Type u₂} [Category 𝒳] [Category 𝒮]
 class IsFiberedInGroupoids (p : 𝒳 ⥤ 𝒮) extends IsFibered p where
   (IsPullback {a b : 𝒳} (φ : b ⟶ a) :  IsPullback' p (p.map φ) φ)
 
-
 section Stack
 
 noncomputable abbrev pb1 [Limits.HasPullbacks 𝒮] {S : 𝒮}
@@ -136,34 +135,31 @@ def objects_glue {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
     (PullbackObjLiftDomain _ _ _) (PullbackObjLiftDomain _ _ _)),
   CocyleCondition J hp hI ha α hα →
   ∃ (b : 𝒳) (hb : p.obj b = S)
-      (φ : ∀ {Y : 𝒮} {f : Y ⟶ S} (hf : I f), PullbackObjLiftDomain hp.1 hb f ≅ a hf)
-      (hφ : ∀ {Y : 𝒮} {f : Y ⟶ S} (hf : I f), HomLift' (𝟙 Y) (φ hf).hom (PullbackObjLiftDomain hp.1 hb f) (ha hf)),
+      (φ : ∀ {Y : 𝒮} {f : Y ⟶ S} (hf : I f), PullbackObj' hp.1 hb f ≅ a hf)
+      (hφ : ∀ {Y : 𝒮} {f : Y ⟶ S} (hf : I f),
+      HomLift' (𝟙 Y) (φ hf).hom (PullbackObjLiftDomain hp.1 hb f)   (ha hf)),
      ∀ (Y Y' : 𝒮) (f : Y ⟶ S) (f' : Y' ⟶ S) (hf : I f) (hf' : I f'),
     CommSq
     (show PullbackObj' hp.1 (PullbackObjLiftDomain hp.1 hb f) (pb1 f f') ⟶
       PullbackObj' hp.1 (ha hf) (Limits.pullback.fst) from
         IsPullback'NaturalityHom (PullbackMap'IsPullback hp.1 (PullbackObjLiftDomain hp.1 hb f)
-    (pb1 f f'))  (PullbackMap'IsPullback hp.1 (ha hf) Limits.pullback.fst) (φ hf).hom (hφ hf))
-
+    (pb1 f f'))  (PullbackMap'IsPullback hp.1 (ha hf) Limits.pullback.fst)
+       (show PullbackObj' hp.1 hb f ⟶ a hf from (φ hf).hom) (hφ hf))
     (show PullbackObj' hp.1 (PullbackObjLiftDomain hp.1 hb f) (pb1 f f') ⟶ PullbackObj' hp.1 (PullbackObjLiftDomain hp.1 hb f') (pb1 f' f) from
         (pullback_comp_iso_pullback_pullback' hp.1 hb f (pb1 f f')).symm.hom ≫ (PullbackPullbackIso'' hp.1 hb f f').hom ≫ (pullback_comp_iso_pullback_pullback' hp.1 _ _ _).hom)
-
     (show PullbackObj' hp.1 (ha hf) (Limits.pullback.fst) ⟶ PullbackObj' hp.1 (ha hf') (pb1 f' f)from
       ((α hf hf').hom ≫ (show PullbackObj' hp.1 (ha hf') (pb2 f f') ⟶ PullbackObj' hp.1 (ha hf') (pb1 f' f) from
         (PullbackPullbackIso''' hp.1 (ha hf') f' f ).symm.hom)))
-    --(show PullbackObj' hp.1 (ha hf) (pb1 f f') ⟶ PullbackObj' hp.1 (ha hf') (Limits.pullback.fst) from
-    --  ((α hf hf').hom ≫ (show PullbackObj' hp.1 (ha hf') (pb2 f f') ⟶ PullbackObj' hp.1 (ha hf') (pb1 f' f) from
-    --    (PullbackPullbackIso''' hp.1 (ha hf') f' f ).symm.hom)))
-
-    (show PullbackObj' hp.1 (PullbackObjLiftDomain hp.1 hb f') (pb1 f' f) ⟶ PullbackObj' hp.1 (ha hf') (pb1 f' f)
-      from IsPullback'NaturalityHom (PullbackMap'IsPullback hp.1 (PullbackObjLiftDomain hp.1 hb f')
-    (pb1 f' f))  (PullbackMap'IsPullback hp.1 (ha hf') Limits.pullback.fst) (φ hf').hom (hφ hf'))
+      (show PullbackObj' hp.1 (PullbackObjLiftDomain hp.1 hb f') (pb1 f' f) ⟶ PullbackObj' hp.1 (ha hf') (pb1 f' f)
+    from IsPullback'NaturalityHom (PullbackMap'IsPullback hp.1 (PullbackObjLiftDomain hp.1 hb f')
+    (pb1 f' f))  (PullbackMap'IsPullback hp.1 (ha hf') Limits.pullback.fst)
+    (show PullbackObj' hp.1 hb f' ⟶ a hf' from (φ hf').hom) (hφ hf'))
 
 /-- A **Stack** `p : 𝒳 ⥤ 𝒮` is a functor fibered in groupoids that satisfies the object gluing and morphism gluing
   properties -/
 class Stack {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
   [Limits.HasPullbacks 𝒮] : Prop where
   (GlueMorphism : morphisms_glue J hp)
-  (ObjectsGlue : objects_glue hp)
+  (ObjectsGlue : objects_glue J hp)
 
 end Stack
