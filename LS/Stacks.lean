@@ -56,17 +56,21 @@ def morphisms_glue [Limits.HasPullbacks 𝒮] {p : 𝒳 ⥤ 𝒮} (hp : IsFibere
 
 /-- The canonical isomorphism `((a_j)|S_ij)|S_ijk ≅ ((a_j)|S_jk))|S_jki` where `S_ij = S_i ×_S S_j` and `S_ijk = S_ij ×_S S_k`, etc-/
 noncomputable def dpbi {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
-  {S : 𝒮} {I : Sieve S} (hI : I ∈ J.sieves S) [Limits.HasPullbacks 𝒮]
-  {a : ∀ {Y : 𝒮} {f : Y ⟶ S} (hf : I f), 𝒳}
+  {S : 𝒮} {I : Sieve S} (_ : I ∈ J.sieves S) [Limits.HasPullbacks 𝒮]
+  {a : ∀ {Y : 𝒮} {f : Y ⟶ S} (_ : I f), 𝒳}
   {ha : ∀ {Y : 𝒮} {f : Y ⟶ S} (hf : I f), p.obj (a hf) = Y} {Y Y' Y'': 𝒮}
-  {f : Y ⟶ S} {f' : Y' ⟶ S} {f'' : Y'' ⟶ S} (hf : I f) (hf' : I f') (hf'' : I f'') :
+  {f : Y ⟶ S} {f' : Y' ⟶ S} {f'' : Y'' ⟶ S} (_ : I f) (hf' : I f') (_ : I f'') :
   PullbackObj' hp.1 (PullbackObjLiftDomain hp.1 (ha hf') (pb2 f f')) (dpb1 f f' f'') ≅
     PullbackObj' hp.1 (PullbackObjLiftDomain hp.1 (ha hf') (pb1 f' f'')) (dpb1 f' f'' f) := by
   have lem₁ : IsPullback' p (dpb1 f f' f'' ≫ pb2 f f') (PullbackMap' hp.1 (PullbackObjLiftDomain hp.1 (ha hf') (pb2 f f')) (dpb1 f f' f'')
     ≫ PullbackMap' hp.1 (ha hf') (pb2 f f'))
-  · sorry
+  · apply IsPullback'_comp
+    apply PullbackMap'IsPullback
+    apply PullbackMap'IsPullback
   have lem₂ : IsPullback' p (dpb1 f' f'' f ≫ pb1 f' f'') (PullbackMap' hp.1 (PullbackObjLiftDomain hp.1 (ha hf') (pb1 f' f'')) (dpb1 f' f'' f) ≫ (PullbackMap' hp.1 (ha hf') (pb1 f' f'')))
-  · sorry
+  · apply IsPullback'_comp
+    apply PullbackMap'IsPullback
+    apply PullbackMap'IsPullback
   apply IsPullback'InducedMapIsoofIso _ lem₂ lem₁
   calc  Limits.pullback (pb1 f f' ≫ f) f'' ≅ Limits.pullback (pb2 f f' ≫ f') f'' := Limits.pullback.congrHom
           (Limits.pullback.condition) rfl

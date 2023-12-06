@@ -1,4 +1,4 @@
-import LS.FiberedInGroupoids
+import LS.Deprecated.FiberedInGroupoids
 
 open CategoryTheory Functor Opposite
 

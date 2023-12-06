@@ -72,8 +72,8 @@ class IsPullback' (p : 𝒳 ⥤ 𝒮) {R S : 𝒮} {a b : 𝒳} (f : R ⟶ S) (�
   (ObjLiftDomain : p.obj a = R)
   (ObjLiftCodomain : p.obj b = S)
   (HomLift : HomLift' f φ ObjLiftDomain ObjLiftCodomain)
-  (UniversalProperty {R' : 𝒮} {a' : 𝒳} {g : R' ⟶ R} {f' : R' ⟶ S} (hf' : f' = g ≫ f)
-  {ha' : p.obj a' = R'} {φ' : a' ⟶ b} (hφ' : HomLift' f' φ' ha' ObjLiftCodomain) :
+  (UniversalProperty {R' : 𝒮} {a' : 𝒳} {g : R' ⟶ R} {f' : R' ⟶ S} (_ : f' = g ≫ f)
+  {ha' : p.obj a' = R'} {φ' : a' ⟶ b} (_ : HomLift' f' φ' ha' ObjLiftCodomain) :
     ∃! χ : a' ⟶ a, HomLift' g χ ha' ObjLiftDomain ∧ χ ≫ φ = φ')
 
 /--
@@ -136,7 +136,12 @@ lemma IsPullback'InducedMap_comp {p : 𝒳 ⥤ 𝒮}
   (hφ : IsPullback' p f φ) (hφ' : IsPullback' p f' φ') (hφ'' : HomLift' f'' φ'' ha'' hφ.2) :
   -- hφ'' MIGHT JUST NEED TO BE HOMLIFT
   IsPullback'InducedMap hφ' H' hφ'' ≫ IsPullback'InducedMap hφ H hφ'.HomLift
-  = IsPullback'InducedMap hφ (show f'' = (h ≫ g) ≫ f by rwa [assoc, ←H]) hφ'' := sorry
+  = IsPullback'InducedMap hφ (show f'' = (h ≫ g) ≫ f by rwa [assoc, ←H]) hφ'' := by
+  apply IsPullback'InducedMap_unique
+  · apply HomLift'_comp
+    apply IsPullback'InducedMap_HomLift
+    apply IsPullback'InducedMap_HomLift
+  · simp only [assoc, IsPullback'InducedMap_Diagram]
 
 --lemma IsPullback'InducedMap_comp
 
@@ -272,7 +277,7 @@ noncomputable def IsPullback'NaturalityHom {p : 𝒳 ⥤ 𝒮}
 
 /-- Definition of a Fibered category. -/
 class IsFibered (p : 𝒳 ⥤ 𝒮) : Prop where
-  (has_pullbacks {a : 𝒳} {R S : 𝒮} (ha : p.obj a = S) (f : R ⟶ S) :
+  (has_pullbacks {a : 𝒳} {R S : 𝒮} (_ : p.obj a = S) (f : R ⟶ S) :
     ∃ (b : 𝒳) (φ : b ⟶ a), IsPullback' p f φ)
 
 /-
@@ -333,8 +338,6 @@ noncomputable def PullbackPullbackIso'' {p : 𝒳 ⥤ 𝒮} (hp : IsFibered p)
     · rw [Limits.pullbackSymmetry_hom_comp_fst_assoc, Limits.pullback.condition]
     exact IsPullback'InducedMapIsoofIso H.symm lem₂ lem₁
 
-#check Limits.pullbackSymmetry_hom_comp_snd
-
 noncomputable def PullbackPullbackIso''' {p : 𝒳 ⥤ 𝒮} (hp : IsFibered p)
   {R S T : 𝒮} {a : 𝒳} (ha : p.obj a = R) (f : R ⟶ S) (g : T ⟶ S)
   [Limits.HasPullback f g] :
@@ -348,8 +351,7 @@ by
   have lem₂ : IsPullback' p (@CategoryTheory.Limits.pullback.snd _ _ _ _ _ g f (Limits.hasPullback_symmetry f g) )
     (PullbackMap' hp ha (@CategoryTheory.Limits.pullback.snd _ _ _ _ _ g f (Limits.hasPullback_symmetry f g) ))
   · apply PullbackMap'IsPullback hp ha
-  sorry
-  --apply IsPullback'InducedMapIsoofIso (Limits.pullbackSymmetry_hom_comp_snd f g) lem₂ lem₁
+  apply IsPullback'InducedMapIsoofIso (Limits.pullbackSymmetry_hom_comp_snd f g).symm lem₂ lem₁
 
 def Fiber (p : 𝒳 ⥤ 𝒮) (S : 𝒮) := {a : 𝒳 // p.obj a = S}
 
