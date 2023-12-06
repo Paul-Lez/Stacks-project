@@ -162,10 +162,7 @@ def IsPullback'_comp {p : 𝒳 ⥤ 𝒮} {R S T : 𝒮} {a b c: 𝒳} {f : R ⟶
       intro π' hπ'
       apply IsPullback'InducedMap_unique hφ _ _ hπ'.1
       apply IsPullback'InducedMap_unique hψ _ _ (HomLift'_comp hπ'.1 hφ.HomLift)
-      simp only [assoc]
-      exact hπ'.2
-
---noncomputable def IsPullbackNaturalityHom
+      simpa only [assoc] using hπ'.2
 
 def IsPullback'_of_comp {p : 𝒳 ⥤ 𝒮} {R S T : 𝒮} {a b c: 𝒳} {f : R ⟶ S} {g : S ⟶ T} {φ : a ⟶ b}
   {ψ : b ⟶ c} (hψ : IsPullback' p g ψ) (hcomp : IsPullback' p (f ≫ g) (φ ≫ ψ))
@@ -197,8 +194,7 @@ lemma IsPullback'ofIso {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} {ha : p.obj
     ObjLiftDomain := ha
     ObjLiftCodomain := hb
     HomLift := hlift
-    UniversalProperty :=
-    by
+    UniversalProperty := by
       intros R' a' g f' hf' ha' φ' hφ'
       existsi φ' ≫ inv φ
       constructor
@@ -218,27 +214,23 @@ lemma IsPullback'IsoofIso {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} {f : R �
     set φ' := IsPullback'InducedMap hφ (IsIso.inv_hom_id f).symm (HomLift'_id _)
     existsi φ'
     refine ⟨?_, IsPullback'InducedMap_Diagram hφ (IsIso.inv_hom_id f).symm (HomLift'_id _)⟩
-    have h₁ : HomLift' (𝟙 R) (φ ≫ φ') hφ.1 hφ.1 :=
-      by
-        constructor
-        simp only [map_comp, assoc, comp_id]
-        have h₁ := hφ.3.1
-        rw [comp_eqToHom_iff] at h₁
-        rw [h₁]
-        have h₂ := (IsPullback'InducedMap_HomLift hφ (IsIso.inv_hom_id f).symm (HomLift'_id _)).1
-        rw [comp_eqToHom_iff] at h₂
-        rw [h₂]
-        simp only [assoc, eqToHom_trans, eqToHom_refl, comp_id, eqToHom_trans_assoc, id_comp, IsIso.hom_inv_id]
-    have h₂ : HomLift' f (φ ≫ φ' ≫ φ) hφ.1 hφ.2 :=
-      by
-        rw [IsPullback'InducedMap_Diagram hφ (IsIso.inv_hom_id f).symm (HomLift'_id _), comp_id]
-        apply hφ.3
+    have h₁ : HomLift' (𝟙 R) (φ ≫ φ') hφ.1 hφ.1 := by
+      constructor
+      simp only [map_comp, assoc, comp_id]
+      have h₁ := hφ.3.1
+      rw [comp_eqToHom_iff] at h₁
+      rw [h₁]
+      have h₂ := (IsPullback'InducedMap_HomLift hφ (IsIso.inv_hom_id f).symm (HomLift'_id _)).1
+      rw [comp_eqToHom_iff] at h₂
+      rw [h₂]
+      simp only [assoc, eqToHom_trans, eqToHom_refl, comp_id, eqToHom_trans_assoc, id_comp, IsIso.hom_inv_id]
+    have h₂ : HomLift' f (φ ≫ φ' ≫ φ) hφ.1 hφ.2 := by
+      rw [IsPullback'InducedMap_Diagram hφ (IsIso.inv_hom_id f).symm (HomLift'_id _), comp_id]
+      apply hφ.3
     rw [IsPullback'InducedMap_unique hφ (show f = 𝟙 R ≫ f by simp) h₂ h₁ (by apply Category.assoc)]
     apply (IsPullback'InducedMap_unique hφ (show f = 𝟙 R ≫ f by simp) _ (HomLift'_id hφ.1) _).symm
     rw [IsPullback'InducedMap_Diagram hφ (IsIso.inv_hom_id f).symm (HomLift'_id _)]
     simp only [id_comp, comp_id]
-
-
 
 -- TODO: Keep this as a separate lemma...?
 noncomputable def IsPullback'InducedMapIsoofIso {p : 𝒳 ⥤ 𝒮}
@@ -260,7 +252,6 @@ noncomputable def IsPullback'InducedMapIsoofIso {p : 𝒳 ⥤ 𝒮}
 noncomputable def IsPullback'Iso {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a' a b : 𝒳} {f : R ⟶ S} {φ : a ⟶ b}
   {φ' : a' ⟶ b} (hφ : IsPullback' p f φ) (hφ' : IsPullback' p f φ') : a' ≅ a :=
   IsPullback'InducedMapIsoofIso (show f = (Iso.refl R).hom ≫ f by simp) hφ hφ'
-
 
 /-
 Naturality API: TODO IS IT NEEDED, minimal for now.
@@ -309,9 +300,10 @@ noncomputable def pullback_comp_iso_pullback_pullback' {p : 𝒳 ⥤ 𝒮} (hp :
 noncomputable def pullback_iso_pullback'  {p : 𝒳 ⥤ 𝒮} (hp : IsFibered p)
   {R S T : 𝒮} {a : 𝒳} (ha : p.obj a = S) (f : R ⟶ S) (g : T ⟶ S)
   [CategoryTheory.Limits.HasPullback f g] :
-  PullbackObj' hp (PullbackObjLiftDomain hp ha f) (@CategoryTheory.Limits.pullback.fst _ _ _ _ _ f g _)
-    ≅ PullbackObj' hp (PullbackObjLiftDomain hp ha g) (@CategoryTheory.Limits.pullback.snd _ _ _ _ _ f g _)
-    := sorry
+  PullbackObj' hp (PullbackObjLiftDomain hp ha f)
+    (@CategoryTheory.Limits.pullback.fst _ _ _ _ _ f g _)
+    ≅ PullbackObj' hp (PullbackObjLiftDomain hp ha g)
+      (@CategoryTheory.Limits.pullback.snd _ _ _ _ _ f g _) := sorry
 
 /-
 Given a diagram
