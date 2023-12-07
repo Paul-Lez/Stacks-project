@@ -45,8 +45,6 @@ variable (J : GrothendieckTopology 𝒮) (S Y : 𝒮) (I : Sieve S) (hI : I ∈ 
 -/
 def morphisms_glue [Limits.HasPullbacks 𝒮] {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p) : Prop :=
   ∀ (S : 𝒮) (I : Sieve S), I ∈ J.sieves S →
-   (∀ {Y Y' : 𝒮} {f : Y ⟶ S} {f' : Y' ⟶ S}, I f → I f' →
-    Limits.HasPullback f f') →
   ∀ (a b : 𝒳) (ha : p.obj a = S) (hb : p.obj b = S)
   (φ : ∀ (Y : 𝒮) (f : Y ⟶ S), I f → (PullbackObj' hp.1 ha f ⟶ b))
   (Y Y' : 𝒮) (f : Y ⟶ S) (f' : Y' ⟶ S) (hf : I f) (hf' : I f'),
@@ -128,14 +126,13 @@ def CocyleCondition {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
 def objects_glue {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
   [Limits.HasPullbacks 𝒮] : Prop :=
   ∀ (S : 𝒮) (I : Sieve S) (hI : I ∈ J.sieves S)
-  (hI' : ∀ {Y Y' : 𝒮} {f : Y ⟶ S} {f' : Y' ⟶ S}, I f → I f' → Limits.HasPullback f f')
   (a : ∀ {Y : 𝒮} {f : Y ⟶ S}, I f → 𝒳)
   (ha : ∀ {Y : 𝒮} {f : Y ⟶ S} (hf : I f), p.obj (a hf) = Y)
   (α : ∀ {Y Y' : 𝒮} {f : Y ⟶ S} {f' : Y' ⟶ S} (hf : I f) (hf' : I f'),
-    PullbackObj' hp.1 (ha hf) (@Limits.pullback.fst _ _ _ _ _ f f' (hI' hf hf'))
-    ≅ PullbackObj' hp.1 (ha hf') (@Limits.pullback.snd _ _ _ _ _ f f' (hI' hf hf')))
+    PullbackObj' hp.1 (ha hf) (@Limits.pullback.fst _ _ _ _ _ f f' _)
+    ≅ PullbackObj' hp.1 (ha hf') (@Limits.pullback.snd _ _ _ _ _ f f' _))
   (hα : ∀ {Y Y' : 𝒮} {f : Y ⟶ S} {f' : Y' ⟶ S} (hf : I f) (hf' : I f'),
-    HomLift' (𝟙 (@Limits.pullback _ _ _ _ _ f f' (hI' hf hf'))) (α hf hf').hom
+    HomLift' (𝟙 (@Limits.pullback _ _ _ _ _ f f' _)) (α hf hf').hom
     (PullbackObjLiftDomain _ _ _) (PullbackObjLiftDomain _ _ _)),
   CocyleCondition J hp hI ha α hα →
   ∃ (b : 𝒳) (hb : p.obj b = S)
