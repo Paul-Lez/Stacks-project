@@ -359,6 +359,7 @@ def Fiber.self (p : 𝒳 ⥤ 𝒮) (a : 𝒳) : Fiber p (p.obj a) := ⟨a, rfl�
 lemma Fiber.self_coe (p : 𝒳 ⥤ 𝒮) (a : 𝒳) : (Fiber.self p a).val = a := rfl
 
 instance Fiber.category (p : 𝒳 ⥤ 𝒮) (S : 𝒮) : Category (Fiber p S) where
+  -- TODO NEED BETTER DEFINITION, CommSq?
   Hom a b := {φ : a.val ⟶ b.val // (p.map φ) ≫ (eqToHom b.prop) = (eqToHom a.prop)}
   id a := ⟨𝟙 a.val,
     by
@@ -467,9 +468,15 @@ class IsFiberedFunctor (p : 𝒳 ⥤ 𝒮) (q : 𝒴 ⥤ 𝒮) (F : 𝒳 ⥤ �
   (basePreserving : F ⋙ q = p)
   (preservesPullbacks {R S : 𝒮} (f : R ⟶ S) (φ : a ⟶ b) [IsPullback' p f φ] : IsPullback' q f (F.map φ))
 
+@[simp]
 lemma IsFiberedFunctorObj (p : 𝒳 ⥤ 𝒮) (q : 𝒴 ⥤ 𝒮) (F : 𝒳 ⥤ 𝒴)
   [IsFibered p] [IsFibered q] [hF : IsFiberedFunctor p q F] (a : 𝒳) : q.obj (F.obj a) = p.obj a :=
   by simp only [←comp_obj, hF.1]
+
+
+
+
+
 
 -- TODO BETTER NAME... + better proof using above
 lemma IsFiberedFunctorPresFiberObj (p : 𝒳 ⥤ 𝒮) (q : 𝒴 ⥤ 𝒮) (F : 𝒳 ⥤ 𝒴) (G : 𝒳 ⥤ 𝒴)
@@ -480,6 +487,16 @@ lemma IsFiberedFunctorCOMM (p : 𝒳 ⥤ 𝒮) (q : 𝒴 ⥤ 𝒮) (F : 𝒳 ⥤
   [IsFibered p] [IsFibered q] [hF : IsFiberedFunctor p q F] [hG : IsFiberedFunctor p q G] :
   F ⋙ q = G ⋙ q := by simp only [hF.1, hG.1]
 
+lemma IsFiberedFunctorMap (p : 𝒳 ⥤ 𝒮) (q : 𝒴 ⥤ 𝒮) (F : 𝒳 ⥤ 𝒴)
+  [IsFibered p] [IsFibered q] [hF : IsFiberedFunctor p q F] {a b: 𝒳} (φ : a ⟶ b) :
+  CommSq (q.map (F.map φ)) (eqToHom (IsFiberedFunctorObj p q F a))
+    (eqToHom (IsFiberedFunctorObj p q F b)) (p.map φ) :=
+  by
+    constructor
+    have h₁ := hF.1
+    subst h₁
+    simp only [comp_obj, eqToHom_refl, comp_id, Functor.comp_map, id_comp]
+
 -- TODO Formulate w/ CommSq?
 lemma IsFiberedFunctorPresFiberHom (p : 𝒳 ⥤ 𝒮) (q : 𝒴 ⥤ 𝒮) (F : 𝒳 ⥤ 𝒴) (G : 𝒳 ⥤ 𝒴)
   [IsFibered p] [IsFibered q] [hF : IsFiberedFunctor p q F] [hG : IsFiberedFunctor p q G]
@@ -488,6 +505,7 @@ lemma IsFiberedFunctorPresFiberHom (p : 𝒳 ⥤ 𝒮) (q : 𝒴 ⥤ 𝒮) (F : 
     (eqToHom (IsFiberedFunctorPresFiberObj p q F G b)) (q.map (G.map φ)) :=
   by
     constructor
+
     rw [←Functor.comp_map, ←Functor.comp_map]
     sorry
 
@@ -499,17 +517,26 @@ def IsFiberedFunctorOnFiber (p : 𝒳 ⥤ 𝒮) (q : 𝒴 ⥤ 𝒮) (F : 𝒳 �
       intro a b φ
       have hb : q.obj (F.obj b.1) = p.obj b.1 := IsFiberedFunctorObj p q F b.1
       have ha : q.obj (F.obj a.1) = p.obj a.1 := IsFiberedFunctorObj p q F a.1
-      have : q.map (F.map φ.val) ≫ (eqToHom hb) ≫ (eqToHom b.2) = eqToHom ha ≫ eqToHom a.2 :=
+      have h₁ : q.map (F.map φ.val) ≫ (eqToHom hb) ≫ (eqToHom b.2) = eqToHom ha ≫ eqToHom a.2 :=
         by
+          -- TODO CLEAN UP
+          have h₁ := (IsFiberedFunctorMap p q F φ.1).1
+          rw [comp_eqToHom_iff] at h₁
           simp only [eqToHom_trans]
-          rw [←Functor.comp_map, comp_eqToHom_iff, eqToHom_trans]
-          -- TODO WHY CANT I APPLY?
-          --rw [eqToHom_refl]
-          sorry
-      -- NEED API TO DEAL WITH THIS
-      sorry
-    map_id := sorry
-    map_comp := sorry
+          rw [comp_eqToHom_iff, eqToHom_trans]
+          rw [h₁, assoc]
+          have h₂ := φ.2
+          rw [comp_eqToHom_iff] at h₂
+          rw [h₂]
+          simp only [eqToHom_trans]
+      rw [eqToHom_trans, eqToHom_trans] at h₁
+      exact ⟨F.map φ.val, h₁⟩
+    map_id :=
+      by
+        sorry
+    map_comp :=
+      by
+        sorry
 
 /-
 TODO: Full / Faithfull IFF ON FIBERS
