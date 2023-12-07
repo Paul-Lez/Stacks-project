@@ -297,17 +297,6 @@ noncomputable def pullback_comp_iso_pullback_pullback' {p : 𝒳 ⥤ 𝒮} (hp :
   IsPullback'Iso (IsPullback'_comp (PullbackMap'IsPullback hp (PullbackObjLiftDomain hp ha f) g) (PullbackMap'IsPullback hp ha f))
       (PullbackMap'IsPullback hp ha (g ≫ f))
 
-<<<<<<< HEAD
-noncomputable def pullback_iso_pullback'  {p : 𝒳 ⥤ 𝒮} (hp : IsFibered p)
-  {R S T : 𝒮} {a : 𝒳} (ha : p.obj a = S) (f : R ⟶ S) (g : T ⟶ S)
-  [CategoryTheory.Limits.HasPullback f g] :
-  PullbackObj' hp (PullbackObjLiftDomain hp ha f)
-    (@CategoryTheory.Limits.pullback.fst _ _ _ _ _ f g _)
-    ≅ PullbackObj' hp (PullbackObjLiftDomain hp ha g)
-      (@CategoryTheory.Limits.pullback.snd _ _ _ _ _ f g _) := sorry
-=======
->>>>>>> 27b101d (final sorry)
-
 /-
 Given a diagram
     ``R × T ≅ T × R ----> R
