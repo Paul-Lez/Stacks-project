@@ -294,14 +294,6 @@ noncomputable def pullback_comp_iso_pullback_pullback' {p : 𝒳 ⥤ 𝒮} (hp :
   IsPullback'Iso (IsPullback'_comp (PullbackMap'IsPullback hp (PullbackObjLiftDomain hp ha f) g) (PullbackMap'IsPullback hp ha f))
       (PullbackMap'IsPullback hp ha (g ≫ f))
 
-noncomputable def pullback_iso_pullback'  {p : 𝒳 ⥤ 𝒮} (hp : IsFibered p)
-  {R S T : 𝒮} {a : 𝒳} (ha : p.obj a = S) (f : R ⟶ S) (g : T ⟶ S)
-  [CategoryTheory.Limits.HasPullback f g] :
-  PullbackObj' hp (PullbackObjLiftDomain hp ha f)
-    (@CategoryTheory.Limits.pullback.fst _ _ _ _ _ f g _)
-    ≅ PullbackObj' hp (PullbackObjLiftDomain hp ha g)
-      (@CategoryTheory.Limits.pullback.snd _ _ _ _ _ f g _) := sorry
-
 /-
 Given a diagram
     ``R × T ≅ T × R ----> R
@@ -326,6 +318,17 @@ noncomputable def PullbackPullbackIso'' {p : 𝒳 ⥤ 𝒮} (hp : IsFibered p)
       (Limits.hasPullback_symmetry f g) ≫ g) = (@Limits.pullback.fst _ _ _ _ _ f g _≫ f)
     · rw [Limits.pullbackSymmetry_hom_comp_fst_assoc, Limits.pullback.condition]
     exact IsPullback'InducedMapIsoofIso H.symm lem₂ lem₁
+
+noncomputable def pullback_iso_pullback'  {p : 𝒳 ⥤ 𝒮} (hp : IsFibered p)
+  {R S T : 𝒮} {a : 𝒳} (ha : p.obj a = S) (f : R ⟶ S) (g : T ⟶ S)
+  [CategoryTheory.Limits.HasPullback f g] :
+  PullbackObj' hp (PullbackObjLiftDomain hp ha f) (@CategoryTheory.Limits.pullback.fst _ _ _ _ _ f g _)
+    ≅ PullbackObj' hp (PullbackObjLiftDomain hp ha g) (@CategoryTheory.Limits.pullback.snd _ _ _ _ _ f g _)
+    :=
+    Iso.trans (pullback_comp_iso_pullback_pullback' hp ha f (@Limits.pullback.fst _ _ _ _ _ f g _)).symm
+    (by
+      have lem₃ := pullback_comp_iso_pullback_pullback' hp ha g (@CategoryTheory.Limits.pullback.snd _ _ _ _ _ f g _)
+      rwa [←Limits.pullback.condition] at lem₃)
 
 noncomputable def PullbackPullbackIso''' {p : 𝒳 ⥤ 𝒮} (hp : IsFibered p)
   {R S T : 𝒮} {a : 𝒳} (ha : p.obj a = R) (f : R ⟶ S) (g : T ⟶ S)
