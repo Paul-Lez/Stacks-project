@@ -20,12 +20,16 @@ instance : Limits.HasPullbacks Empty := ⟨fun F => Limits.hasLimitOfHasLimitsOf
 
 variable (J : GrothendieckTopology Empty)
 
-lemma IsFiberedInGroupoid.EmptyCat.id : IsFiberedInGroupoids (Functor.id Empty) := sorry
+lemma IsFiberedInGroupoid.EmptyCat.id : IsFiberedInGroupoids (Functor.id Empty) where
+  has_pullbacks := fun a f => by aesop
+  IsPullback := fun a => by aesop
 
 lemma EmptyCat_morphisms_glue : morphisms_glue J (IsFiberedInGroupoid.EmptyCat.id) := fun S => by cases S
 
 lemma EmptyCat_objects_glue : objects_glue J (IsFiberedInGroupoid.EmptyCat.id) := fun S => by cases S
 
-instance : Stack J IsFiberedInGroupoid.EmptyCat.id where
+instance emptyStack : Stack J IsFiberedInGroupoid.EmptyCat.id where
   GlueMorphism := EmptyCat_morphisms_glue J
   ObjectsGlue := EmptyCat_objects_glue J
+
+#print axioms emptyStack
