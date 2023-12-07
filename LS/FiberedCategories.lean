@@ -34,22 +34,19 @@ def HomLift' {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} (f : R ⟶ S) (φ : a
  (ha : p.obj a = R) (hb : p.obj b = S) : Prop :=
   CommSq (p.map φ) (eqToHom ha) (eqToHom hb) f
 
-lemma HomLift'_id {p : 𝒳 ⥤ 𝒮} {R : 𝒮} {a : 𝒳} (ha : p.obj a = R) : HomLift' (𝟙 R) (𝟙 a) ha ha :=
-  by
-    constructor
-    simp only [map_id, id_comp, comp_id]
+lemma HomLift'_id {p : 𝒳 ⥤ 𝒮} {R : 𝒮} {a : 𝒳} (ha : p.obj a = R) : HomLift' (𝟙 R) (𝟙 a) ha ha := by
+  constructor ; simp only [map_id, id_comp, comp_id]
 
-def HomLift'_self (p : 𝒳 ⥤ 𝒮) {a b : 𝒳} (φ : a ⟶ b) : HomLift' (p.map φ) φ rfl rfl :=
+lemma HomLift'_self (p : 𝒳 ⥤ 𝒮) {a b : 𝒳} (φ : a ⟶ b) : HomLift' (p.map φ) φ rfl rfl :=
   ⟨by simp only [eqToHom_refl, comp_id, id_comp]⟩
 
 -- TODO make instance somehow
 lemma IsIsoofHomlift'Iso {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} {ha : p.obj a = R} {hb : p.obj b = S}
-  {f : R ⟶ S} {φ : a ⟶ b} (hlift : HomLift' f φ ha hb) (hφ : IsIso φ) : IsIso f :=
-  by
-    rcases hlift with ⟨hlift⟩
-    rw [←eqToHom_comp_iff ha.symm] at hlift
-    rw [←hlift]
-    exact IsIso.comp_isIso
+  {f : R ⟶ S} {φ : a ⟶ b} (hlift : HomLift' f φ ha hb) (hφ : IsIso φ) : IsIso f := by
+  rcases hlift with ⟨hlift⟩
+  rw [←eqToHom_comp_iff ha.symm] at hlift
+  rw [←hlift]
+  exact IsIso.comp_isIso
 
 -- TODO INFER IsIso f SOMEHOW
 lemma HomLift'_inv {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} {ha : p.obj a = R} {hb : p.obj b = S}
@@ -345,6 +342,11 @@ by
   · apply PullbackMap'IsPullback hp ha
   apply IsPullback'InducedMapIsoofIso (Limits.pullbackSymmetry_hom_comp_snd f g).symm lem₂ lem₁
 
+section WIP
+-- ====================================================================
+-- From here and onwards this is work in progress not needed for Stacks
+-- ====================================================================
+
 def Fiber (p : 𝒳 ⥤ 𝒮) (S : 𝒮) := {a : 𝒳 // p.obj a = S}
 
 def Fiber.self (p : 𝒳 ⥤ 𝒮) (a : 𝒳) : Fiber p (p.obj a) := ⟨a, rfl⟩
@@ -366,6 +368,8 @@ instance Fiber.category (p : 𝒳 ⥤ 𝒮) (S : 𝒮) : Category (Fiber p S) wh
 def Fiber.functor (p : 𝒳 ⥤ 𝒮) (S : 𝒮) : (Fiber p S) ⥤ 𝒳 where
   obj := Subtype.val
   map := Subtype.val
+
+
 
 /-
 class HasFibers (p : 𝒳 ⥤ 𝒮) where
@@ -565,3 +569,5 @@ lemma IsFiberedInGroupoids_iff (p : C ⥤ S) : IsFiberedInGroupoids p ↔
     existsi hy
     exact hcomm
 -/
+
+end WIP
