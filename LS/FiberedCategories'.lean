@@ -340,8 +340,6 @@ lemma PullbackMapIsPullback {p : 𝒳 ⥤ 𝒮} (hp : IsFibered p)
 lemma PullbackObjLiftDomain {p : 𝒳 ⥤ 𝒮} (hp : IsFibered p)
   {R S : 𝒮} {a : 𝒳} (ha : p.obj a = S) (f : R ⟶ S) : p.obj (PullbackObj hp ha f) = R := (PullbackMapIsPullback hp ha f).ObjLiftDomain
 
--- TODO make more readable? Then need more API. Might need to split up PullbackMapIsPullback
-
 /-- Given a diagram
 ```
                   a
@@ -395,13 +393,13 @@ R × T ≅ T × R ----> R
 -/
 noncomputable def pullback_iso_pullback'  {p : 𝒳 ⥤ 𝒮} (hp : IsFibered p)
   {R S T : 𝒮} {a : 𝒳} (ha : p.obj a = S) (f : R ⟶ S) (g : T ⟶ S)
-  [CategoryTheory.Limits.HasPullback f g] :
-  PullbackObj hp (PullbackObjLiftDomain hp ha f) (@CategoryTheory.Limits.pullback.fst _ _ _ _ _ f g _)
-    ≅ PullbackObj hp (PullbackObjLiftDomain hp ha g) (@CategoryTheory.Limits.pullback.snd _ _ _ _ _ f g _)
+  [Limits.HasPullback f g] :
+  PullbackObj hp (PullbackObjLiftDomain hp ha f) (Limits.pullback.fst (f := f) (g := g))
+    ≅ PullbackObj hp (PullbackObjLiftDomain hp ha g) (Limits.pullback.snd (f := f) (g := g))
     :=
-    Iso.trans (PullbackCompIsoPullbackPullback hp ha f (@Limits.pullback.fst _ _ _ _ _ f g _)).symm
+    Iso.trans (PullbackCompIsoPullbackPullback hp ha f (Limits.pullback.fst (f := f) (g := g))).symm
     (by
-      have lem₃ := PullbackCompIsoPullbackPullback hp ha g (@CategoryTheory.Limits.pullback.snd _ _ _ _ _ f g _)
+      have lem₃ := PullbackCompIsoPullbackPullback hp ha g (Limits.pullback.snd (f := f) (g := g))
       rwa [←Limits.pullback.condition] at lem₃)
 
 /-- Given a diagram in 𝒫
@@ -416,15 +414,15 @@ R × T ≅ T × R ----> R
 noncomputable def PullbackPullbackIso''' {p : 𝒳 ⥤ 𝒮} (hp : IsFibered p)
   {R S T : 𝒮} {a : 𝒳} (ha : p.obj a = R) (f : R ⟶ S) (g : T ⟶ S)
   [Limits.HasPullback f g] :
-    PullbackObj hp ha (@Limits.pullback.fst _ _ _ _ _ f g _) ≅
+    PullbackObj hp ha (Limits.pullback.fst (f := f) (g := g)) ≅
       PullbackObj hp ha (@Limits.pullback.snd _ _ _ _ _ g f (Limits.hasPullback_symmetry f g)) :=
 by
   --For now this is a tactic "proof" to make it more readable. This will be easy to inline!
-  have lem₁ : IsPullback p (@CategoryTheory.Limits.pullback.fst _ _ _ _ _ f g _)
-    (PullbackMap hp ha (@CategoryTheory.Limits.pullback.fst _ _ _ _ _ f g _))
-  · apply PullbackMapIsPullback hp ha (@CategoryTheory.Limits.pullback.fst _ _ _ _ _ f g _)
-  have lem₂ : IsPullback p (@CategoryTheory.Limits.pullback.snd _ _ _ _ _ g f (Limits.hasPullback_symmetry f g) )
-    (PullbackMap hp ha (@CategoryTheory.Limits.pullback.snd _ _ _ _ _ g f (Limits.hasPullback_symmetry f g) ))
+  have lem₁ : IsPullback p (Limits.pullback.fst (f := f) (g := g))
+    (PullbackMap hp ha (Limits.pullback.fst (f := f) (g := g)))
+  · apply PullbackMapIsPullback hp ha (Limits.pullback.fst (f := f) (g := g))
+  have lem₂ : IsPullback p (@Limits.pullback.snd _ _ _ _ _ g f (Limits.hasPullback_symmetry f g) )
+    (PullbackMap hp ha (@Limits.pullback.snd _ _ _ _ _ g f (Limits.hasPullback_symmetry f g) ))
   · apply PullbackMapIsPullback hp ha
   apply IsPullbackInducedMapIsoofIso (Limits.pullbackSymmetry_hom_comp_snd f g).symm lem₂ lem₁
 

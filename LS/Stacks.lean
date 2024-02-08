@@ -148,7 +148,7 @@ def objects_glue {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
        (show PullbackObj' hp.1 hb f ⟶ a hf from (φ hf).hom) (hφ hf))
     (show PullbackObj' hp.1 (PullbackObjLiftDomain hp.1 hb f) (pb1 f f') ⟶ PullbackObj' hp.1 (PullbackObjLiftDomain hp.1 hb f')
       (pb1 f' f) from
-        (PullbackCompIsoPullbackPullback hp.1 hb f (pb1 f f')).symm.hom ≫ (PullbackPullbackIso'' hp.1 hb f f').hom ≫ (PullbackCompIsoPullbackPullback hp.1 _ _ _).hom)
+        (pullback_comp_iso_pullback_pullback' hp.1 hb f (pb1 f f')).symm.hom ≫ (PullbackPullbackIso'' hp.1 hb f f').hom ≫ (pullback_comp_iso_pullback_pullback' hp.1 _ _ _).hom)
     (show PullbackObj' hp.1 (ha hf) (Limits.pullback.fst) ⟶ PullbackObj' hp.1 (ha hf') (pb1 f' f)from
       ((α hf hf').hom ≫ (show PullbackObj' hp.1 (ha hf') (pb2 f f') ⟶ PullbackObj' hp.1 (ha hf') (pb1 f' f) from
         (PullbackPullbackIso''' hp.1 (ha hf') f' f ).symm.hom)))
