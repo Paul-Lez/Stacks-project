@@ -37,23 +37,32 @@ def HomLift' {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} (f : R ⟶ S) (φ : a
  (ha : p.obj a = R) (hb : p.obj b = S) : Prop :=
   CommSq (p.map φ) (eqToHom ha) (eqToHom hb) f
 
+/-- The proposition that an arrow a --φ--> b lifts an arrow R --f--> S in 𝒮 via p. This is
+often drawn as:
+```
+  a --φ--> b
+  -        -
+  |        |
+  v        v
+  R --f--> S
+``` -/
 class IsHomLift (p : 𝒳 ⥤ 𝒮) {R S : 𝒮} {a b : 𝒳} (f : R ⟶ S) (φ : a ⟶ b) : Prop where
   (ObjLiftDomain : p.obj a = R)
   (ObjLiftCodomain : p.obj b = S)
   (HomLift : CommSq (p.map φ) (eqToHom ObjLiftDomain) (eqToHom ObjLiftCodomain) f)
 
-instance IsHomLift_id {p : 𝒳 ⥤ 𝒮} {R : 𝒮} {a : 𝒳} (ha : p.obj a = R) : IsHomLift p (𝟙 R) (𝟙 a) where
+lemma IsHomLift_id {p : 𝒳 ⥤ 𝒮} {R : 𝒮} {a : 𝒳} (ha : p.obj a = R) : IsHomLift p (𝟙 R) (𝟙 a) where
   ObjLiftDomain := ha
   ObjLiftCodomain := ha
   HomLift := ⟨by simp only [map_id, id_comp, comp_id]⟩
 
--- TODO HOW TO AUTOMATE IT
 instance IsHomLift_self (p : 𝒳 ⥤ 𝒮) : IsHomLift p (p.map φ) φ where
   ObjLiftDomain := rfl
   ObjLiftCodomain := rfl
   HomLift := ⟨by simp only [eqToHom_refl, comp_id, id_comp]⟩
 
-lemma IsIsoofIsHomliftIso {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} {f : R ⟶ S} {φ : a ⟶ b}
+/-- If a --φ--> b lifts R --f--> S, then if φ is an isomorphism, so is f. -/
+lemma IsIsoofIsHomliftisIso {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} {f : R ⟶ S} {φ : a ⟶ b}
   (hlift : IsHomLift p f φ) (hφ : IsIso φ) : IsIso f := by
   rcases hlift with ⟨domain, _, ⟨homlift⟩⟩
   rw [←eqToHom_comp_iff domain.symm] at homlift
@@ -79,22 +88,31 @@ lemma IsHomLift_comp {p : 𝒳 ⥤ 𝒮} {R S T : 𝒮} {a b c : 𝒳} {f : R �
       rw [←Category.assoc, ←hφ.3.1]
       simp only [map_comp, assoc, hψ.3.1]
 
+/-- The proposition that a lift
+```
+  a --φ--> b
+  -        -
+  |        |
+  v        v
+  R --f--> S
+```
+is a pullback.
+-/
 class IsPullback (p : 𝒳 ⥤ 𝒮) {R S : 𝒮} {a b : 𝒳} (f : R ⟶ S) (φ : a ⟶ b) extends IsHomLift p f φ : Prop where
   (UniversalProperty {R' : 𝒮} {a' : 𝒳} {g : R' ⟶ R} {f' : R' ⟶ S}
     (_ : f' = g ≫ f) {φ' : a' ⟶ b} (_ : IsHomLift p f' φ') :
       ∃! χ : a' ⟶ a, IsHomLift p g χ ∧ χ ≫ φ = φ')
 
-/--
-Given:
+/-- Given a diagram:
+```
 a'        a --φ--> b
 |         |        |
 v         v        v
 R' --g--> R --f--> S
-
-With φ a pullback and φ' : a' ⟶ b, gets the induced map from a' to a from the universal property.
--/
-
--- TODO IsPullback' should be in []??
+```
+such that φ is a pullback, and an arrow φ' : a' ⟶ b,
+the induced map is the map a' ⟶ a obtained from the
+universal property of φ. -/
 noncomputable def IsPullbackInducedMap {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} {f : R ⟶ S} {φ : a ⟶ b}
   (hφ : IsPullback p f φ) {R' : 𝒮} {a' : 𝒳} {g : R' ⟶ R} {f' : R' ⟶ S} (hf' : f' = g ≫ f)
   {φ' : a' ⟶ b} (hφ' : IsHomLift p f' φ') : a' ⟶ a :=
@@ -111,17 +129,15 @@ lemma IsPullbackInducedMap_Diagram {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳}
   {φ' : a' ⟶ b} (hφ' : IsHomLift p f' φ') : (IsPullbackInducedMap hφ hf' hφ') ≫ φ = φ' :=
   (Classical.choose_spec (hφ.UniversalProperty hf' hφ')).1.2
 
-/--
-Given:
-a' --ψ--> a --φ--> b
+/-- Given a diagram:
+```
+a'        a --φ--> b
 |         |        |
 v         v        v
 R' --g--> R --f--> S
-
-With φ a pullback φ' : a' ⟶ b, s.t. ψ ≫ φ = φ'. Then ψ is the induced Pullback map
-
--/
-
+```
+with φ a pullback. Then for any arrow φ' : a' ⟶ b, and ψ : a' ⟶ a such that
+g ≫ ψ = φ'. Then ψ equals the induced pullback map. -/
 lemma IsPullbackInducedMap_unique {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} {f : R ⟶ S} {φ : a ⟶ b}
   (hφ : IsPullback p f φ) {R' : 𝒮} {a' : 𝒳} {g : R' ⟶ R} {f' : R' ⟶ S} (hf' : f' = g ≫ f)
   {φ' : a' ⟶ b} (hφ' : IsHomLift p f' φ') {ψ : a' ⟶ a} (hψ : IsHomLift p g ψ)
@@ -133,13 +149,17 @@ lemma IsPullbackInducedMap_self_eq_id {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : �
   (hφ : IsPullback p f φ) : 𝟙 a = IsPullbackInducedMap hφ (show f = 𝟙 R ≫ f by simp) hφ.toIsHomLift :=
   IsPullbackInducedMap_unique hφ (show f = 𝟙 R ≫ f by simp) hφ.toIsHomLift (IsHomLift_id hφ.ObjLiftDomain) (id_comp _)
 
+/-- TODO IS THIS PARTICULAR STATEMENT OPTIMAL? Assumes "big" squares are commutative...
+```
+
+
+``` -/
 @[simp]
 lemma IsPullbackInducedMap_comp {p : 𝒳 ⥤ 𝒮}
   {R R' R'' S: 𝒮} {a a' a'' b : 𝒳}
   {f : R ⟶ S} {f' : R' ⟶ S} {f'' : R'' ⟶ S} {g : R' ⟶ R} {h : R'' ⟶ R'}
   (H : f' = g ≫ f) (H' : f'' = h ≫ f') {φ : a ⟶ b} {φ' : a' ⟶ b} {φ'' : a'' ⟶ b}
   (hφ : IsPullback p f φ) (hφ' : IsPullback p f' φ') (hφ'' : IsHomLift p f'' φ'') :
-  -- hφ'' MIGHT JUST NEED TO BE HOMLIFT
   IsPullbackInducedMap hφ' H' hφ'' ≫ IsPullbackInducedMap hφ H hφ'.toIsHomLift
   = IsPullbackInducedMap hφ (show f'' = (h ≫ g) ≫ f by rwa [assoc, ←H]) hφ'' := by
   apply IsPullbackInducedMap_unique
@@ -148,7 +168,16 @@ lemma IsPullbackInducedMap_comp {p : 𝒳 ⥤ 𝒮}
     apply IsPullbackInducedMap_IsHomLift
   · simp only [assoc, IsPullbackInducedMap_Diagram]
 
-def IsPullback_comp {p : 𝒳 ⥤ 𝒮} {R S T : 𝒮} {a b c: 𝒳} {f : R ⟶ S} {g : S ⟶ T} {φ : a ⟶ b}
+/-- Given two pullback squares
+```
+a --φ--> b --ψ--> c
+|        |        |
+v        v        v
+R --f--> S --g--> T
+```
+Then also the composite φ ≫ ψ is a pullback square. -/
+-- TODO READ AND SEE IF I CAN SIMPLIFY
+lemma IsPullback_comp {p : 𝒳 ⥤ 𝒮} {R S T : 𝒮} {a b c: 𝒳} {f : R ⟶ S} {g : S ⟶ T} {φ : a ⟶ b}
   {ψ : b ⟶ c} (hφ : IsPullback p f φ) (hψ : IsPullback p g ψ) : IsPullback p (f ≫ g) (φ ≫ ψ) where
     toIsHomLift := IsHomLift_comp hφ.toIsHomLift hψ.toIsHomLift
     UniversalProperty := by
@@ -165,7 +194,16 @@ def IsPullback_comp {p : 𝒳 ⥤ 𝒮} {R S T : 𝒮} {a b c: 𝒳} {f : R ⟶ 
       apply IsPullbackInducedMap_unique hψ _ _ (IsHomLift_comp hπ'.1 hφ.toIsHomLift)
       simpa only [assoc] using hπ'.2
 
-def IsPullback_of_comp {p : 𝒳 ⥤ 𝒮} {R S T : 𝒮} {a b c: 𝒳} {f : R ⟶ S} {g : S ⟶ T}
+/-- Given two commutative squares
+```
+a --φ--> b --ψ--> c
+|        |        |
+v        v        v
+R --f--> S --g--> T
+```
+such that the composite φ ≫ ψ is a pullback, then so is φ. -/
+-- TODO READ AND SEE IF I CAN SIMPLIFY
+lemma IsPullback_of_comp {p : 𝒳 ⥤ 𝒮} {R S T : 𝒮} {a b c: 𝒳} {f : R ⟶ S} {g : S ⟶ T}
   {φ : a ⟶ b} {ψ : b ⟶ c} (hψ : IsPullback p g ψ) (hcomp : IsPullback p (f ≫ g) (φ ≫ ψ))
   (hφ : IsHomLift p f φ) : IsPullback p f φ where
     toIsHomLift := hφ
@@ -197,7 +235,7 @@ lemma IsPullbackofIso {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳}
       constructor
       · simp only [assoc, IsIso.inv_hom_id, comp_id, and_true]
         -- TODO THIS SHOULD BE INFERED...
-        haveI hhh : IsIso f := IsIsoofIsHomliftIso hlift hφ
+        haveI hhh : IsIso f := IsIsoofIsHomliftisIso hlift hφ
         have h₁ := IsHomLift_comp hφ' (IsHomLift_inv hlift hφ hhh)
         simp only [hf', assoc, IsIso.hom_inv_id, comp_id] at h₁
         exact h₁
@@ -353,3 +391,5 @@ by
 
 
 end Fibered
+
+#lint
