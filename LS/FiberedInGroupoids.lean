@@ -1,4 +1,4 @@
-import LS.FiberedCategories
+import LS.FiberedCategories'
 
 open CategoryTheory Functor Category
 
@@ -9,23 +9,18 @@ open CategoryTheory Functor Category
 
 variable {𝒮 : Type u₁} {𝒳 : Type u₂} [Category 𝒳] [Category 𝒮]
 
+open Fibered
+
 /--
 Lemma for showing things are fibered in groupoids in a simpler way (avoid showing that morphisms
 are pullbacks "twice")
 -/
 
--- TEMPORARY (or will possibly replace HomLift')
-class IsHomLift (p : 𝒳 ⥤ 𝒮) {R S : 𝒮} {a b : 𝒳} (f : R ⟶ S) (φ : a ⟶ b) : Prop where
-  (ObjLiftDomain : p.obj a = R)
-  (ObjLiftCodomain : p.obj b = S)
-  (HomLift : HomLift' f φ ObjLiftDomain ObjLiftCodomain)
-
--- TODO: this definition can be improved with IsHomLift
 class IsFiberedInGroupoids (p : 𝒳 ⥤ 𝒮) extends IsFibered p where
-  (IsPullback {a b : 𝒳} {R S : 𝒮} (φ : b ⟶ a) (f : R ⟶ S) (hf : IsHomLift p f φ) :  IsPullback' p f φ)
+  (IsPullback {a b : 𝒳} {R S : 𝒮} (φ : b ⟶ a) (f : R ⟶ S) : IsHomLift p f φ → IsPullback p f φ)
 
-instance IsFiberedInGroupoids' (p : 𝒳 ⥤ 𝒮) (h₁ : ∀ {a b : 𝒳} {R S : 𝒮} (φ : b ⟶ a) (f : R ⟶ S)
-  (hf : IsHomLift p f φ), IsPullback' p f φ)
+lemma IsFiberedInGroupoids' (p : 𝒳 ⥤ 𝒮) (h₁ : ∀ {a b : 𝒳} {R S : 𝒮} (φ : b ⟶ a) (f : R ⟶ S),
+  IsHomLift p f φ → IsPullback p f φ)
   (h₂ : ∀ {a : 𝒳} {R S : 𝒮} (_ : p.obj a = S) (f : R ⟶ S),
     ∃ (b : 𝒳) (φ : b ⟶ a), IsHomLift p f φ) : IsFiberedInGroupoids p where
     has_pullbacks :=
@@ -40,22 +35,25 @@ noncomputable instance IsFiberedInGroupoids.id : IsFiberedInGroupoids (Functor.i
   IsFiberedInGroupoids' (𝟭 𝒮)
   (by
     intro a b R S φ f hφ
-    refine ⟨hφ.1, hφ.2, hφ.3, ?_⟩
-    intro R' a' g f' hf' ha' φ' hφ'
-    simp only [id_obj, Functor.id_map] at ha'
-    subst ha'
-    have h₁ := hφ.1
+    constructor
+    intro R' a' g f' hf' φ' hφ'
+    have h₁ := hφ'.1
     simp only [id_obj, Functor.id_map] at h₁
     subst h₁
+    have h₂ := hφ.1
+    simp only [id_obj, Functor.id_map] at h₂
+    subst h₂
     existsi g
-    refine ⟨⟨HomLift'_self _ _, ?_⟩, ?_⟩
-    · have h₁ := hφ'.1
-      have h₂ := hφ.3.1
-      have h₃ := hφ.2
-      rename_i inst inst_1
-      aesop_subst [hf', h₃]
+    simp only
+    nth_rw 1 [show g = (𝟭 𝒮).map g by rfl]
+    refine ⟨⟨IsHomLift_self (𝟭 𝒮), ?_⟩, ?_⟩
+    · have h₁ := hφ.3.1
+      have h₂ := hφ.2
+      have h₃ := hφ'.3.1
+      rename_i inst_1
+      aesop_subst [hf', h₂]
       simp_all only [id_obj, Functor.id_map, eqToHom_refl, comp_id, id_comp]
-    intro ψ ⟨⟨hψ⟩, _⟩
+    intro ψ ⟨⟨_, _, ⟨hψ⟩⟩, _⟩
     simp only [id_obj, Functor.id_map, eqToHom_refl, comp_id, id_comp] at hψ
     exact hψ)
   (by

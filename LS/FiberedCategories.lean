@@ -369,11 +369,9 @@ instance Fiber.category (p : 𝒳 ⥤ 𝒮) (S : 𝒮) : Category (Fiber p S) wh
       simp only [map_comp, assoc, comp_id]
       rw [ψ.prop, φ.prop]⟩
 
-def Fiber.functor (p : 𝒳 ⥤ 𝒮) (S : 𝒮) : (Fiber p S) ⥤ 𝒳 where
+def FiberFunctor (p : 𝒳 ⥤ 𝒮) (S : 𝒮) : (Fiber p S) ⥤ 𝒳 where
   obj := Subtype.val
   map := Subtype.val
-
-
 
 /-
 class HasFibers (p : 𝒳 ⥤ 𝒮) where
@@ -515,27 +513,26 @@ def IsFiberedFunctorOnFiber (p : 𝒳 ⥤ 𝒮) (q : 𝒴 ⥤ 𝒮) (F : 𝒳 �
     obj := fun ⟨a, ha⟩ => ⟨F.obj a, show q.obj (F.obj a) = S by rwa [←comp_obj, hF.1]⟩
     map := by
       intro a b φ
-      have hb : q.obj (F.obj b.1) = p.obj b.1 := IsFiberedFunctorObj p q F b.1
-      have ha : q.obj (F.obj a.1) = p.obj a.1 := IsFiberedFunctorObj p q F a.1
-      have h₁ : q.map (F.map φ.val) ≫ (eqToHom hb) ≫ (eqToHom b.2) = eqToHom ha ≫ eqToHom a.2 :=
-        by
-          -- TODO CLEAN UP
-          have h₁ := (IsFiberedFunctorMap p q F φ.1).1
-          rw [comp_eqToHom_iff] at h₁
-          simp only [eqToHom_trans]
-          rw [comp_eqToHom_iff, eqToHom_trans]
-          rw [h₁, assoc]
-          have h₂ := φ.2
-          rw [comp_eqToHom_iff] at h₂
-          rw [h₂]
-          simp only [eqToHom_trans]
-      rw [eqToHom_trans, eqToHom_trans] at h₁
-      exact ⟨F.map φ.val, h₁⟩
+      refine ⟨F.map φ.val, ?_⟩
+      have h₁ := (IsFiberedFunctorMap p q F φ.1).1
+      rw [comp_eqToHom_iff] at h₁
+      rw [h₁]
+      have h₂ := φ.2
+      rw [comp_eqToHom_iff] at h₂
+      rw [h₂]
+      simp only [eqToHom_trans]
     map_id :=
       by
+        intro x
+        apply Subtype.val_inj.1
+        simp only [Eq.ndrec, id_eq, eq_mpr_eq_cast, cast_eq, eq_mp_eq_cast]
         sorry
+        --have : (𝟙 x).1 = 𝟙 x.1 := rfl
     map_comp :=
       by
+        intro x y z f g
+        apply Subtype.val_inj.1
+        simp
         sorry
 
 /-
