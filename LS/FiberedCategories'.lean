@@ -176,15 +176,13 @@ v        v        v
 R --f--> S --g--> T
 ```
 Then also the composite φ ≫ ψ is a pullback square. -/
--- TODO READ AND SEE IF I CAN SIMPLIFY
 lemma IsPullback_comp {p : 𝒳 ⥤ 𝒮} {R S T : 𝒮} {a b c: 𝒳} {f : R ⟶ S} {g : S ⟶ T} {φ : a ⟶ b}
   {ψ : b ⟶ c} (hφ : IsPullback p f φ) (hψ : IsPullback p g ψ) : IsPullback p (f ≫ g) (φ ≫ ψ) where
     toIsHomLift := IsHomLift_comp hφ.toIsHomLift hψ.toIsHomLift
     UniversalProperty := by
       intro U d h i hi_comp τ hi
       rw [←assoc] at hi_comp
-      set τ' := IsPullbackInducedMap hψ hi_comp hi
-      set π := IsPullbackInducedMap hφ rfl (IsPullbackInducedMap_IsHomLift hψ hi_comp hi)
+      let π := IsPullbackInducedMap hφ rfl (IsPullbackInducedMap_IsHomLift hψ hi_comp hi)
       existsi π
       refine ⟨⟨IsPullbackInducedMap_IsHomLift hφ rfl (IsPullbackInducedMap_IsHomLift hψ hi_comp hi), ?_⟩, ?_⟩
       · rw [←(IsPullbackInducedMap_Diagram hψ hi_comp hi)]
@@ -202,25 +200,21 @@ v        v        v
 R --f--> S --g--> T
 ```
 such that the composite φ ≫ ψ is a pullback, then so is φ. -/
--- TODO READ AND SEE IF I CAN SIMPLIFY
 lemma IsPullback_of_comp {p : 𝒳 ⥤ 𝒮} {R S T : 𝒮} {a b c: 𝒳} {f : R ⟶ S} {g : S ⟶ T}
   {φ : a ⟶ b} {ψ : b ⟶ c} (hψ : IsPullback p g ψ) (hcomp : IsPullback p (f ≫ g) (φ ≫ ψ))
   (hφ : IsHomLift p f φ) : IsPullback p f φ where
     toIsHomLift := hφ
     UniversalProperty := by
       intro U d h i hi_comp τ hi
-      have h₁ := IsHomLift_comp hi hψ.toIsHomLift
+      have h₁ : IsHomLift p (i ≫ g) (τ ≫ ψ) := IsHomLift_comp hi hψ.toIsHomLift
       have h₂ : i ≫ g = h ≫ f ≫ g := by rw [hi_comp, assoc]
-      set π := IsPullbackInducedMap hcomp h₂ h₁ with hπ
+      let π := IsPullbackInducedMap hcomp h₂ h₁
       existsi π
       refine ⟨⟨IsPullbackInducedMap_IsHomLift hcomp h₂ h₁, ?_⟩,?_⟩
-      · have h₃ := IsPullbackInducedMap_IsHomLift hcomp h₂ h₁
+      · have h₃ := IsHomLift_comp (IsPullbackInducedMap_IsHomLift hcomp h₂ h₁) hφ
         rw [←assoc] at h₂
-        have h₄ := IsHomLift_comp h₃ hφ
-        have h₅ : τ = IsPullbackInducedMap hψ h₂ h₁ :=
-          IsPullbackInducedMap_unique hψ h₂ h₁ (by rwa [←hi_comp]) rfl
-        rw [h₅]
-        apply IsPullbackInducedMap_unique hψ h₂ h₁ h₄ _
+        rw [IsPullbackInducedMap_unique hψ h₂ h₁ (by rwa [←hi_comp]) rfl]
+        apply IsPullbackInducedMap_unique hψ h₂ h₁ h₃ _
         rw [assoc] at h₂
         rw [assoc, (IsPullbackInducedMap_Diagram hcomp h₂ h₁)]
       intro π' hπ'
@@ -234,14 +228,14 @@ lemma IsPullbackofIso {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳}
       existsi φ' ≫ inv φ
       constructor
       · simp only [assoc, IsIso.inv_hom_id, comp_id, and_true]
-        -- TODO THIS SHOULD BE INFERED...
-        haveI hhh : IsIso f := IsIsoofIsHomliftisIso hlift hφ
-        have h₁ := IsHomLift_comp hφ' (IsHomLift_inv hlift hφ hhh)
+        have hf : IsIso f := IsIsoofIsHomliftisIso hlift hφ
+        have h₁ := IsHomLift_comp hφ' (IsHomLift_inv hlift hφ hf)
         simp only [hf', assoc, IsIso.hom_inv_id, comp_id] at h₁
         exact h₁
       intro ψ hψ
       simp only [IsIso.eq_comp_inv, hψ.2]
 
+-- NEED TO CHECK PROOFS FROM HERE ONWARDS
 lemma IsPullbackIsoofIso {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} {f : R ⟶ S} {φ : a ⟶ b}
   (hφ : IsPullback p f φ) (hf : IsIso f): IsIso φ :=
   by
@@ -298,7 +292,6 @@ noncomputable def IsPullbackIso {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a' a b : 𝒳}
 Naturality API: TODO IS IT NEEDED, minimal for now.
 
 -/
-
 -- TODO: make ψ non-explicit... Need to fix Stacks2 first for this
 noncomputable def IsPullbackNaturalityHom {p : 𝒳 ⥤ 𝒮}
   {R S : 𝒮} {a a' b b' : 𝒳} {f : R ⟶ S} {φ : a ⟶ b} {φ' : a' ⟶ b'}
@@ -391,5 +384,3 @@ by
 
 
 end Fibered
-
-#lint
