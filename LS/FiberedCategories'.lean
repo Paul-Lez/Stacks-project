@@ -305,14 +305,30 @@ class IsFibered (p : 𝒳 ⥤ 𝒮) : Prop where
   (has_pullbacks {a : 𝒳} {R S : 𝒮} (_ : p.obj a = S) (f : R ⟶ S) :
     ∃ (b : 𝒳) (φ : b ⟶ a), IsPullback p f φ)
 
-/-
-API FOR FIBERED CATEGORIES
--/
+/- API FOR FIBERED CATEGORIES -/
 
+/-- Given a Fibered category p : 𝒳 ⥤ 𝒫, and a diagram
+```
+           a
+           -
+           |
+           v
+  R --f--> S
+```
+we have a pullback `R ×_S a` -/
 noncomputable def PullbackObj {p : 𝒳 ⥤ 𝒮} (hp : IsFibered p) {R S : 𝒮}
   {a : 𝒳} (ha : p.obj a = S) (f : R ⟶ S) : 𝒳 :=
   Classical.choose (hp.1 ha f)
 
+/-- Given a Fibered category p : 𝒳 ⥤ 𝒫, and a diagram
+```
+          a
+          -
+          |
+          v
+R --f--> S
+```
+we get a map R ×_S b ⟶ a -/
 noncomputable def PullbackMap {p : 𝒳 ⥤ 𝒮} (hp : IsFibered p)
   {R S : 𝒮} {a : 𝒳} (ha : p.obj a = S) (f : R ⟶ S) : PullbackObj hp ha f ⟶ a :=
   Classical.choose (Classical.choose_spec (hp.1 ha f))
@@ -325,18 +341,30 @@ lemma PullbackObjLiftDomain {p : 𝒳 ⥤ 𝒮} (hp : IsFibered p)
   {R S : 𝒮} {a : 𝒳} (ha : p.obj a = S) (f : R ⟶ S) : p.obj (PullbackObj hp ha f) = R := (PullbackMapIsPullback hp ha f).ObjLiftDomain
 
 -- TODO make more readable? Then need more API. Might need to split up PullbackMapIsPullback
-noncomputable def pullback_comp_iso_pullback_pullback' {p : 𝒳 ⥤ 𝒮} (hp : IsFibered p)
+
+/-- Given a diagram
+```
+                  a
+                  -
+                  |
+                  v
+T --g--> R --f--> S
+```
+we have an isomorphism T ×_S a ≅ T ×_R (R ×_S a) -/
+noncomputable def PullbackCompIsoPullbackPullback {p : 𝒳 ⥤ 𝒮} (hp : IsFibered p)
   {R S T : 𝒮} {a : 𝒳} (ha : p.obj a = S) (f : R ⟶ S) (g : T ⟶ R) :
   PullbackObj hp ha (g ≫ f) ≅ PullbackObj hp (PullbackObjLiftDomain hp ha f) g :=
-  IsPullbackIso (IsPullback_comp (PullbackMapIsPullback hp (PullbackObjLiftDomain hp ha f) g) (PullbackMapIsPullback hp ha f))
+  IsPullbackIso (IsPullback_comp (PullbackMapIsPullback hp (PullbackObjLiftDomain hp ha f) g)
+    (PullbackMapIsPullback hp ha f))
       (PullbackMapIsPullback hp ha (g ≫ f))
 
-/-
-Given a diagram
-    ``R × T ≅ T × R ----> R
-                |       f |
-                |    g    |
-                T ------> S
+/-- Given a diagram in 𝒫
+```
+R × T ≅ T × R ----> R
+          |       f |
+          |    g    |
+          T ------> S
+```
 and a : 𝒳 above S, we have a canonical isomorphism a|_R×T ≅ a|_T×R -/
 noncomputable def PullbackPullbackIso'' {p : 𝒳 ⥤ 𝒮} (hp : IsFibered p)
   {R S T : 𝒮} {a : 𝒳} (ha : p.obj a = S) (f : R ⟶ S) (g : T ⟶ S)
@@ -356,17 +384,35 @@ noncomputable def PullbackPullbackIso'' {p : 𝒳 ⥤ 𝒮} (hp : IsFibered p)
     · rw [Limits.pullbackSymmetry_hom_comp_fst_assoc, Limits.pullback.condition]
     exact IsPullbackInducedMapIsoofIso H.symm lem₂ lem₁
 
+/-- Given a diagram in 𝒫
+```
+R × T ≅ T × R ----> R
+          |       f |
+          |    g    |
+          T ------> S
+```
+
+-/
 noncomputable def pullback_iso_pullback'  {p : 𝒳 ⥤ 𝒮} (hp : IsFibered p)
   {R S T : 𝒮} {a : 𝒳} (ha : p.obj a = S) (f : R ⟶ S) (g : T ⟶ S)
   [CategoryTheory.Limits.HasPullback f g] :
   PullbackObj hp (PullbackObjLiftDomain hp ha f) (@CategoryTheory.Limits.pullback.fst _ _ _ _ _ f g _)
     ≅ PullbackObj hp (PullbackObjLiftDomain hp ha g) (@CategoryTheory.Limits.pullback.snd _ _ _ _ _ f g _)
     :=
-    Iso.trans (pullback_comp_iso_pullback_pullback' hp ha f (@Limits.pullback.fst _ _ _ _ _ f g _)).symm
+    Iso.trans (PullbackCompIsoPullbackPullback hp ha f (@Limits.pullback.fst _ _ _ _ _ f g _)).symm
     (by
-      have lem₃ := pullback_comp_iso_pullback_pullback' hp ha g (@CategoryTheory.Limits.pullback.snd _ _ _ _ _ f g _)
+      have lem₃ := PullbackCompIsoPullbackPullback hp ha g (@CategoryTheory.Limits.pullback.snd _ _ _ _ _ f g _)
       rwa [←Limits.pullback.condition] at lem₃)
 
+/-- Given a diagram in 𝒫
+```
+R × T ≅ T × R ----> R
+          |       f |
+          |    g    |
+          T ------> S
+```
+
+-/
 noncomputable def PullbackPullbackIso''' {p : 𝒳 ⥤ 𝒮} (hp : IsFibered p)
   {R S T : 𝒮} {a : 𝒳} (ha : p.obj a = R) (f : R ⟶ S) (g : T ⟶ S)
   [Limits.HasPullback f g] :
