@@ -273,7 +273,7 @@ noncomputable def IsPullbackInducedMapIsoofIso {p : 𝒳 ⥤ 𝒮}
   (H : f' = g.hom ≫ f) {φ : a ⟶ b} {φ' : a' ⟶ b}
   (hφ : IsPullback p f φ) (hφ' : IsPullback p f' φ') : a' ≅ a where
     hom := IsPullbackInducedMap hφ H hφ'.toIsHomLift
-    inv := IsPullbackInducedMap hφ' (show g.inv ≫ g.hom ≫ f = g.inv ≫ f' by simp [H])
+    inv := IsPullbackInducedMap hφ' (show g.inv ≫ g.hom ≫ f = g.inv ≫ f' by simp only [Iso.inv_hom_id_assoc, H])
       -- TODO DO THIS BETTER.....
       (by
           rw [←assoc, g.inv_hom_id, id_comp]
@@ -286,7 +286,7 @@ noncomputable def IsPullbackInducedMapIsoofIso {p : 𝒳 ⥤ 𝒮}
 
 noncomputable def IsPullbackIso {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a' a b : 𝒳} {f : R ⟶ S} {φ : a ⟶ b}
   {φ' : a' ⟶ b} (hφ : IsPullback p f φ) (hφ' : IsPullback p f φ') : a' ≅ a :=
-  IsPullbackInducedMapIsoofIso (show f = (Iso.refl R).hom ≫ f by simp) hφ hφ'
+  IsPullbackInducedMapIsoofIso (show f = (Iso.refl R).hom ≫ f by simp only [Iso.refl_hom, id_comp]) hφ hφ'
 
 /-
 Naturality API: TODO IS IT NEEDED, minimal for now.
@@ -297,7 +297,8 @@ noncomputable def IsPullbackNaturalityHom {p : 𝒳 ⥤ 𝒮}
   {R S : 𝒮} {a a' b b' : 𝒳} {f : R ⟶ S} {φ : a ⟶ b} {φ' : a' ⟶ b'}
   (hφ : IsPullback p f φ) (hφ' : IsPullback p f φ')
   (ψ : b ⟶ b') (hψ : IsHomLift p (𝟙 S) ψ) : a ⟶ a' :=
-  IsPullbackInducedMap hφ' (show (f ≫ 𝟙 S = 𝟙 R ≫ f) by simp) (IsHomLift_comp hφ.toIsHomLift hψ)
+  IsPullbackInducedMap hφ' (show (f ≫ 𝟙 S = 𝟙 R ≫ f) by simp only [comp_id, id_comp])
+    (IsHomLift_comp hφ.toIsHomLift hψ)
 
 
 /-- Definition of a Fibered category. -/
@@ -367,18 +368,18 @@ and a : 𝒳 above S, we have a canonical isomorphism a|_R×T ≅ a|_T×R -/
 noncomputable def PullbackPullbackIso'' {p : 𝒳 ⥤ 𝒮} (hp : IsFibered p)
   {R S T : 𝒮} {a : 𝒳} (ha : p.obj a = S) (f : R ⟶ S) (g : T ⟶ S)
   [Limits.HasPullback f g] :
-    PullbackObj hp ha (@Limits.pullback.fst _ _ _ _ _ f g _≫ f)
+    PullbackObj hp ha (Limits.pullback.fst (f := f) (g := g) ≫ f)
       ≅ PullbackObj hp ha (@Limits.pullback.fst _ _ _ _ _ g f
         (Limits.hasPullback_symmetry f g) ≫ g) :=
   by
-    have lem₁ : IsPullback p (@Limits.pullback.fst _ _ _ _ _ f g _≫ f)
-      (PullbackMap hp ha (@Limits.pullback.fst _ _ _ _ _ f g _≫ f))
-    · apply PullbackMapIsPullback hp ha (@Limits.pullback.fst _ _ _ _ _ f g _≫ f)
+    have lem₁ : IsPullback p (Limits.pullback.fst (f := f) (g := g) ≫ f)
+      (PullbackMap hp ha (Limits.pullback.fst (f := f) (g := g) ≫ f))
+    · apply PullbackMapIsPullback hp ha (Limits.pullback.fst (f := f) (g := g) ≫ f)
     have lem₂ : IsPullback p (@Limits.pullback.fst _ _ _ _ _ g f (Limits.hasPullback_symmetry f g) ≫ g)
       (PullbackMap hp ha (@Limits.pullback.fst _ _ _ _ _ g f (Limits.hasPullback_symmetry f g) ≫ g))
     · apply PullbackMapIsPullback hp ha
     have H : (Limits.pullbackSymmetry f g).hom ≫ (@Limits.pullback.fst _ _ _ _ _ g f
-      (Limits.hasPullback_symmetry f g) ≫ g) = (@Limits.pullback.fst _ _ _ _ _ f g _≫ f)
+      (Limits.hasPullback_symmetry f g) ≫ g) = (Limits.pullback.fst (f := f) (g := g) ≫ f)
     · rw [Limits.pullbackSymmetry_hom_comp_fst_assoc, Limits.pullback.condition]
     exact IsPullbackInducedMapIsoofIso H.symm lem₂ lem₁
 

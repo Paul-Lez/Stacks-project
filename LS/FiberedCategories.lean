@@ -304,7 +304,7 @@ and a : 𝒳 above S, we have a canonical isomorphism a|_R×T ≅ a|_T×R -/
 noncomputable def PullbackPullbackIso'' {p : 𝒳 ⥤ 𝒮} (hp : IsFibered p)
   {R S T : 𝒮} {a : 𝒳} (ha : p.obj a = S) (f : R ⟶ S) (g : T ⟶ S)
   [Limits.HasPullback f g] :
-    PullbackObj' hp ha (@Limits.pullback.fst _ _ _ _ _ f g _≫ f)
+    PullbackObj' hp ha (@Limits.pullback.fst _ _ _ _ _ f g _ ≫ f)
       ≅ PullbackObj' hp ha (@Limits.pullback.fst _ _ _ _ _ g f
         (Limits.hasPullback_symmetry f g) ≫ g) :=
   by
