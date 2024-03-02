@@ -56,7 +56,7 @@ lemma IsHomLift_id {p : 𝒳 ⥤ 𝒮} {R : 𝒮} {a : 𝒳} (ha : p.obj a = R) 
   ObjLiftCodomain := ha
   HomLift := ⟨by simp only [map_id, id_comp, comp_id]⟩
 
-instance IsHomLift_self (p : 𝒳 ⥤ 𝒮) : IsHomLift p (p.map φ) φ where
+instance IsHomLift_self (p : 𝒳 ⥤ 𝒮) {a b : 𝒳} (φ : a ⟶ b) : IsHomLift p (p.map φ) φ where
   ObjLiftDomain := rfl
   ObjLiftCodomain := rfl
   HomLift := ⟨by simp only [eqToHom_refl, comp_id, id_comp]⟩
@@ -426,6 +426,152 @@ by
     (PullbackMap hp ha (@Limits.pullback.snd _ _ _ _ _ g f (Limits.hasPullback_symmetry f g) ))
   · apply PullbackMapIsPullback hp ha
   apply IsPullbackInducedMapIsoofIso (Limits.pullbackSymmetry_hom_comp_snd f g).symm lem₂ lem₁
+
+-- ====================================================================
+-- From here and onwards this is work in progress not needed for Stacks
+-- ====================================================================
+
+-- MISSING MATHLIB LEMMA
+
+/-- If the two inner squares below commute, then so does the outer square.
+```
+  W ---f---> X ---f'--> X'
+  |          |          |
+  g          h          h'
+  |          |          |
+  v          v          v
+  Y ---i---> Z ---i'--> Z'
+
+```
+-/
+lemma CommSqComp {W X X' Y Z Z' : 𝒮} {f : W ⟶ X} {f' : X ⟶ X'} {g : W ⟶ Y} {h : X ⟶ Z} {h' : X' ⟶ Z'}
+  {i : Y ⟶ Z} {i' : Z ⟶ Z'} (hsq₁ : CommSq f g h i) (hsq₂ : CommSq f' h h' i') : CommSq (f ≫ f') g h' (i ≫ i') :=
+  ⟨by rw [←assoc, assoc, ←hsq₁.w, hsq₂.w, assoc]⟩
+
+-- First we define the fibers of a given fibered category
+-- def Fiber (p : 𝒳 ⥤ 𝒮) (S : 𝒮) := (a : 𝒳) × (p.obj a ≅ S)
+def Fiber (p : 𝒳 ⥤ 𝒮) (S : 𝒮) := {a : 𝒳 // p.obj a = S}
+
+-- a lies in the fiber of p.obj a
+def FiberSelf {p : 𝒳 ⥤ 𝒮} {S : 𝒮} {a : 𝒳} (ha : p.obj a = S) : Fiber p S := ⟨a, ha⟩
+
+-- TODO DO I EVEN NEED?
+@[simp]
+lemma FiberSelfCoe (p : 𝒳 ⥤ 𝒮) (a : 𝒳) : (FiberSelf (p:=p) (a:=a) rfl).1 = a := rfl
+
+instance FiberCategory (p : 𝒳 ⥤ 𝒮) (S : 𝒮) : Category (Fiber p S) where
+  -- TODO: Is this the best implementation? IsHomLift allows us to use the api,
+  -- but then we need to "reprove" p.obj a = S and p.obj b = S...
+  -- Maybe just CommSq directly?
+  Hom a b := {φ : a.1 ⟶ b.1 // IsHomLift p (𝟙 S) φ}
+  id a := ⟨𝟙 a.1, IsHomLift_id a.2⟩
+  comp φ ψ := ⟨φ.val ≫ ψ.val, by apply (comp_id (𝟙 S)) ▸ IsHomLift_comp φ.2 ψ.2⟩
+
+def FiberInclusion (p : 𝒳 ⥤ 𝒮) (S : 𝒮) : (Fiber p S) ⥤ 𝒳 where
+  obj := Subtype.val
+  map := Subtype.val
+
+-- Next define induced map from "arbitrary fiber" to "canonical fiber"
+
+def FiberUniversalFunctor {p : 𝒳 ⥤ 𝒮} {S : 𝒮} {C : Type _} [Category C]
+  {F : C ⥤ 𝒳} (hF : F ⋙ p = (const C).obj S) : C ⥤ Fiber p S where
+    obj := fun x => ⟨F.obj x, by simp only [←comp_obj, hF, const_obj_obj]⟩
+    map := fun φ => ⟨F.map φ, {
+      ObjLiftDomain := by simp only [←comp_obj, hF, const_obj_obj]
+      ObjLiftCodomain := by simp only [←comp_obj, hF, const_obj_obj]
+      HomLift := ⟨by simpa using (eqToIso hF).hom.naturality φ⟩
+    }⟩
+
+-- We define an intrinsic notion of fibers, which we call FiberStruct
+-- Fibered family
+structure FiberStruct (p : 𝒳 ⥤ 𝒮) where
+  Fib (S : 𝒮) : Type _
+  [isCategory (S : 𝒮) : Category (Fib S)]
+  (ι (S : 𝒮) : (Fib S) ⥤ 𝒳)
+  -- (comp_const (S : 𝒮) : (ι S) ⋙ p = (const (Fib S)).obj S)
+  (comp_const (S : 𝒮) : ∀ (a : Fib S), (ι S ⋙ p).obj a = S)
+  --(comp_const (S : 𝒮) : ∀ (a : Fib S), p.obj ((ι S).obj a) = S)
+
+  (ess_surj (S : 𝒮) : ∀ (a : 𝒳), p.obj a = S → ∃ (b : Fib S) (φ : (ι S).obj b ⟶ a),
+    IsIso φ ∧ IsHomLift p (𝟙 S) φ)
+  (faithful (S : 𝒮) : Faithful (ι S))
+  (full (S : 𝒮) : ∀ (a b : Fib S) (φ : (ι S).obj a ⟶ (ι S).obj b), IsHomLift p (𝟙 S) φ →
+    ∃ (ψ : a ⟶ b), (ι S).map ψ = φ)
+  --[equiv (S : 𝒮) : IsEquivalence (FiberUniversalFunctor (comp_const S))]
+
+instance {p : 𝒳 ⥤ 𝒮} (hp : FiberStruct p) {S : 𝒮} : Category (hp.Fib S) := hp.isCategory S
+
+--instance {p : 𝒳 ⥤ 𝒮} (hp : FiberStruct p) {S : 𝒮} : IsEquivalence (FiberUniversalFunctor (hp.comp_const S)) := hp.equiv S
+
+-- instance {p : 𝒳 ⥤ 𝒮} (hp : FiberStruct p) {S : 𝒮} : IsEquivalence (FiberUniversalFunctor (hp.comp_const S)) := hp.equiv S
+
+lemma FiberStructObjLift {p : 𝒳 ⥤ 𝒮} {hp : FiberStruct p} {S : 𝒮} (a : hp.Fib S) : p.obj ((hp.ι S).obj a) = S :=
+  by simp only [←comp_obj, hp.comp_const, const_obj_obj]
+
+-- MIGHT NOT NEED....
+def FiberStructMap {p : 𝒳 ⥤ 𝒮} {hp : FiberStruct p} {R S : 𝒮} {a : hp.Fib S}
+  {b : hp.Fib R} (φ : (hp.ι R).obj b ⟶ (hp.ι S).obj a) : R ⟶ S :=
+    eqToHom (FiberStructObjLift b).symm ≫ (p.map φ) ≫ eqToHom (FiberStructObjLift a)
+--    ((hp.comp_const R).app b).inv ≫ (p.map φ) ≫ ((hp.comp_const S).app a).hom
+
+structure FiberedStruct (p : 𝒳 ⥤ 𝒮) extends FiberStruct p where
+  [isFibered : IsFibered p]
+
+
+lemma FiberStructPullback {p : 𝒳 ⥤ 𝒮} {hp : FiberedStruct p} {R S : 𝒮} (a : hp.Fib S)
+  (f : R ⟶ S) : ∃ (b : hp.Fib R) (φ : (hp.ι R).obj b ⟶ (hp.ι S).obj a), IsPullback p f φ := by
+    rcases hp.isFibered.has_pullbacks (FiberStructObjLift a) f with ⟨b, φ, hφ⟩
+    rcases hp.ess_surj R b hφ.ObjLiftDomain with ⟨b', ψ, hψ⟩
+    use b', ψ ≫ φ
+    rw [←id_comp f]
+    exact IsPullback_comp (IsPullbackofIso hψ.2 hψ.1) hφ
+
+lemma fiber_factorization {p : 𝒳 ⥤ 𝒮} (hp : FiberedStruct p) {R S : 𝒮}
+  {a : hp.Fib S} {b : hp.Fib R} {f : R ⟶ S} {φ : (hp.ι R).obj b ⟶ (hp.ι S).obj a}
+  (hφ : IsHomLift p f φ) : ∃ (b' : hp.Fib R)
+  (τ : b ⟶ b') (ψ : (hp.ι R).obj b' ⟶ (hp.ι S).obj a), IsPullback p f ψ ∧ (((hp.ι R).map τ) ≫ ψ = φ) := by
+    rcases (FiberStructPullback a f) with ⟨b', ψ, hψ⟩
+    -- Let τ' be the canonical map from b to b', from the universal property of ψ
+    let τ' := IsPullbackInducedMap hψ (id_comp f).symm hφ
+    -- By fullness, we can pull back τ to the fiber over R
+    rcases hp.full R b b' τ' (IsPullbackInducedMap_IsHomLift hψ (id_comp f).symm hφ) with ⟨τ, hτ⟩
+    use b', τ, ψ, hψ
+    rw [hτ]
+    exact (IsPullbackInducedMap_Diagram hψ (id_comp f).symm hφ)
+
+variable {𝒴 : Type u₃} [Category 𝒴]
+
+structure FiberFunctor (F : 𝒳 ⥤ 𝒴) {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} (hp : FiberStruct p) (hq : FiberStruct q) where
+  (fiber_functor (S : 𝒮) : hp.Fib S ⥤ hq.Fib S)
+  (comp_eq : ∀ (S : 𝒮), (fiber_functor S) ⋙ (hq.ι S) = (hp.ι S) ⋙ F)
+
+structure FiberedFunctor (F : 𝒳 ⥤ 𝒴) {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} (hp : FiberedStruct p) (hq : FiberedStruct q)
+  extends FiberFunctor F hp.toFiberStruct hq.toFiberStruct where
+  (preservesPullbacks {R S : 𝒮} {f : R ⟶ S} {φ : a ⟶ b} (_ : IsPullback p f φ) : IsPullback q f (F.map φ))
+
+@[simp]
+lemma IsFiberedFunctorObj {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : FiberStruct p}
+  {hq : FiberStruct q} (hF : FiberFunctor F hp hq) (a : 𝒳) : q.obj (F.obj a) = p.obj a := by
+  sorry -- This one will be annoying!!
+
+-- lemma IsFiberedFunctorCOMM (p : 𝒳 ⥤ 𝒮) (q : 𝒴 ⥤ 𝒮) (F : 𝒳 ⥤ 𝒴) (G : 𝒳 ⥤ 𝒴)
+--   [IsFibered p] [IsFibered q] [hF : IsFiberedFunctor p q F] [hG : IsFiberedFunctor p q G] :
+--   F ⋙ q = G ⋙ q := by simp only [hF.1, hG.1]
+
+-- lemma IsFiberedFunctorMap (p : 𝒳 ⥤ 𝒮) (q : 𝒴 ⥤ 𝒮) (F : 𝒳 ⥤ 𝒴)
+--   [IsFibered p] [IsFibered q] [hF : IsFiberedFunctor p q F] {a b: 𝒳} (φ : a ⟶ b) :
+--   CommSq (q.map (F.map φ)) (eqToHom (IsFiberedFunctorObj p q F a))
+--     (eqToHom (IsFiberedFunctorObj p q F b)) (p.map φ) :=
+--   by
+--     constructor
+--     have h₁ := hF.1
+--     subst h₁
+--     simp only [comp_obj, eqToHom_refl, comp_id, Functor.comp_map, id_comp]
+
+/-
+TODO:
+2. Fully faithfull iff fully faithful!
+-/
 
 
 end Fibered
