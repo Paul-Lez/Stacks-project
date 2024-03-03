@@ -45,7 +45,7 @@ noncomputable instance IsFiberedInGroupoids.id : IsFiberedInGroupoids (𝟭 𝒮
     existsi g
     simp only
     nth_rw 1 [show g = (𝟭 𝒮).map g by rfl]
-    refine ⟨⟨IsHomLift_self (𝟭 𝒮), ?_⟩, ?_⟩
+    refine ⟨⟨IsHomLift_self (𝟭 𝒮) g, ?_⟩, ?_⟩
     · have h₁ := hφ.3.1
       have h₂ := hφ.2
       have h₃ := hφ'.3.1
@@ -60,3 +60,48 @@ noncomputable instance IsFiberedInGroupoids.id : IsFiberedInGroupoids (𝟭 𝒮
     existsi R, f ≫ eqToHom ha.symm
     refine ⟨id_obj _, ha, ⟨?_⟩⟩
     simp only [id_obj, Functor.id_map, assoc, eqToHom_trans, eqToHom_refl, comp_id, id_comp])
+
+
+
+/-
+-- TODO BREAK UP INTO SMALLER PIECES
+lemma IsFiberedInGroupoids_iff (p : C ⥤ S) : IsFiberedInGroupoids p ↔
+  (IsFibered p ∧ (∀ (s : S) {x y : (Fiber p s)} (φ : x ⟶ y), IsIso φ)) :=
+  by
+    constructor
+    · rintro ⟨hfiber, hlift⟩
+      refine ⟨⟨?_⟩, ?_⟩
+      · intro x s f
+        rcases hlift f with ⟨z, ψ, hz, hcomm⟩
+        existsi z
+        existsi ψ
+        existsi hz
+        refine ⟨hcomm, hfiber ψ⟩
+      intro s x y ψ
+      haveI hiso : IsIso (p.map ψ.val) :=
+        by
+          have hψ := ψ.prop
+          rw [comp_eqToHom_iff, eqToHom_trans] at hψ
+          rw [hψ]
+          sorry -- TODO SHOULD BE FINE ALREADY? This instance exists in EqToHom...
+      haveI hψiso : IsIso (ψ.val) := isiso_of_cartesian p ψ.val
+      sorry -- Need iso is in fiber... separate lemma (after better definition of fibers)
+    rintro ⟨hfiber, hiso⟩
+    constructor
+    · intro x y φ
+      rcases fiber_factorization p φ with ⟨z, ψ, τ, hτ, hcomp⟩
+      rw [←hcomp]
+      haveI hiso := hiso (p.obj y) ψ
+      haveI : IsCartesian p ψ.val :=
+        by
+          haveI : IsIso ψ.val := sorry -- TODO INSTANCE SHOULD ALREADY EXIST
+          exact iso_iscartesian p ψ.val
+      apply IsCartesian.comp
+    intro x Y f
+    rcases hfiber with ⟨hfiber⟩
+    rcases hfiber f with ⟨y, φ, hy, hcomm, hcart⟩
+    existsi y
+    existsi φ
+    existsi hy
+    exact hcomm
+-/
