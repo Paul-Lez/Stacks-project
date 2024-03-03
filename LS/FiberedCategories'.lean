@@ -107,9 +107,22 @@ lemma IsHomLift_eqToHom_comp {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b c: 𝒳} {f :
   apply IsHomLift_comp hφ _
   simp [hφ.ObjLiftCodomain]
 
-  refine ⟨hφ.ObjLiftCodomain, hφ.ObjLiftCodomain, ?_⟩
-  constructor
-  simp only [eqToHom_refl, map_id, id_comp, comp_id]
+
+@[simp]
+lemma IsHomLift_eqToHom_comp' {p : 𝒳 ⥤ 𝒮} {R S T: 𝒮} {a b : 𝒳} {f : R ⟶ S}
+  {φ : a ⟶ b} (hφ : IsHomLift p f φ) (hTR : T = R) : IsHomLift p ((eqToHom hTR) ≫ f) φ := by
+  subst hTR
+  rw [←id_comp φ]
+  apply IsHomLift_comp _ hφ
+  simp [hφ.ObjLiftDomain]
+
+@[simp]
+lemma IsHomLift_comp_eqToHom' {p : 𝒳 ⥤ 𝒮} {R S T: 𝒮} {a b : 𝒳} {f : R ⟶ S}
+  {φ : a ⟶ b} (hφ : IsHomLift p f φ) (hSR : S = R) : IsHomLift p (f ≫ (eqToHom hSR)) φ := by
+  subst hSR
+  rw [←comp_id φ]
+  apply IsHomLift_comp hφ _
+  simp [hφ.ObjLiftCodomain]
 
 /-- The proposition that a lift
 ```
@@ -571,13 +584,20 @@ lemma FiberStructFull {p : 𝒳 ⥤ 𝒮} {hp : FiberStruct p} {S : 𝒮} {a b :
   simp only [comp_obj, Functor.comp_map, Full.witness, comp_id, id_comp]
   rfl
 
-lemma FiberStructEssSurj {p : 𝒳 ⥤ 𝒮} {hp : FiberStruct p} {S : 𝒮} {a : 𝒳} (ha : p.obj a = S) :
+lemma FiberStructEssSurj {p : 𝒳 ⥤ 𝒮} (hp : FiberStruct p) {S : 𝒮} {a : 𝒳} (ha : p.obj a = S) :
   ∃ (b : hp.Fib S) (φ : (hp.ι S).obj b ⟶ a), IsIso φ ∧ IsHomLift p (𝟙 S) φ := by
   -- This will be easy to inline
   use Functor.objPreimage (FiberInducedFunctor (hp.comp_const S)) (FiberSelf ha)
   let Φ := Functor.objObjPreimageIso (FiberInducedFunctor (hp.comp_const S)) (FiberSelf ha)
   use (FiberInclusion p S).map Φ.hom
   refine ⟨inferInstance, Φ.hom.2⟩
+
+lemma FiberStructEssSurj' {p : 𝒳 ⥤ 𝒮} (hp : FiberStruct p) {S : 𝒮} {a : 𝒳} (ha : p.obj a = S) :
+  ∃ (b : hp.Fib S) (φ : (hp.ι S).obj b ≅ a), IsHomLift p (𝟙 S) φ.hom := by
+  -- This will be easy to inline
+  use Functor.objPreimage (FiberInducedFunctor (hp.comp_const S)) (FiberSelf ha)
+  let Φ := Functor.objObjPreimageIso (FiberInducedFunctor (hp.comp_const S)) (FiberSelf ha)
+  refine ⟨(FiberInclusion p S).mapIso Φ, Φ.hom.2⟩
 
 -- MIGHT NOT NEED....
 def FiberStructMap {p : 𝒳 ⥤ 𝒮} {hp : FiberStruct p} {R S : 𝒮} {a : hp.Fib S}
@@ -596,23 +616,51 @@ instance {p : 𝒳 ⥤ 𝒮} (hp : FiberedStruct p) {S : 𝒮} : Faithful (Fiber
 lemma FiberStructPullback {p : 𝒳 ⥤ 𝒮} {hp : FiberedStruct p} {R S : 𝒮} (a : hp.Fib S)
   (f : R ⟶ S) : ∃ (b : hp.Fib R) (φ : (hp.ι R).obj b ⟶ (hp.ι S).obj a), IsPullback p f φ := by
     rcases hp.isFibered.has_pullbacks (FiberStructObjLift a) f with ⟨b, φ, hφ⟩
-    rcases FiberStructEssSurj hφ.ObjLiftDomain with ⟨b', ψ, hψ⟩
+    rcases FiberStructEssSurj hp.1 hφ.ObjLiftDomain with ⟨b', ψ, hψ⟩
     use b', ψ ≫ φ
     rw [←id_comp f]
     exact IsPullback_comp (IsPullbackofIso hψ.2 hψ.1) hφ
+
+lemma FiberStructPullback' {p : 𝒳 ⥤ 𝒮} (hp : FiberedStruct p) {R S : 𝒮} {a : 𝒳}
+  (ha : p.obj a = S) (f : R ⟶ S) : ∃ (b : hp.Fib R) (φ : (hp.ι R).obj b ⟶ a),
+    IsPullback p f φ := by
+  rcases hp.isFibered.has_pullbacks ha f with ⟨b, φ, hφ⟩
+  rcases FiberStructEssSurj hp.1 hφ.ObjLiftDomain with ⟨b', ψ, hψ⟩
+  use b', ψ ≫ φ
+  rw [←id_comp f]
+  exact IsPullback_comp (IsPullbackofIso hψ.2 hψ.1) hφ
+
+-- Given a pullback, can choose the induced map to lie in the fiber?
+-- TODO UNIQUENESS
+lemma FiberStructFactorization {p : 𝒳 ⥤ 𝒮} {hp : FiberedStruct p} {R S : 𝒮}
+  {a : hp.Fib S} {b b' : hp.Fib R} {f : R ⟶ S} {φ : (hp.ι R).obj b ⟶ (hp.ι S).obj a}
+  (hφ : IsHomLift p f φ) {ψ : (hp.ι R).obj b' ⟶ (hp.ι S).obj a} (hψ : IsPullback p f ψ) :
+    ∃ (τ : b ⟶ b'), (hp.ι R).map τ ≫ ψ = φ := by
+  -- By fullness, we can pull back τ to the fiber over R
+  rcases FiberStructFull (IsPullbackInducedMap_IsHomLift hψ (id_comp f).symm hφ) with ⟨τ, hτ⟩
+  use τ
+  rw [hτ]
+  exact (IsPullbackInducedMap_Diagram hψ (id_comp f).symm hφ)
+
+-- TODO REPLACE ABOVE WITH THIS
+lemma FiberStructFactorization' {p : 𝒳 ⥤ 𝒮} {hp : FiberedStruct p} {R S : 𝒮}
+  {a : 𝒳} {b b' : hp.Fib R} {f : R ⟶ S} {φ : (hp.ι R).obj b ⟶ a}
+  (hφ : IsHomLift p f φ) {ψ : (hp.ι R).obj b' ⟶ a} (hψ : IsPullback p f ψ) :
+    ∃ (τ : b ⟶ b'), (hp.ι R).map τ ≫ ψ = φ := by
+  -- By fullness, we can pull back τ to the fiber over R
+  rcases FiberStructFull (IsPullbackInducedMap_IsHomLift hψ (id_comp f).symm hφ) with ⟨τ, hτ⟩
+  use τ
+  rw [hτ]
+  exact (IsPullbackInducedMap_Diagram hψ (id_comp f).symm hφ)
+
 
 lemma fiber_factorization {p : 𝒳 ⥤ 𝒮} (hp : FiberedStruct p) {R S : 𝒮}
   {a : hp.Fib S} {b : hp.Fib R} {f : R ⟶ S} {φ : (hp.ι R).obj b ⟶ (hp.ι S).obj a}
   (hφ : IsHomLift p f φ) : ∃ (b' : hp.Fib R)
   (τ : b ⟶ b') (ψ : (hp.ι R).obj b' ⟶ (hp.ι S).obj a), IsPullback p f ψ ∧ (((hp.ι R).map τ) ≫ ψ = φ) := by
     rcases (FiberStructPullback a f) with ⟨b', ψ, hψ⟩
-    -- Let τ' be the canonical map from b to b', from the universal property of ψ (CAN REMOVE! (but makes things clearer for now))
-    let τ' := IsPullbackInducedMap hψ (id_comp f).symm hφ
-    -- By fullness, we can pull back τ to the fiber over R
-    rcases FiberStructFull (IsPullbackInducedMap_IsHomLift hψ (id_comp f).symm hφ) with ⟨τ, hτ⟩
+    rcases FiberStructFactorization hφ hψ with ⟨τ, hτ⟩
     use b', τ, ψ, hψ
-    rw [hτ]
-    exact (IsPullbackInducedMap_Diagram hψ (id_comp f).symm hφ)
 
 variable {𝒴 : Type u₃} [Category 𝒴]
 
@@ -641,6 +689,18 @@ lemma FiberFunctorHomLift {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 
       subst h₁ -- TODO WHY DO I NEED THIS?? rw and simp_only fails...
       simp only [comp_obj, eqToHom_refl, comp_id, Functor.comp_map, id_comp]⟩
 
+lemma FiberFunctorPresHomLift {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : FiberStruct p}
+  {hq : FiberStruct q} (hF : FiberFunctor F hp hq) {R S : 𝒮} {a b : 𝒳} {φ : a ⟶ b}
+  {f : R ⟶ S} (hφ : IsHomLift p f φ) : IsHomLift q f (F.map φ) where
+    ObjLiftDomain := Eq.trans (FiberFunctorObj hF a) hφ.ObjLiftDomain
+    ObjLiftCodomain := Eq.trans (FiberFunctorObj hF b) hφ.ObjLiftCodomain
+    HomLift := ⟨by
+      -- TODO MAKE PROOF CLEANER
+      have h₁ := hφ.3.1
+      have h₂ := hF.base_preserving
+      subst h₂
+      simpa using h₁ ⟩
+
 lemma FiberFunctorIsHomLiftOfImage {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : FiberStruct p}
   {hq : FiberStruct q} (hF : FiberFunctor F hp hq) {S R : 𝒮} {a b : 𝒳} {φ : a ⟶ b}
   {f : R ⟶ S} (hφ : IsHomLift q f (F.map φ)) : IsHomLift p f φ where
@@ -666,33 +726,70 @@ lemma FiberStructFaithfulofFaithful {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q :
   haveI h : Faithful ((hF.fiber_functor S) ⋙ (hq.ι S)) := (hF.comp_eq S).symm ▸ Faithful.comp (hp.ι S) F
   apply Faithful.of_comp _ (hq.ι S)
 
--- TODO: better hypothesis. Should use "canonical fiber struct" to say that F is a Fiberfunctor
--- TODO: WRONG LEMMA... NEEDS TO BE SAME AS BELOW BUT DIFFERENT FIBER STRUCTURES
-lemma FaithfulofFibersFaithful {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : FiberedStruct p}
-  {hq : FiberedStruct q} {hF : FiberedFunctor F hp hq} (hF₁ : ∀ (S : 𝒮), Faithful (FiberInclusion p S)) :
-  Faithful F := by
-  constructor
-  intro a b φ φ' hφφ'
-
-  let h := p.map φ
-
-  sorry
-
 lemma FaithfulofFaithfulFiberStruct {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : FiberedStruct p}
   {hq : FiberedStruct q} {hF : FiberedFunctor F hp hq} (hF₁ : ∀ (S : 𝒮), Faithful (hF.fiber_functor S)) :
   Faithful F := by
-  --haveI hF₂ : ∀ (S : 𝒮), Faithful (hF.fiber_functor S ⋙ (FiberInducedFunctor (hp.comp_const S))) := sorry
-    --fun S => Faithful.comp (hF.fiber_functor S) (FiberInducedFunctor (hp.comp_const S))
-  -- STEP 1: WLOG USE CANONICAL FIBER STRUCTURE! (SEPARATE LEMMA?)
-    -- i.e. show that fiber_functor ⋙ FiberInducedFunctor is faithful (follows from composition!)
-    -- Wlog check faithful of composition --> check 2nd one is faithful
-  -- Now proceed as normal...
+  constructor
+  intro a b φ φ' heq
 
-    -- 1. Fix "q.map φ" on the base.
-    -- 2. factorize as a pullback over it
-    -- 3. universal property should reduce to checking on the fiber
-    -- 4. This is known!
-  sorry
+  -- Reduce to checking when domain is in a fiber
+  rcases FiberStructEssSurj' hp.1 (rfl (a := p.obj a)) with ⟨a', Φ, hΦ⟩
+  let φ₁ := Φ.hom ≫ φ
+  let φ₁' := Φ.hom ≫ φ'
+  suffices φ₁ = φ₁' by rwa [←CategoryTheory.Iso.cancel_iso_hom_left Φ]
+  have heq₁ : F.map φ₁ = F.map φ₁' := by
+    simp only [map_comp]
+    apply (CategoryTheory.Iso.cancel_iso_hom_left (F.mapIso Φ) _ _).2 heq
+
+  let h : p.obj a ⟶ p.obj b := eqToHom ((FiberStructObjLift a').symm) ≫ p.map φ₁
+
+  -- Let ψ : c ⟶ b be a pullback over h such that c : Fib (p.obj a)
+  rcases FiberStructPullback' hp rfl h with ⟨c, ψ, hψ⟩
+
+  have hφ₁ : IsHomLift p h φ₁ := IsHomLift_eqToHom_comp' (IsHomLift_self p φ₁) _
+
+
+  have h₁ : h = eqToHom ((FiberStructObjLift a').symm) ≫ p.map φ₁' := by
+    rw [Functor.congr_hom hF.base_preserving.symm]
+    rw [Functor.comp_map, ←heq₁, ←Functor.comp_map]
+    rw [←Functor.congr_hom hF.base_preserving.symm]
+
+  have hφ₁' : IsHomLift p h φ₁' := h₁ ▸ IsHomLift_eqToHom_comp' (IsHomLift_self p φ₁') _
+
+  -- Let τ, τ' be the induced maps from b to c given by φ and φ'
+  rcases FiberStructFactorization' hφ₁ hψ with ⟨τ, hτ⟩
+  rcases FiberStructFactorization' hφ₁' hψ with ⟨τ', hτ'⟩
+
+  -- It suffices to show that τ = τ'
+  suffices τ = τ' by rw [←hτ, ←hτ', this]
+
+  -- 1. Show that F.map ψ is a pullback
+  have hψ' : IsPullback q h (F.map ψ) := hF.preservesPullbacks hψ
+
+  -- τ and τ' both solve the same pullback problem
+  have hτ₁ : F.map ((hp.ι (p.obj a)).map τ) ≫ F.map ψ = F.map φ₁ := by rw [←Functor.map_comp, hτ]
+  have hτ'₁ : F.map ((hp.ι (p.obj a)).map τ') ≫ F.map ψ = F.map φ₁ := by
+    rw [←Functor.map_comp, hτ']
+    apply heq₁.symm
+
+  have hτ_homlift := FiberFunctorPresHomLift hF.1 (FiberStructHomLift τ)
+  have hτ'_homlift := FiberFunctorPresHomLift hF.1 (FiberStructHomLift τ')
+
+  have hτ₂ := IsPullbackInducedMap_unique hψ' (show h = 𝟙 (p.obj a) ≫ h by simp)
+    (FiberFunctorPresHomLift hF.1 hφ₁) hτ_homlift hτ₁
+
+  have hτ'₂ := IsPullbackInducedMap_unique hψ' (show h = 𝟙 (p.obj a) ≫ h by simp)
+    (FiberFunctorPresHomLift hF.1 hφ₁) hτ'_homlift hτ'₁
+
+  -- Hence F.map τ = F.map τ'
+  have heqττ' : F.map ((hp.ι (p.obj a)).map τ) = F.map ((hp.ι (p.obj a)).map τ') := by rw [hτ₂, hτ'₂]
+
+  have heqττ'₁ : (hF.fiber_functor _).map τ = (hF.fiber_functor _).map τ' := by
+    apply Functor.map_injective (hq.ι (p.obj a))
+    simp_rw [←Functor.comp_map, Functor.congr_hom (hF.comp_eq (p.obj a)), Functor.comp_map]
+    rw [heqττ']
+
+  apply Functor.map_injective (hF.fiber_functor (p.obj a)) heqττ'₁
 
 lemma FiberFunctorsFullofFull {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : FiberStruct p}
   {hq : FiberStruct q} (hF : FiberFunctor F hp hq) [hF₁ : Full F] : ∀ (S : 𝒮),
