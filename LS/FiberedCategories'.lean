@@ -492,6 +492,8 @@ structure FiberStruct (p : 𝒳 ⥤ 𝒮) where
   (comp_const (S : 𝒮) : ∀ (a : Fib S), (ι S ⋙ p).obj a = S)
   --(comp_const (S : 𝒮) : ∀ (a : Fib S), p.obj ((ι S).obj a) = S)
 
+  -- TODO: Replace these with just equiv, and have them all as lemmas
+
   (ess_surj (S : 𝒮) : ∀ (a : 𝒳), p.obj a = S → ∃ (b : Fib S) (φ : (ι S).obj b ⟶ a),
     IsIso φ ∧ IsHomLift p (𝟙 S) φ)
   (faithful (S : 𝒮) : Faithful (ι S))
@@ -500,6 +502,8 @@ structure FiberStruct (p : 𝒳 ⥤ 𝒮) where
   --[equiv (S : 𝒮) : IsEquivalence (FiberUniversalFunctor (comp_const S))]
 
 instance {p : 𝒳 ⥤ 𝒮} (hp : FiberStruct p) {S : 𝒮} : Category (hp.Fib S) := hp.isCategory S
+
+instance {p : 𝒳 ⥤ 𝒮} (hp : FiberStruct p) {S : 𝒮} : Faithful (hp.ι S) := hp.faithful S
 
 --instance {p : 𝒳 ⥤ 𝒮} (hp : FiberStruct p) {S : 𝒮} : IsEquivalence (FiberUniversalFunctor (hp.comp_const S)) := hp.equiv S
 
@@ -542,6 +546,8 @@ lemma fiber_factorization {p : 𝒳 ⥤ 𝒮} (hp : FiberedStruct p) {R S : 𝒮
 variable {𝒴 : Type u₃} [Category 𝒴]
 
 structure FiberFunctor (F : 𝒳 ⥤ 𝒴) {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} (hp : FiberStruct p) (hq : FiberStruct q) where
+  -- TODO: miiiight follow from next axiom...
+  (base_preserving : F ⋙ q = p)
   (fiber_functor (S : 𝒮) : hp.Fib S ⥤ hq.Fib S)
   (comp_eq : ∀ (S : 𝒮), (fiber_functor S) ⋙ (hq.ι S) = (hp.ι S) ⋙ F)
 
@@ -550,23 +556,92 @@ structure FiberedFunctor (F : 𝒳 ⥤ 𝒴) {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ �
   (preservesPullbacks {R S : 𝒮} {f : R ⟶ S} {φ : a ⟶ b} (_ : IsPullback p f φ) : IsPullback q f (F.map φ))
 
 @[simp]
-lemma IsFiberedFunctorObj {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : FiberStruct p}
+lemma FiberFunctorObj {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : FiberStruct p}
   {hq : FiberStruct q} (hF : FiberFunctor F hp hq) (a : 𝒳) : q.obj (F.obj a) = p.obj a := by
-  sorry -- This one will be annoying!!
+  rw [←comp_obj, hF.base_preserving]
 
--- lemma IsFiberedFunctorCOMM (p : 𝒳 ⥤ 𝒮) (q : 𝒴 ⥤ 𝒮) (F : 𝒳 ⥤ 𝒴) (G : 𝒳 ⥤ 𝒴)
---   [IsFibered p] [IsFibered q] [hF : IsFiberedFunctor p q F] [hG : IsFiberedFunctor p q G] :
---   F ⋙ q = G ⋙ q := by simp only [hF.1, hG.1]
+lemma FiberFunctorHomLift {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : FiberStruct p}
+  {hq : FiberStruct q} (hF : FiberFunctor F hp hq) {S : 𝒮} {a b : 𝒳} (φ : a ⟶ b) :
+  IsHomLift q (p.map φ) (F.map φ) where
+    ObjLiftDomain := FiberFunctorObj hF a
+    ObjLiftCodomain := FiberFunctorObj hF b
+    HomLift := ⟨by
+      have h₁ := hF.base_preserving
+      subst h₁ -- TODO WHY DO I NEED THIS?? rw and simp_only fails...
+      simp only [comp_obj, eqToHom_refl, comp_id, Functor.comp_map, id_comp]⟩
 
--- lemma IsFiberedFunctorMap (p : 𝒳 ⥤ 𝒮) (q : 𝒴 ⥤ 𝒮) (F : 𝒳 ⥤ 𝒴)
---   [IsFibered p] [IsFibered q] [hF : IsFiberedFunctor p q F] {a b: 𝒳} (φ : a ⟶ b) :
---   CommSq (q.map (F.map φ)) (eqToHom (IsFiberedFunctorObj p q F a))
---     (eqToHom (IsFiberedFunctorObj p q F b)) (p.map φ) :=
---   by
---     constructor
---     have h₁ := hF.1
---     subst h₁
---     simp only [comp_obj, eqToHom_refl, comp_id, Functor.comp_map, id_comp]
+-- NEED MORE COMMSQUARES API....
+-- ALSO NEED MORE API FOR PULLING BACK TO FIBERS
+
+lemma FiberFunctorFaithful {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : FiberStruct p}
+  {hq : FiberStruct q} (hF : FiberFunctor F hp hq) [Faithful F] : ∀ (S : 𝒮),
+  Faithful (hF.fiber_functor S) := by
+  intro S
+  haveI h : Faithful ((hF.fiber_functor S) ⋙ (hq.ι S)) := (hF.comp_eq S).symm ▸ Faithful.comp (hp.ι S) F
+  apply Faithful.of_comp _ (hq.ι S)
+
+lemma FiberFunctorFaithful' {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : FiberStruct p}
+  {hq : FiberStruct q} {hF : FiberFunctor F hp hq} (hF₁ : ∀ (S : 𝒮), Faithful (hF.fiber_functor S)) :
+  Faithful F := by
+  constructor
+  intro a b φ φ' hφφ'
+
+  let h := p.map φ
+  -- STEP 1: WLOG USE CANONICAL FIBER STRUCTURE!
+  -- Now proceed as normal...
+
+  sorry
+
+    -- 1. Fix "q.map φ" on the base.
+    -- 2. factorize as a pullback over it
+    -- 3. universal property should reduce to checking on the fiber
+    -- 4. This is known!
+
+
+lemma FiberFunctorFull {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : FiberStruct p}
+  {hq : FiberStruct q} (hF : FiberFunctor F hp hq) [hF₁ : Full F] : ∀ (S : 𝒮),
+  Full (hF.fiber_functor S) := fun S => {
+    preimage := by
+      intro a b φ
+
+
+      let φ₁ := ((hq.ι S).map φ)
+
+      -- BIG ISSUE
+     -- rw [←comp_obj, ←comp_obj, hF.comp_eq, comp_obj, comp_obj] at φ₁
+
+      let φ₁ := eqToHom (comp_obj _ _ a) ≫ ((hq.ι S).map φ) ≫ eqToHom (comp_obj _ _ b).symm
+      simp only [hF.comp_eq] at φ₁
+      simp only [comp_obj] at φ₁
+      let φ₂ := hF₁.preimage φ₁
+
+      have hφ₂ : IsHomLift p (𝟙 S) φ₂ := {
+        ObjLiftDomain := by simp only [←comp_obj, hp.comp_const]
+        ObjLiftCodomain := by simp only [←comp_obj, hp.comp_const]
+        HomLift := by
+
+          constructor
+          sorry
+      }
+      use Classical.choose (hp.full S a b φ₂ hφ₂)
+
+    witness := by
+      intro a b φ
+      haveI h := (hq.faithful S)
+      apply Functor.map_injective (hq.ι S)
+      simp only [comp_obj, eqToHom_refl, comp_id, id_comp, eq_mp_eq_cast]
+      rw [←Functor.comp_map]
+      have h₁ := (hF.comp_eq S)
+      --subst h₁
+      sorry -- type theory helll..... :(
+
+
+
+
+      -- (hq.ι S).obj
+      --simp only [comp_obj, eqToHom_refl, comp_id, id_comp, eq_mp_eq_cast]
+
+  }
 
 /-
 TODO:
