@@ -51,11 +51,13 @@ class IsHomLift (p : 𝒳 ⥤ 𝒮) {R S : 𝒮} {a b : 𝒳} (f : R ⟶ S) (φ 
   (ObjLiftCodomain : p.obj b = S)
   (HomLift : CommSq (p.map φ) (eqToHom ObjLiftDomain) (eqToHom ObjLiftCodomain) f)
 
+@[simp]
 lemma IsHomLift_id {p : 𝒳 ⥤ 𝒮} {R : 𝒮} {a : 𝒳} (ha : p.obj a = R) : IsHomLift p (𝟙 R) (𝟙 a) where
   ObjLiftDomain := ha
   ObjLiftCodomain := ha
   HomLift := ⟨by simp only [map_id, id_comp, comp_id]⟩
 
+@[simp]
 instance IsHomLift_self (p : 𝒳 ⥤ 𝒮) {a b : 𝒳} (φ : a ⟶ b) : IsHomLift p (p.map φ) φ where
   ObjLiftDomain := rfl
   ObjLiftCodomain := rfl
@@ -87,6 +89,27 @@ lemma IsHomLift_comp {p : 𝒳 ⥤ 𝒮} {R S T : 𝒮} {a b c : 𝒳} {f : R �
       constructor
       rw [←Category.assoc, ←hφ.3.1]
       simp only [map_comp, assoc, hψ.3.1]
+
+@[simp]
+lemma IsHomLift_comp_eqToHom {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b c: 𝒳} {f : R ⟶ S}
+  {φ : a ⟶ b} (hφ : IsHomLift p f φ) (hca : c = a) : IsHomLift p f (eqToHom hca ≫ φ) := by
+  subst hca
+  rw [←id_comp f]
+  apply IsHomLift_comp _ hφ
+  simp [hφ.ObjLiftDomain]
+
+
+@[simp]
+lemma IsHomLift_eqToHom_comp {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b c: 𝒳} {f : R ⟶ S}
+  {φ : a ⟶ b} (hφ : IsHomLift p f φ) (hbc : b = c) : IsHomLift p f (φ ≫ eqToHom hbc) := by
+  subst hbc
+  rw [←comp_id f]
+  apply IsHomLift_comp hφ _
+  simp [hφ.ObjLiftCodomain]
+
+  refine ⟨hφ.ObjLiftCodomain, hφ.ObjLiftCodomain, ?_⟩
+  constructor
+  simp only [eqToHom_refl, map_id, id_comp, comp_id]
 
 /-- The proposition that a lift
 ```
@@ -495,8 +518,8 @@ def FiberInducedFunctorNat {p : 𝒳 ⥤ 𝒮} {S : 𝒮} {C : Type _} [Category
 lemma FiberInducedFunctorComp {p : 𝒳 ⥤ 𝒮} {S : 𝒮} {C : Type _} [Category C] {F : C ⥤ 𝒳}
   (hF : F ⋙ p = (const C).obj S) : F = (FiberInducedFunctor hF) ⋙ (FiberInclusion p S) := sorry
 
--- We define an intrinsic notion of fibers, which we call FiberStruct
--- Fibered family
+-- We define an extrinsic notion of fibers, which we call FiberStruct
+-- Fibered family. TODO: make into a class? Then could infer "canonical fibers" if none are given...
 structure FiberStruct (p : 𝒳 ⥤ 𝒮) where
   Fib (S : 𝒮) : Type _
   [isCategory (S : 𝒮) : Category (Fib S)]
@@ -521,6 +544,14 @@ instance {p : 𝒳 ⥤ 𝒮} (hp : FiberStruct p) {S : 𝒮} : Faithful (hp.ι S
 
 lemma FiberStructObjLift {p : 𝒳 ⥤ 𝒮} {hp : FiberStruct p} {S : 𝒮} (a : hp.Fib S) : p.obj ((hp.ι S).obj a) = S :=
   by simp only [←comp_obj, hp.comp_const, const_obj_obj]
+
+lemma FiberStructHomLift {p : 𝒳 ⥤ 𝒮} {hp : FiberStruct p} {S : 𝒮} {a b : hp.Fib S}
+  (φ : a ⟶ b) : IsHomLift p (𝟙 S) ((hp.ι S).map φ) where
+  ObjLiftDomain := FiberStructObjLift a
+  ObjLiftCodomain := FiberStructObjLift b
+  HomLift := ⟨by
+    rw [←Functor.comp_map, Functor.congr_hom (hp.comp_const S)] -- Can easily be replaced if we decide to work up to iso
+    simp only [comp_obj, const_obj_obj, const_obj_map, id_comp, eqToHom_trans, comp_id]⟩
 
 lemma FiberStructFull {p : 𝒳 ⥤ 𝒮} {hp : FiberStruct p} {S : 𝒮} {a b : hp.Fib S} {φ : (hp.ι S).obj a ⟶ (hp.ι S).obj b}
   (hφ : IsHomLift p (𝟙 S) φ) : ∃ (ψ : a ⟶ b), (hp.ι S).map ψ = φ := by
@@ -556,6 +587,11 @@ def FiberStructMap {p : 𝒳 ⥤ 𝒮} {hp : FiberStruct p} {R S : 𝒮} {a : hp
 
 structure FiberedStruct (p : 𝒳 ⥤ 𝒮) extends FiberStruct p where
   [isFibered : IsFibered p]
+
+-- TODO NEEDED FOR NOW...?
+instance {p : 𝒳 ⥤ 𝒮} (hp : FiberedStruct p) {S : 𝒮} : Category (hp.Fib S) := hp.isCategory S
+instance {p : 𝒳 ⥤ 𝒮} (hp : FiberedStruct p) {S : 𝒮} : IsEquivalence (FiberInducedFunctor (hp.comp_const S)) := hp.equiv S
+instance {p : 𝒳 ⥤ 𝒮} (hp : FiberedStruct p) {S : 𝒮} : Faithful (FiberInducedFunctor (hp.comp_const S)) := inferInstance
 
 lemma FiberStructPullback {p : 𝒳 ⥤ 𝒮} {hp : FiberedStruct p} {R S : 𝒮} (a : hp.Fib S)
   (f : R ⟶ S) : ∃ (b : hp.Fib R) (φ : (hp.ι R).obj b ⟶ (hp.ι S).obj a), IsPullback p f φ := by
@@ -605,80 +641,93 @@ lemma FiberFunctorHomLift {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 
       subst h₁ -- TODO WHY DO I NEED THIS?? rw and simp_only fails...
       simp only [comp_obj, eqToHom_refl, comp_id, Functor.comp_map, id_comp]⟩
 
+lemma FiberFunctorIsHomLiftOfImage {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : FiberStruct p}
+  {hq : FiberStruct q} (hF : FiberFunctor F hp hq) {S R : 𝒮} {a b : 𝒳} {φ : a ⟶ b}
+  {f : R ⟶ S} (hφ : IsHomLift q f (F.map φ)) : IsHomLift p f φ where
+    -- TODO API?
+    ObjLiftDomain := by
+      rw [←hF.base_preserving, comp_obj]
+      exact hφ.ObjLiftDomain
+    ObjLiftCodomain := by
+      rw [←hF.base_preserving, comp_obj]
+      exact hφ.ObjLiftCodomain
+    HomLift := by
+      constructor
+      rw [Functor.congr_hom hF.base_preserving.symm]
+      simp only [Functor.comp_map, assoc, eqToHom_trans, hφ.HomLift.1, eqToHom_trans_assoc]
+
 -- NEED MORE COMMSQUARES API....
 -- ALSO NEED MORE API FOR PULLING BACK TO FIBERS
 
-lemma FiberFunctorFaithful {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : FiberStruct p}
+lemma FiberStructFaithfulofFaithful {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : FiberStruct p}
   {hq : FiberStruct q} (hF : FiberFunctor F hp hq) [Faithful F] : ∀ (S : 𝒮),
   Faithful (hF.fiber_functor S) := by
   intro S
   haveI h : Faithful ((hF.fiber_functor S) ⋙ (hq.ι S)) := (hF.comp_eq S).symm ▸ Faithful.comp (hp.ι S) F
   apply Faithful.of_comp _ (hq.ι S)
 
-lemma FiberFunctorFaithful' {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : FiberStruct p}
-  {hq : FiberStruct q} {hF : FiberFunctor F hp hq} (hF₁ : ∀ (S : 𝒮), Faithful (hF.fiber_functor S)) :
+-- TODO: better hypothesis. Should use "canonical fiber struct" to say that F is a Fiberfunctor
+-- TODO: WRONG LEMMA... NEEDS TO BE SAME AS BELOW BUT DIFFERENT FIBER STRUCTURES
+lemma FaithfulofFibersFaithful {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : FiberedStruct p}
+  {hq : FiberedStruct q} {hF : FiberedFunctor F hp hq} (hF₁ : ∀ (S : 𝒮), Faithful (FiberInclusion p S)) :
   Faithful F := by
   constructor
   intro a b φ φ' hφφ'
 
   let h := p.map φ
-  -- STEP 1: WLOG USE CANONICAL FIBER STRUCTURE!
-    -- Wlog check faithful of composition --> check 2nd one is faithful
-  -- Now proceed as normal...
 
   sorry
+
+lemma FaithfulofFaithfulFiberStruct {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : FiberedStruct p}
+  {hq : FiberedStruct q} {hF : FiberedFunctor F hp hq} (hF₁ : ∀ (S : 𝒮), Faithful (hF.fiber_functor S)) :
+  Faithful F := by
+  --haveI hF₂ : ∀ (S : 𝒮), Faithful (hF.fiber_functor S ⋙ (FiberInducedFunctor (hp.comp_const S))) := sorry
+    --fun S => Faithful.comp (hF.fiber_functor S) (FiberInducedFunctor (hp.comp_const S))
+  -- STEP 1: WLOG USE CANONICAL FIBER STRUCTURE! (SEPARATE LEMMA?)
+    -- i.e. show that fiber_functor ⋙ FiberInducedFunctor is faithful (follows from composition!)
+    -- Wlog check faithful of composition --> check 2nd one is faithful
+  -- Now proceed as normal...
 
     -- 1. Fix "q.map φ" on the base.
     -- 2. factorize as a pullback over it
     -- 3. universal property should reduce to checking on the fiber
     -- 4. This is known!
+  sorry
 
-#exit
-
-lemma FiberFunctorsFull_of_Full {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : FiberStruct p}
+lemma FiberFunctorsFullofFull {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : FiberStruct p}
   {hq : FiberStruct q} (hF : FiberFunctor F hp hq) [hF₁ : Full F] : ∀ (S : 𝒮),
   Full (hF.fiber_functor S) := fun S => {
     preimage := by
       intro a b φ
 
-
-      let φ₁ := ((hq.ι S).map φ)
-
-      -- BIG ISSUE
-     -- rw [←comp_obj, ←comp_obj, hF.comp_eq, comp_obj, comp_obj] at φ₁
-
+      -- TYPE THEORY HELL :D
       let φ₁ := eqToHom (comp_obj _ _ a) ≫ ((hq.ι S).map φ) ≫ eqToHom (comp_obj _ _ b).symm
-      simp only [hF.comp_eq] at φ₁
-      simp only [comp_obj] at φ₁
-      let φ₂ := hF₁.preimage φ₁
 
-      have hφ₂ : IsHomLift p (𝟙 S) φ₂ := {
-        ObjLiftDomain := by simp only [←comp_obj, hp.comp_const]
-        ObjLiftCodomain := by simp only [←comp_obj, hp.comp_const]
-        HomLift := by
+      let φ₂  := eqToHom (congr_obj (hF.comp_eq S) a).symm ≫ φ₁ ≫ eqToHom (congr_obj (hF.comp_eq S) b)
 
-          constructor
-          sorry
-      }
-      use Classical.choose (hp.full S a b φ₂ hφ₂)
+      let φ₃ := eqToHom (comp_obj _ _ a) ≫ φ₂ ≫ eqToHom (comp_obj _ _ b).symm
+
+      have hφ₃ : IsHomLift p (𝟙 S) (hF₁.preimage φ₃) := by
+        apply FiberFunctorIsHomLiftOfImage hF
+        rw [hF₁.witness φ₃]
+        simp only [FiberStructHomLift φ, eqToHom_refl, comp_id,
+          id_comp, IsHomLift_eqToHom_comp, IsHomLift_comp_eqToHom]
+
+      use Classical.choose (FiberStructFull hφ₃)
 
     witness := by
       intro a b φ
-      haveI h := (hq.faithful S)
       apply Functor.map_injective (hq.ι S)
       simp only [comp_obj, eqToHom_refl, comp_id, id_comp, eq_mp_eq_cast]
-      rw [←Functor.comp_map]
-      have h₁ := (hF.comp_eq S)
-      --subst h₁
-      sorry -- type theory helll..... :(
-
-
-
-
-      -- (hq.ι S).obj
-      --simp only [comp_obj, eqToHom_refl, comp_id, id_comp, eq_mp_eq_cast]
-
-  }
+      rw [←Functor.comp_map, Functor.congr_hom (hF.comp_eq S), Functor.comp_map]
+      rw [Classical.choose_spec (FiberStructFull _)]
+      simp
+      -- TODO: THE FOLLOWING WAS ALREADY PROVED ABOVE CAN I RECYCLE THE PROOF?
+      apply FiberFunctorIsHomLiftOfImage hF
+      rw [hF₁.witness _]
+      simp only [FiberStructHomLift φ, eqToHom_refl, comp_id,
+          id_comp, IsHomLift_eqToHom_comp, IsHomLift_comp_eqToHom]
+      }
 
 /-
 TODO:
