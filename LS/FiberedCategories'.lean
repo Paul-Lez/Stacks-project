@@ -514,17 +514,31 @@ instance {p : 𝒳 ⥤ 𝒮} (hp : FiberStruct p) {S : 𝒮} : IsEquivalence (Fi
 instance {p : 𝒳 ⥤ 𝒮} (hp : FiberStruct p) {S : 𝒮} : EssSurj (FiberInducedFunctor (hp.comp_const S)) :=
   Equivalence.essSurj_of_equivalence (FiberInducedFunctor (hp.comp_const S))
 
+--instance {p : 𝒳 ⥤ 𝒮} (hp : FiberStruct p) {S : 𝒮} : Full (FiberInducedFunctor (hp.comp_const S)) := inferInstance
+
 instance {p : 𝒳 ⥤ 𝒮} (hp : FiberStruct p) {S : 𝒮} : Faithful (hp.ι S) :=
   Faithful.of_iso (FiberInducedFunctorNat (hp.comp_const S)).symm
 
+lemma FiberStructObjLift {p : 𝒳 ⥤ 𝒮} {hp : FiberStruct p} {S : 𝒮} (a : hp.Fib S) : p.obj ((hp.ι S).obj a) = S :=
+  by simp only [←comp_obj, hp.comp_const, const_obj_obj]
+
 lemma FiberStructFull {p : 𝒳 ⥤ 𝒮} {hp : FiberStruct p} {S : 𝒮} {a b : hp.Fib S} {φ : (hp.ι S).obj a ⟶ (hp.ι S).obj b}
   (hφ : IsHomLift p (𝟙 S) φ) : ∃ (ψ : a ⟶ b), (hp.ι S).map ψ = φ := by
-  -- Step 1: move φ to the "canonical" fiber over S
-    -- Move ι a, ι b to the fiber over S by using FiberInducedFunctorNat (somehow (can possibly rewrite?))
-    -- THIS SHOULD BE IN API "FiberHomLift" or sth
-  -- rw [FiberInducedFunctorComp (hp.comp_const S)] at hφ.........
-  -- Step 2: use fullness of ι S to pull back φ
-  sorry
+  -- TODO IMPROVE PROOF... Only 5 last lines should be necessary
+  let a' : Fiber p S := ⟨(hp.ι S).obj a, FiberStructObjLift a⟩
+  let b' : Fiber p S := ⟨(hp.ι S).obj b, FiberStructObjLift b⟩
+  let φ' : a' ⟶ b' := ⟨φ, hφ⟩ -- TODO TURN INTO API ABOVE
+
+  let c : Fiber p S := (FiberInducedFunctor (hp.comp_const S)).obj a
+  let d : Fiber p S := (FiberInducedFunctor (hp.comp_const S)).obj b
+  let ψ : c ⟶ d := φ'
+
+  use (Full.preimage ψ)
+
+  rw [←NatIso.naturality_2 (FiberInducedFunctorNat (hp.comp_const S))]
+  unfold FiberInducedFunctorNat
+  simp only [comp_obj, Functor.comp_map, Full.witness, comp_id, id_comp]
+  rfl
 
 lemma FiberStructEssSurj {p : 𝒳 ⥤ 𝒮} {hp : FiberStruct p} {S : 𝒮} {a : 𝒳} (ha : p.obj a = S) :
   ∃ (b : hp.Fib S) (φ : (hp.ι S).obj b ⟶ a), IsIso φ ∧ IsHomLift p (𝟙 S) φ := by
@@ -533,9 +547,6 @@ lemma FiberStructEssSurj {p : 𝒳 ⥤ 𝒮} {hp : FiberStruct p} {S : 𝒮} {a 
   let Φ := Functor.objObjPreimageIso (FiberInducedFunctor (hp.comp_const S)) (FiberSelf ha)
   use (FiberInclusion p S).map Φ.hom
   refine ⟨inferInstance, Φ.hom.2⟩
-
-lemma FiberStructObjLift {p : 𝒳 ⥤ 𝒮} {hp : FiberStruct p} {S : 𝒮} (a : hp.Fib S) : p.obj ((hp.ι S).obj a) = S :=
-  by simp only [←comp_obj, hp.comp_const, const_obj_obj]
 
 -- MIGHT NOT NEED....
 def FiberStructMap {p : 𝒳 ⥤ 𝒮} {hp : FiberStruct p} {R S : 𝒮} {a : hp.Fib S}
