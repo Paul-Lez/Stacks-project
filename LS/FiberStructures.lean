@@ -157,7 +157,15 @@ def FiberStructMap {p : 𝒳 ⥤ 𝒮} {hp : FiberStruct p} {R S : 𝒮} {a : hp
 structure FiberedStruct (p : 𝒳 ⥤ 𝒮) extends FiberStruct p where
   [isFibered : IsFibered p]
 
-/-- TODO COMMENT -/
+/-- Given a FiberStruct and a diagram
+```
+           a
+           -
+           |
+           v
+  R --f--> S
+```
+with a in Fib S, we can take a pullback b = `R ×_S a` in Fib R -/
 lemma FiberStructPullback {p : 𝒳 ⥤ 𝒮} {hp : FiberedStruct p} {R S : 𝒮} (a : hp.Fib S)
   (f : R ⟶ S) : ∃ (b : hp.Fib R) (φ : (hp.ι R).obj b ⟶ (hp.ι S).obj a), IsPullback p f φ := by
     rcases hp.isFibered.has_pullbacks (FiberStructObjLift a) f with ⟨b, φ, hφ⟩
@@ -166,6 +174,7 @@ lemma FiberStructPullback {p : 𝒳 ⥤ 𝒮} {hp : FiberedStruct p} {R S : 𝒮
     rw [←id_comp f]
     exact IsPullback_comp (IsPullbackofIso hψ.2 hψ.1) hφ
 
+-- TODO MAYBE REPLACE THE ABOVE WITH THIS LEMMA
 lemma FiberStructPullback' {p : 𝒳 ⥤ 𝒮} (hp : FiberedStruct p) {R S : 𝒮} {a : 𝒳}
   (ha : p.obj a = S) (f : R ⟶ S) : ∃ (b : hp.Fib R) (φ : (hp.ι R).obj b ⟶ a),
     IsPullback p f φ := by
@@ -195,6 +204,25 @@ lemma FiberStructFactorization {p : 𝒳 ⥤ 𝒮} {hp : FiberedStruct p} {R S :
 
 -- TODO INDUCEDMAP IN FIBER API
 
+
+-- TODO: In this lemma, should maybe just require that a lies over S (not necc in the fiber)
+/-- Given a in Fib S, b in Fib R, and a diagram
+```
+  b --φ--> a
+  -        -
+  |        |
+  v        v
+  R --f--> S
+```
+It can be factorized as
+```
+  b --τ--> b'--ψ--> a
+  -        -        -
+  |        |        |
+  v        v        v
+  R ====== R --f--> S
+```
+with ψ a pullback of f and τ a map in Fib R -/
 lemma fiber_factorization {p : 𝒳 ⥤ 𝒮} (hp : FiberedStruct p) {R S : 𝒮}
   {a : hp.Fib S} {b : hp.Fib R} {f : R ⟶ S} {φ : (hp.ι R).obj b ⟶ (hp.ι S).obj a}
   (hφ : IsHomLift p f φ) : ∃ (b' : hp.Fib R)
@@ -224,8 +252,9 @@ lemma FiberFunctorObj {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮
   {hq : FiberStruct q} (hF : FiberFunctor F hp hq) (a : 𝒳) : q.obj (F.obj a) = p.obj a := by
   rw [←comp_obj, hF.base_preserving]
 
+/-- TODO -/
 lemma FiberFunctorHomLift {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : FiberStruct p}
-  {hq : FiberStruct q} (hF : FiberFunctor F hp hq) {S : 𝒮} {a b : 𝒳} (φ : a ⟶ b) :
+  {hq : FiberStruct q} (hF : FiberFunctor F hp hq) {a b : 𝒳} (φ : a ⟶ b) :
   IsHomLift q (p.map φ) (F.map φ) where
     ObjLiftDomain := FiberFunctorObj hF a
     ObjLiftCodomain := FiberFunctorObj hF b
@@ -264,6 +293,7 @@ lemma FiberFunctorIsHomLiftOfImage {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q : 
 -- NEED MORE COMMSQUARES API....
 -- ALSO NEED MORE API FOR PULLING BACK TO FIBERS
 
+/-- If a FiberFunctor F is faithful, then it is also faithful pointwise -/
 lemma FiberStructFaithfulofFaithful {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : FiberStruct p}
   {hq : FiberStruct q} (hF : FiberFunctor F hp hq) [Faithful F] : ∀ (S : 𝒮),
   Faithful (hF.fiber_functor S) := by
@@ -271,6 +301,7 @@ lemma FiberStructFaithfulofFaithful {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q :
   haveI h : Faithful ((hF.fiber_functor S) ⋙ (hq.ι S)) := (hF.comp_eq S).symm ▸ Faithful.comp (hp.ι S) F
   apply Faithful.of_comp _ (hq.ι S)
 
+/-- A FiberFunctor F is faithful if it is so pointwise -/
 lemma FaithfulofFaithfulFiberStruct {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : FiberedStruct p}
   {hq : FiberedStruct q} {hF : FiberedFunctor F hp hq} (hF₁ : ∀ (S : 𝒮), Faithful (hF.fiber_functor S)) :
   Faithful F := by
