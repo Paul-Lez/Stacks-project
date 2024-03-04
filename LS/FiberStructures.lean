@@ -175,20 +175,15 @@ lemma FiberStructPullback' {p : 𝒳 ⥤ 𝒮} (hp : FiberedStruct p) {R S : �
   rw [←id_comp f]
   exact IsPullback_comp (IsPullbackofIso hψ.2 hψ.1) hφ
 
--- Given a pullback, can choose the induced map to lie in the fiber?
--- TODO UNIQUENESS
+/-- Given a FiberedStruct, b' b in Fib R, an a pullback ψ : b ⟶ a in 𝒳, i.e.
+```
+b'       b --ψ--> a
+|        |        |
+v        v        v
+R ====== R --f--> S
+```
+Then the induced map τ : b' ⟶ b to lies in the fiber over R -/
 lemma FiberStructFactorization {p : 𝒳 ⥤ 𝒮} {hp : FiberedStruct p} {R S : 𝒮}
-  {a : hp.Fib S} {b b' : hp.Fib R} {f : R ⟶ S} {φ : (hp.ι R).obj b ⟶ (hp.ι S).obj a}
-  (hφ : IsHomLift p f φ) {ψ : (hp.ι R).obj b' ⟶ (hp.ι S).obj a} (hψ : IsPullback p f ψ) :
-    ∃ (τ : b ⟶ b'), (hp.ι R).map τ ≫ ψ = φ := by
-  -- By fullness, we can pull back τ to the fiber over R
-  rcases FiberStructFull (IsPullbackInducedMap_IsHomLift hψ (id_comp f).symm hφ) with ⟨τ, hτ⟩
-  use τ
-  rw [hτ]
-  exact (IsPullbackInducedMap_Diagram hψ (id_comp f).symm hφ)
-
--- TODO REPLACE ABOVE WITH THIS
-lemma FiberStructFactorization' {p : 𝒳 ⥤ 𝒮} {hp : FiberedStruct p} {R S : 𝒮}
   {a : 𝒳} {b b' : hp.Fib R} {f : R ⟶ S} {φ : (hp.ι R).obj b ⟶ a}
   (hφ : IsHomLift p f φ) {ψ : (hp.ι R).obj b' ⟶ a} (hψ : IsPullback p f ψ) :
     ∃ (τ : b ⟶ b'), (hp.ι R).map τ ≫ ψ = φ := by
@@ -198,6 +193,7 @@ lemma FiberStructFactorization' {p : 𝒳 ⥤ 𝒮} {hp : FiberedStruct p} {R S 
   rw [hτ]
   exact (IsPullbackInducedMap_Diagram hψ (id_comp f).symm hφ)
 
+-- TODO INDUCEDMAP IN FIBER API
 
 lemma fiber_factorization {p : 𝒳 ⥤ 𝒮} (hp : FiberedStruct p) {R S : 𝒮}
   {a : hp.Fib S} {b : hp.Fib R} {f : R ⟶ S} {φ : (hp.ι R).obj b ⟶ (hp.ι S).obj a}
@@ -209,12 +205,16 @@ lemma fiber_factorization {p : 𝒳 ⥤ 𝒮} (hp : FiberedStruct p) {R S : 𝒮
 
 variable {𝒴 : Type u₃} [Category 𝒴]
 
+/-- A notion of functor between FiberStructs. It is given by a functor F : 𝒳 ⥤ 𝒴 such that F ⋙ q = p,
+  and a collection of functors fiber_functor S between the fibers of p and q over S in 𝒮 such that
+  .... -/
 structure FiberFunctor (F : 𝒳 ⥤ 𝒴) {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} (hp : FiberStruct p) (hq : FiberStruct q) where
   -- TODO: miiiight follow from next axiom...
   (base_preserving : F ⋙ q = p)
   (fiber_functor (S : 𝒮) : hp.Fib S ⥤ hq.Fib S)
   (comp_eq : ∀ (S : 𝒮), (fiber_functor S) ⋙ (hq.ι S) = (hp.ι S) ⋙ F)
 
+/-- A notion of functor between FiberedStructs. It is furthermore required to preserve pullbacks  -/
 structure FiberedFunctor (F : 𝒳 ⥤ 𝒴) {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} (hp : FiberedStruct p) (hq : FiberedStruct q)
   extends FiberFunctor F hp.toFiberStruct hq.toFiberStruct where
   (preservesPullbacks {R S : 𝒮} {f : R ⟶ S} {φ : a ⟶ b} (_ : IsPullback p f φ) : IsPullback q f (F.map φ))
@@ -301,8 +301,8 @@ lemma FaithfulofFaithfulFiberStruct {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q :
   have hφ₁' : IsHomLift p h φ₁' := h₁ ▸ IsHomLift_eqToHom_comp' (IsHomLift_self p φ₁') _
 
   -- Let τ, τ' be the induced maps from b to c given by φ and φ'
-  rcases FiberStructFactorization' hφ₁ hψ with ⟨τ, hτ⟩
-  rcases FiberStructFactorization' hφ₁' hψ with ⟨τ', hτ'⟩
+  rcases FiberStructFactorization hφ₁ hψ with ⟨τ, hτ⟩
+  rcases FiberStructFactorization hφ₁' hψ with ⟨τ', hτ'⟩
 
   -- It suffices to show that τ = τ'
   suffices τ = τ' by rw [←hτ, ←hτ', this]
