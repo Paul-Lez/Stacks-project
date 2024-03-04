@@ -32,17 +32,17 @@ lemma CommSqComp {W X X' Y Z Z' : 𝒮} {f : W ⟶ X} {f' : X ⟶ X'} {g : W ⟶
   {i : Y ⟶ Z} {i' : Z ⟶ Z'} (hsq₁ : CommSq f g h i) (hsq₂ : CommSq f' h h' i') : CommSq (f ≫ f') g h' (i ≫ i') :=
   ⟨by rw [←assoc, assoc, ←hsq₁.w, hsq₂.w, assoc]⟩
 
--- First we define the fibers of a given fibered category
--- def Fiber (p : 𝒳 ⥤ 𝒮) (S : 𝒮) := (a : 𝒳) × (p.obj a ≅ S)
+/-- Fiber p S is the type of elements of 𝒳 mapping to S via p  -/
 def Fiber (p : 𝒳 ⥤ 𝒮) (S : 𝒮) := {a : 𝒳 // p.obj a = S}
 
--- a lies in the fiber of p.obj a
+-- TODO MIGHT NOT NEED THIS
 def FiberSelf {p : 𝒳 ⥤ 𝒮} {S : 𝒮} {a : 𝒳} (ha : p.obj a = S) : Fiber p S := ⟨a, ha⟩
 
 -- TODO DO I EVEN NEED?
 @[simp]
 lemma FiberSelfCoe (p : 𝒳 ⥤ 𝒮) (a : 𝒳) : (FiberSelf (p:=p) (a:=a) rfl).1 = a := rfl
 
+/-- We can turn Fiber p S into a category by taking the morphisms to be those lying over 𝟙 S -/
 instance FiberCategory (p : 𝒳 ⥤ 𝒮) (S : 𝒮) : Category (Fiber p S) where
   -- TODO: Is this the best implementation? IsHomLift allows us to use the api,
   -- but then we need to "reprove" p.obj a = S and p.obj b = S...
@@ -51,6 +51,7 @@ instance FiberCategory (p : 𝒳 ⥤ 𝒮) (S : 𝒮) : Category (Fiber p S) whe
   id a := ⟨𝟙 a.1, IsHomLift_id a.2⟩
   comp φ ψ := ⟨φ.val ≫ ψ.val, by apply (comp_id (𝟙 S)) ▸ IsHomLift_comp φ.2 ψ.2⟩
 
+/-- The functor including Fiber p S into 𝒳 -/
 def FiberInclusion (p : 𝒳 ⥤ 𝒮) (S : 𝒮) : (Fiber p S) ⥤ 𝒳 where
   obj a := a.1
   map φ := φ.1
@@ -58,8 +59,8 @@ def FiberInclusion (p : 𝒳 ⥤ 𝒮) (S : 𝒮) : (Fiber p S) ⥤ 𝒳 where
 instance FiberInclusionFaithful (p : 𝒳 ⥤ 𝒮) (S : 𝒮) : Faithful (FiberInclusion p S) where
   map_injective := Subtype.val_inj.1
 
--- Next define induced map from "arbitrary fiber" to "canonical fiber"
-
+/-- Given a functor F : C ⥤ 𝒳 mapping constantly to some S in the base,
+  we get an induced functor C ⥤ Fiber p S -/
 def FiberInducedFunctor {p : 𝒳 ⥤ 𝒮} {S : 𝒮} {C : Type _} [Category C]
   {F : C ⥤ 𝒳} (hF : F ⋙ p = (const C).obj S) : C ⥤ Fiber p S where
     obj := fun x => ⟨F.obj x, by simp only [←comp_obj, hF, const_obj_obj]⟩
@@ -69,26 +70,25 @@ def FiberInducedFunctor {p : 𝒳 ⥤ 𝒮} {S : 𝒮} {C : Type _} [Category C]
       HomLift := ⟨by simpa using (eqToIso hF).hom.naturality φ⟩
     }⟩
 
+/-- The natural transformation between F : C ⥤ 𝒳 and .... -/
 def FiberInducedFunctorNat {p : 𝒳 ⥤ 𝒮} {S : 𝒮} {C : Type _} [Category C] {F : C ⥤ 𝒳}
   (hF : F ⋙ p = (const C).obj S) : F ≅ (FiberInducedFunctor hF) ⋙ (FiberInclusion p S) where
     hom := { app := fun a => 𝟙 (F.obj a) }
     inv := { app := fun a => 𝟙 ((FiberInducedFunctor hF ⋙ FiberInclusion p S).obj a) }
 
 -- TODO UPDATE MATHLIB + USE EXT OF ISO
-
 lemma FiberInducedFunctorComp {p : 𝒳 ⥤ 𝒮} {S : 𝒮} {C : Type _} [Category C] {F : C ⥤ 𝒳}
   (hF : F ⋙ p = (const C).obj S) : F = (FiberInducedFunctor hF) ⋙ (FiberInclusion p S) := sorry
 
--- We define an extrinsic notion of fibers, which we call FiberStruct
--- Fibered family. TODO: make into a class? Then could infer "canonical fibers" if none are given...
+-- TODO MAKE INTO A CLASS?
+/-- FiberStruct is an exttrinsic notion of fibers on a functor p : 𝒳 ⥤ 𝒮. It is given by a collection
+of categories Fib S for every S in 𝒮 (the fiber categories), equiped with functors ι : Fib S ⥤ 𝒳
+which map constantly to S on the base such that the induced functor Fib S ⥤ Fiber p S is an equivalence. -/
 structure FiberStruct (p : 𝒳 ⥤ 𝒮) where
   Fib (S : 𝒮) : Type _
   [isCategory (S : 𝒮) : Category (Fib S)]
   (ι (S : 𝒮) : (Fib S) ⥤ 𝒳)
   (comp_const (S : 𝒮) : (ι S) ⋙ p = (const (Fib S)).obj S)
-  -- NOTE THESE TWO DONT SAY ANYTHING ABOUT THE MAPS!
-  --(comp_const (S : 𝒮) : ∀ (a : Fib S), (ι S ⋙ p).obj a = S)
-  --(comp_const (S : 𝒮) : ∀ (a : Fib S), p.obj ((ι S).obj a) = S)
   [equiv (S : 𝒮) : IsEquivalence (FiberInducedFunctor (comp_const S))]
 
 instance {p : 𝒳 ⥤ 𝒮} (hp : FiberStruct p) {S : 𝒮} : Category (hp.Fib S) := hp.isCategory S
@@ -98,14 +98,13 @@ instance {p : 𝒳 ⥤ 𝒮} (hp : FiberStruct p) {S : 𝒮} : IsEquivalence (Fi
 instance {p : 𝒳 ⥤ 𝒮} (hp : FiberStruct p) {S : 𝒮} : EssSurj (FiberInducedFunctor (hp.comp_const S)) :=
   Equivalence.essSurj_of_equivalence (FiberInducedFunctor (hp.comp_const S))
 
---instance {p : 𝒳 ⥤ 𝒮} (hp : FiberStruct p) {S : 𝒮} : Full (FiberInducedFunctor (hp.comp_const S)) := inferInstance
-
 instance {p : 𝒳 ⥤ 𝒮} (hp : FiberStruct p) {S : 𝒮} : Faithful (hp.ι S) :=
   Faithful.of_iso (FiberInducedFunctorNat (hp.comp_const S)).symm
 
 lemma FiberStructObjLift {p : 𝒳 ⥤ 𝒮} {hp : FiberStruct p} {S : 𝒮} (a : hp.Fib S) : p.obj ((hp.ι S).obj a) = S :=
   by simp only [←comp_obj, hp.comp_const, const_obj_obj]
 
+/-- For any homomorphism φ in a fiber Fib S, its image under ι S lies over 𝟙 S -/
 lemma FiberStructHomLift {p : 𝒳 ⥤ 𝒮} {hp : FiberStruct p} {S : 𝒮} {a b : hp.Fib S}
   (φ : a ⟶ b) : IsHomLift p (𝟙 S) ((hp.ι S).map φ) where
   ObjLiftDomain := FiberStructObjLift a
@@ -114,6 +113,7 @@ lemma FiberStructHomLift {p : 𝒳 ⥤ 𝒮} {hp : FiberStruct p} {S : 𝒮} {a 
     rw [←Functor.comp_map, Functor.congr_hom (hp.comp_const S)] -- Can easily be replaced if we decide to work up to iso
     simp only [comp_obj, const_obj_obj, const_obj_map, id_comp, eqToHom_trans, comp_id]⟩
 
+/-- A version of fullness of the functor Fib S ⥤ Fiber p S that can be used inside the category 𝒳 -/
 lemma FiberStructFull {p : 𝒳 ⥤ 𝒮} {hp : FiberStruct p} {S : 𝒮} {a b : hp.Fib S} {φ : (hp.ι S).obj a ⟶ (hp.ι S).obj b}
   (hφ : IsHomLift p (𝟙 S) φ) : ∃ (ψ : a ⟶ b), (hp.ι S).map ψ = φ := by
   -- TODO IMPROVE PROOF... Only 5 last lines should be necessary
@@ -132,6 +132,7 @@ lemma FiberStructFull {p : 𝒳 ⥤ 𝒮} {hp : FiberStruct p} {S : 𝒮} {a b :
   simp only [comp_obj, Functor.comp_map, Full.witness, comp_id, id_comp]
   rfl
 
+/-- A version of essential surjectivity of the functor Fib S ⥤ Fiber p S that can be used inside the category 𝒳 -/
 lemma FiberStructEssSurj {p : 𝒳 ⥤ 𝒮} (hp : FiberStruct p) {S : 𝒮} {a : 𝒳} (ha : p.obj a = S) :
   ∃ (b : hp.Fib S) (φ : (hp.ι S).obj b ⟶ a), IsIso φ ∧ IsHomLift p (𝟙 S) φ := by
   -- This will be easy to inline
@@ -151,16 +152,12 @@ lemma FiberStructEssSurj' {p : 𝒳 ⥤ 𝒮} (hp : FiberStruct p) {S : 𝒮} {a
 def FiberStructMap {p : 𝒳 ⥤ 𝒮} {hp : FiberStruct p} {R S : 𝒮} {a : hp.Fib S}
   {b : hp.Fib R} (φ : (hp.ι R).obj b ⟶ (hp.ι S).obj a) : R ⟶ S :=
     eqToHom (FiberStructObjLift b).symm ≫ (p.map φ) ≫ eqToHom (FiberStructObjLift a)
---    ((hp.comp_const R).app b).inv ≫ (p.map φ) ≫ ((hp.comp_const S).app a).hom
 
+/-- A Fibered structure is a FiberStruct such that the underlying functor p : 𝒳 ⥤ 𝒮 is a fibered category -/
 structure FiberedStruct (p : 𝒳 ⥤ 𝒮) extends FiberStruct p where
   [isFibered : IsFibered p]
 
--- TODO NEEDED FOR NOW...?
-instance {p : 𝒳 ⥤ 𝒮} (hp : FiberedStruct p) {S : 𝒮} : Category (hp.Fib S) := hp.isCategory S
-instance {p : 𝒳 ⥤ 𝒮} (hp : FiberedStruct p) {S : 𝒮} : IsEquivalence (FiberInducedFunctor (hp.comp_const S)) := hp.equiv S
-instance {p : 𝒳 ⥤ 𝒮} (hp : FiberedStruct p) {S : 𝒮} : Faithful (FiberInducedFunctor (hp.comp_const S)) := inferInstance
-
+/-- TODO COMMENT -/
 lemma FiberStructPullback {p : 𝒳 ⥤ 𝒮} {hp : FiberedStruct p} {R S : 𝒮} (a : hp.Fib S)
   (f : R ⟶ S) : ∃ (b : hp.Fib R) (φ : (hp.ι R).obj b ⟶ (hp.ι S).obj a), IsPullback p f φ := by
     rcases hp.isFibered.has_pullbacks (FiberStructObjLift a) f with ⟨b, φ, hφ⟩
@@ -296,7 +293,6 @@ lemma FaithfulofFaithfulFiberStruct {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q :
 
   have hφ₁ : IsHomLift p h φ₁ := IsHomLift_eqToHom_comp' (IsHomLift_self p φ₁) _
 
-
   have h₁ : h = eqToHom ((FiberStructObjLift a').symm) ≫ p.map φ₁' := by
     rw [Functor.congr_hom hF.base_preserving.symm]
     rw [Functor.comp_map, ←heq₁, ←Functor.comp_map]
@@ -374,10 +370,69 @@ lemma FiberFunctorsFullofFull {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q : 𝒴 
           id_comp, IsHomLift_eqToHom_comp, IsHomLift_comp_eqToHom]
       }
 
+lemma FullofFullFiberStruct {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : FiberedStruct p}
+  {hq : FiberedStruct q} {hF : FiberedFunctor F hp hq} (hF₁ : ∀ (S : 𝒮), Full (hF.fiber_functor S)) :
+  Full F where
+    preimage := by
+      intro a b φ
+
+      -- Reduce to checking when domain is in a fiber
+      -- TODO TRICKY AS THIS IS BY NO MEANS UNIQUE (actually might not matter?)
+      let a' := Classical.choose (FiberStructEssSurj' hp.1 (rfl (a := p.obj a)))
+      let Φ := Classical.choose (Classical.choose_spec (FiberStructEssSurj' hp.1 (rfl (a := p.obj a))))
+      let hΦ := Classical.choose_spec (Classical.choose_spec (FiberStructEssSurj' hp.1 (rfl (a := p.obj a))))
+
+      let φ₁ := (F.mapIso Φ).hom ≫ φ
+      -- MIGHT NEED TO FIX DOMAIN/CODOMAIN HERE
+      let h' :=
+        eqToHom (congr_obj hF.base_preserving a).symm ≫ eqToHom (comp_obj F q a) --≫ q.map φ₁ ≫ eqToHom (comp_obj F q b).symm ≫ eqToHom (congr_obj hF.base_preserving b).symm
+
+
+      -- F.obj (hp.ι (p.obj a).obj a') = (hp.ι (p.obj a) ⋙ F).obj a'
+      -- = (hF.fiber_functor (p.obj a) ≫ hq.ι (p.obj a)) a'
+      -- = (hq.ι (p.obj a)).obj (hF.fiber_functor (p.obj a)).obj a'
+      -- COMBINE THIS IN ANOTHER WAY...
+      let φ₁' := eqToHom (comp_obj (hF.fiber_functor (p.obj a)) (hq.ι (p.obj a)) a').symm
+        ≫ eqToHom (congr_obj (hF.comp_eq (p.obj a)).symm a').symm
+        ≫ eqToHom (comp_obj (hp.ι (p.obj a)) F a').symm
+
+      let hpre := eqToHom (FiberStructObjLift ((hF.fiber_functor (p.obj a)).obj a')).symm
+        ≫ eqToHom (comp_obj (hq.ι (p.obj a)) q _)
+        ≫ q.map φ₁'
+
+      let h :=
+        hpre ≫ q.map φ₁
+        --≫ eqToHom (comp_obj F q b).symm ≫ eqToHom (congr_obj hF.base_preserving b)
+
+      -- Let ψ : c ⟶ b be a pullback over h such that c : Fib (p.obj a)
+      have hb : q.obj (F.obj b) = p.obj b := by simp only [←comp_obj, hF.base_preserving]
+      let c := Classical.choose (FiberStructPullback' hq rfl h)
+      let ψ := Classical.choose (Classical.choose_spec (FiberStructPullback' hq rfl h))
+      have hψ := Classical.choose_spec (Classical.choose_spec (FiberStructPullback' hq rfl h))
+
+      have hφ₁ : IsHomLift q h φ₁ := by
+        have H := IsHomLift_self q φ₁
+        simp [H]
+        apply IsHomLift_eqToHom_comp' _
+        sorry
+
+
+      -- Let τ be the induced map from a' to c given by φ₁ (TRICKY MAYBE)
+      --let τ := Classical.choose (FiberStructFactorization' hφ₁ hψ)
+      --have hτ := Classical.choose_spec (FiberStructFactorization' hφ₁ hψ)
+
+
+      sorry
+
+
+    witness := sorry
+
+
 /-
 TODO:
 2. Full if fibers are full
-3. Equivalence iff equivalence on fibers (easy from fullness + fully faithfulness)
+3. Equivalence iff equivalence on fibers
+  -- NOTE THIS REQUIRES NEW DEFINITION OF EQUIVALENCE!!! (inverse needs to also preserve fibers. Immediate?)
 -/
 
 
