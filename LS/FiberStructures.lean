@@ -413,7 +413,8 @@ lemma FullofFullFiberStruct {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q : 𝒴 �
       let Φ := Classical.choose (Classical.choose_spec (FiberStructEssSurj' hp.1 (rfl (a := p.obj a))))
       let hΦ := Classical.choose_spec (Classical.choose_spec (FiberStructEssSurj' hp.1 (rfl (a := p.obj a))))
 
-      let φ₁ := (F.mapIso Φ).hom ≫ φ
+      let φ₁ := eqToHom (comp_obj _ (hq.ι (p.obj a)) a') ≫
+        eqToHom (congr_obj (hF.comp_eq (p.obj a)) a') ≫ (F.mapIso Φ).hom ≫ φ
       -- MIGHT NEED TO FIX DOMAIN/CODOMAIN HERE
       let h' :=
         eqToHom (congr_obj hF.base_preserving a).symm ≫ eqToHom (comp_obj F q a) --≫ q.map φ₁ ≫ eqToHom (comp_obj F q b).symm ≫ eqToHom (congr_obj hF.base_preserving b).symm
@@ -448,9 +449,10 @@ lemma FullofFullFiberStruct {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q : 𝒴 �
         sorry
 
 
-      -- Let τ be the induced map from a' to c given by φ₁ (TRICKY MAYBE)
-      --let τ := Classical.choose (FiberStructFactorization' hφ₁ hψ)
-      --have hτ := Classical.choose_spec (FiberStructFactorization' hφ₁ hψ)
+      -- Let τ be the induced map from a' to c given by φ₁
+      -- NEED TO REWRITE φ₁ TO HAVE DOMAIN IN FIBER
+      let τ := Classical.choose (FiberStructFactorization hφ₁ hψ)
+      have hτ := Classical.choose_spec (FiberStructFactorization' hφ₁ hψ)
 
 
       sorry
@@ -464,6 +466,93 @@ TODO:
 2. Full if fibers are full
 3. Equivalence iff equivalence on fibers
   -- NOTE THIS REQUIRES NEW DEFINITION OF EQUIVALENCE!!! (inverse needs to also preserve fibers. Immediate?)
+-/
+
+
+
+
+/-
+def Fiber.comp_const (p : C ⥤ S) (s : S) : (Fiber.functor p s) ⋙ p ≅ (const (Fiber p s)).obj s where
+  hom := {
+    app :=
+    by
+      intro x
+      exact eqToHom x.prop
+    naturality :=
+    by
+      intros x y f
+      simp only [comp_obj, const_obj_obj, Functor.comp_map, const_obj_map, comp_id]
+      exact f.prop
+  }
+  inv := {
+    app :=
+    by
+      intro x
+      exact eqToHom (x.prop).symm
+    naturality :=
+    by
+      intros x y f
+      simp only [const_obj_obj, comp_obj, const_obj_map, id_comp, Functor.comp_map]
+      rw [←(eqToHom_comp_iff x.prop), comp_eqToHom_iff]
+      exact f.prop.symm
+  }
+
+instance canonical_fiber (p : C ⥤ S) [hp : IsFibered p] : HasFibers p where
+  Fib :=
+    by
+      intro s
+      exact Fiber p s
+  fiber_functor :=
+   by
+    intro s
+    exact Fiber.functor p s
+  comp_const :=
+    by
+      intro s
+      exact Fiber.comp_const p s
+  has_pullbacks :=
+    by
+      intro s t x f
+      rcases hp with ⟨hp⟩
+      rcases hp (f ≫ eqToHom (x.prop.symm)) with ⟨y, φ , hy, h_lift, h_cart⟩
+      existsi ⟨y, hy⟩
+      existsi φ
+      constructor
+      constructor
+      rcases h_lift with ⟨h_lift⟩
+      rw [←assoc, ←comp_eqToHom_iff x.prop, comp_id] at h_lift
+      exact h_lift
+      exact h_cart
+
+
+def IsFiberedFunctorOnFiber (p : 𝒳 ⥤ 𝒮) (q : 𝒴 ⥤ 𝒮) (F : 𝒳 ⥤ 𝒴) [IsFibered p]
+  [IsFibered q] [hF : IsFiberedFunctor p q F] (S : 𝒮) : Fiber p S ⥤ Fiber q S where
+    -- THIS SHOULD HAVE BEEN PUT IN AN API
+    obj := fun ⟨a, ha⟩ => ⟨F.obj a, show q.obj (F.obj a) = S by rwa [←comp_obj, hF.1]⟩
+    map := by
+      intro a b φ
+      refine ⟨F.map φ.val, ?_⟩
+      have h₁ := (IsFiberedFunctorMap p q F φ.1).1
+      rw [comp_eqToHom_iff] at h₁
+      rw [h₁]
+      have h₂ := φ.2
+      rw [comp_eqToHom_iff] at h₂
+      rw [h₂]
+      simp only [eqToHom_trans]
+    map_id :=
+      by
+        intro x
+        apply Subtype.val_inj.1
+        simp only [Eq.ndrec, id_eq, eq_mpr_eq_cast, cast_eq, eq_mp_eq_cast]
+        sorry
+        --have : (𝟙 x).1 = 𝟙 x.1 := rfl
+    map_comp :=
+      by
+        intro x y z f g
+        apply Subtype.val_inj.1
+        simp
+        sorry
+
 -/
 
 
