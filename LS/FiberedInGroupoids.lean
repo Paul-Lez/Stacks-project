@@ -1,4 +1,4 @@
-import LS.FiberedCategories'
+import LS.FiberedCategories
 
 open CategoryTheory Functor Category
 
