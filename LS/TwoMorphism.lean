@@ -48,7 +48,7 @@ structure Fibered.Morphism (p : 𝒳 ⥤ 𝒮) (q : 𝒴 ⥤ 𝒮) extends Categ
 
 structure Fibered.TwoMorphism {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} (f g : Fibered.Morphism p q) extends
   CategoryTheory.NatTrans f.toFunctor g.toFunctor where
-  (aboveId : ∀ (a : 𝒳), IsHomLift q  (𝟙 (p.obj a)) (toNatTrans.app a))
+  (aboveId : ∀ {a : 𝒳} {S : 𝒮} (_ : p.obj a = S), IsHomLift q  (𝟙 S) (toNatTrans.app a))
 
 @[ext]
 lemma Fibered.TwoMorphism.ext {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {f g : Fibered.Morphism p q} (α β : Fibered.TwoMorphism f g)
@@ -62,11 +62,11 @@ lemma Fibered.TwoMorphism.ext {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {f g : Fib
 def Fibered.TwoMorphism.id {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} (f : Fibered.Morphism p q) : Fibered.TwoMorphism f f := {
   toNatTrans := CategoryTheory.NatTrans.id f.toFunctor
   aboveId := by
-    intro a
+    intro a S ha
     constructor
     · constructor
       simp only [NatTrans.id_app', map_id, id_comp, comp_id]
-    all_goals rw [←CategoryTheory.Functor.comp_obj, f.w] }
+    all_goals rwa [←CategoryTheory.Functor.comp_obj, f.w] }
 
 @[simp]
 lemma Fibered.TwoMorphism.id_toNatTrans {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} (f : Fibered.Morphism p q) : (Fibered.TwoMorphism.id f).toNatTrans = CategoryTheory.NatTrans.id f.toFunctor := rfl
@@ -75,9 +75,9 @@ def Fibered.TwoMorphism.comp {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {f g h : Fi
   Fibered.TwoMorphism f h := {
     toNatTrans := CategoryTheory.NatTrans.vcomp α.toNatTrans β.toNatTrans
     aboveId := by
-      intro a
-      rw [CategoryTheory.NatTrans.vcomp_app, show 𝟙 (p.obj a) = 𝟙 (p.obj a) ≫ 𝟙 (p.obj a) by simp only [comp_id]]
-      apply IsHomLift_comp (α.aboveId _) (β.aboveId _)
+      intro a S ha
+      rw [CategoryTheory.NatTrans.vcomp_app, show 𝟙 S = 𝟙 S ≫ 𝟙 S by simp only [comp_id]]
+      apply IsHomLift_comp (α.aboveId ha) (β.aboveId ha)
   }
 
 @[simp]
@@ -117,7 +117,7 @@ lemma Fibered.TwoMorphism.comp_assoc {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {f 
 
 structure Fibered.TwoIsomorphism {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} (f g : Fibered.Morphism p q) extends
   f.toFunctor ≅ g.toFunctor where
-  (aboveId : ∀ (a : 𝒳), IsHomLift q (𝟙 (p.obj a)) (toIso.hom.app a))
+  (aboveId : ∀ {a : 𝒳} {S : 𝒮} (_ : p.obj a = S), IsHomLift q (𝟙 S) (toIso.hom.app a))
 
 @[ext]
 lemma Fibered.TwoIsomorphism.ext {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {f g : Fibered.Morphism p q} (α β : Fibered.TwoIsomorphism f g)
@@ -131,11 +131,11 @@ lemma Fibered.TwoIsomorphism.ext {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {f g : 
 def Fibered.TwoIsomorphism.id {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} (f : Fibered.Morphism p q) : Fibered.TwoIsomorphism f f := {
   toIso := CategoryTheory.Iso.refl f.toFunctor
   aboveId := by
-    intro a
+    intro a S ha
     constructor
     · constructor
       simp only [Iso.refl_hom, NatTrans.id_app, map_id, id_comp, comp_id]
-    all_goals rw [←CategoryTheory.Functor.comp_obj, f.w] }
+    all_goals rwa [←CategoryTheory.Functor.comp_obj, f.w] }
 
 @[simp]
 lemma Fibered.TwoIsomorphism.id_toNatIso {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} (f : Fibered.Morphism p q) : (Fibered.TwoIsomorphism.id f).toIso = CategoryTheory.Iso.refl f.toFunctor := rfl
@@ -144,9 +144,9 @@ def Fibered.TwoIsomorphism.comp {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {f g h :
   Fibered.TwoIsomorphism f h := {
     toIso := α.toIso.trans β.toIso
     aboveId := by
-      intro a
-      rw [Iso.trans_hom, NatTrans.comp_app, show 𝟙 (p.obj a) = 𝟙 (p.obj a) ≫ 𝟙 (p.obj a) by simp only [comp_id]]
-      apply IsHomLift_comp (α.aboveId _) (β.aboveId _)
+      intro a S ha
+      rw [Iso.trans_hom, NatTrans.comp_app, show 𝟙 S = 𝟙 S ≫ 𝟙 S by simp only [comp_id]]
+      apply IsHomLift_comp (α.aboveId ha) (β.aboveId ha)
   }
 
 @[simp]
@@ -180,11 +180,20 @@ instance (p : 𝒳 ⥤ 𝒮) (q : 𝒴 ⥤ 𝒮) [IsFiberedInGroupoids p] [IsFib
   comp_id := Fibered.TwoIsomorphism.comp_id
   assoc := Fibered.TwoIsomorphism.comp_assoc
 
-/- def TwoYoneda.toFun (p : 𝒳 ⥤ 𝒮) (S : 𝒮) [IsFiberedInGroupoids p] :
-  Fibered.Morphism (Over.forget S) p ⥤  := {
-    toFunctor := Over.mk
-    w := by
-      ext
-      simp
-  }
- -/
+def TwoYoneda.toFun (p : 𝒳 ⥤ 𝒮) (S : 𝒮) [IsFiberedInGroupoids p] : Fibered.Morphism (Over.forget S) p ⥤ Fiber p S where
+  obj := fun f => by
+    apply Fiber.mk_obj (show p.obj (f.toFunctor.obj (Over.mk (𝟙 S))) = S from _)
+    rw [←Functor.comp_obj, f.w, Over.forget_obj, Over.mk_left]
+  map := fun f => by
+    --let f' := (Over.homMk f)
+    apply Fiber.mk_map _ _ (f.toIso.hom.app (Over.mk (𝟙 S))) _ --(λ a => IsHomLift_comp (f.aboveId _) (IsHomLift_id _)
+    apply f.aboveId
+    simp only [Over.forget_obj, Over.mk_left]
+  map_id := by
+    intro f
+    simp only [comp_obj, Eq.ndrec, id_eq, Over.forget_obj, Over.mk_left, eq_mpr_eq_cast, cast_eq]
+    apply Fiber.mk_map_id
+  map_comp := by
+    intro X Y Z f g
+    simp only [comp_obj, Eq.ndrec, id_eq, Over.forget_obj, Over.mk_left, eq_mpr_eq_cast, cast_eq]
+    sorry

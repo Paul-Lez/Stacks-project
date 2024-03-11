@@ -35,13 +35,6 @@ lemma CommSqComp {W X X' Y Z Z' : 𝒮} {f : W ⟶ X} {f' : X ⟶ X'} {g : W ⟶
 /-- Fiber p S is the type of elements of 𝒳 mapping to S via p  -/
 def Fiber (p : 𝒳 ⥤ 𝒮) (S : 𝒮) := {a : 𝒳 // p.obj a = S}
 
--- TODO MIGHT NOT NEED THIS
-def FiberSelf {p : 𝒳 ⥤ 𝒮} {S : 𝒮} {a : 𝒳} (ha : p.obj a = S) : Fiber p S := ⟨a, ha⟩
-
--- TODO DO I EVEN NEED?
-@[simp]
-lemma FiberSelfCoe (p : 𝒳 ⥤ 𝒮) (a : 𝒳) : (FiberSelf (p:=p) (a:=a) rfl).1 = a := rfl
-
 /-- We can turn Fiber p S into a category by taking the morphisms to be those lying over 𝟙 S -/
 instance FiberCategory (p : 𝒳 ⥤ 𝒮) (S : 𝒮) : Category (Fiber p S) where
   -- TODO: Is this the best implementation? IsHomLift allows us to use the api,
@@ -50,6 +43,18 @@ instance FiberCategory (p : 𝒳 ⥤ 𝒮) (S : 𝒮) : Category (Fiber p S) whe
   Hom a b := {φ : a.1 ⟶ b.1 // IsHomLift p (𝟙 S) φ}
   id a := ⟨𝟙 a.1, IsHomLift_id a.2⟩
   comp φ ψ := ⟨φ.val ≫ ψ.val, by apply (comp_id (𝟙 S)) ▸ IsHomLift_comp φ.2 ψ.2⟩
+
+-- TODO MIGHT NOT NEED THIS
+def Fiber.mk_obj {p : 𝒳 ⥤ 𝒮} {S : 𝒮} {a : 𝒳} (ha : p.obj a = S) : Fiber p S := ⟨a, ha⟩
+
+def Fiber.mk_map {p :𝒳 ⥤ 𝒮} {S : 𝒮} {a b : 𝒳} (ha : p.obj a = S) (hb : p.obj b = S) (φ : a ⟶ b) (hφ : IsHomLift p (𝟙 S) φ := by aesop_cat) : Fiber.mk_obj ha ⟶ Fiber.mk_obj hb := ⟨φ, hφ⟩
+
+@[simp]
+lemma Fiber.mk_map_id {p :𝒳 ⥤ 𝒮} {S : 𝒮} {a : 𝒳} (ha : p.obj a = S) : Fiber.mk_map ha ha (𝟙 a) = 𝟙 (Fiber.mk_obj ha) := rfl
+
+-- TODO DO I EVEN NEED?
+@[simp]
+lemma Fiber.mk_obj_coe (p : 𝒳 ⥤ 𝒮) (a : 𝒳) : (Fiber.mk_obj (p:=p) (a:=a) rfl).1 = a := rfl
 
 /-- The functor including Fiber p S into 𝒳 -/
 def FiberInclusion (p : 𝒳 ⥤ 𝒮) (S : 𝒮) : (Fiber p S) ⥤ 𝒳 where
@@ -136,16 +141,16 @@ lemma FiberStructFull {p : 𝒳 ⥤ 𝒮} {hp : FiberStruct p} {S : 𝒮} {a b :
 lemma FiberStructEssSurj {p : 𝒳 ⥤ 𝒮} (hp : FiberStruct p) {S : 𝒮} {a : 𝒳} (ha : p.obj a = S) :
   ∃ (b : hp.Fib S) (φ : (hp.ι S).obj b ⟶ a), IsIso φ ∧ IsHomLift p (𝟙 S) φ := by
   -- This will be easy to inline
-  use Functor.objPreimage (FiberInducedFunctor (hp.comp_const S)) (FiberSelf ha)
-  let Φ := Functor.objObjPreimageIso (FiberInducedFunctor (hp.comp_const S)) (FiberSelf ha)
+  use Functor.objPreimage (FiberInducedFunctor (hp.comp_const S)) (Fiber.mk_obj ha)
+  let Φ := Functor.objObjPreimageIso (FiberInducedFunctor (hp.comp_const S)) (Fiber.mk_obj ha)
   use (FiberInclusion p S).map Φ.hom
   refine ⟨inferInstance, Φ.hom.2⟩
 
 lemma FiberStructEssSurj' {p : 𝒳 ⥤ 𝒮} (hp : FiberStruct p) {S : 𝒮} {a : 𝒳} (ha : p.obj a = S) :
   ∃ (b : hp.Fib S) (φ : (hp.ι S).obj b ≅ a), IsHomLift p (𝟙 S) φ.hom := by
   -- This will be easy to inline
-  use Functor.objPreimage (FiberInducedFunctor (hp.comp_const S)) (FiberSelf ha)
-  let Φ := Functor.objObjPreimageIso (FiberInducedFunctor (hp.comp_const S)) (FiberSelf ha)
+  use Functor.objPreimage (FiberInducedFunctor (hp.comp_const S)) (Fiber.mk_obj ha)
+  let Φ := Functor.objObjPreimageIso (FiberInducedFunctor (hp.comp_const S)) (Fiber.mk_obj ha)
   refine ⟨(FiberInclusion p S).mapIso Φ, Φ.hom.2⟩
 
 -- MIGHT NOT NEED....
@@ -404,8 +409,8 @@ lemma FiberFunctorsFullofFull {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q : 𝒴 
 lemma FullofFullFiberStruct {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : FiberedStruct p}
   {hq : FiberedStruct q} {hF : FiberedFunctor F hp hq} (hF₁ : ∀ (S : 𝒮), Full (hF.fiber_functor S)) :
   Full F where
-    preimage := by
-      intro a b φ
+    preimage := by sorry
+      /- intro a b φ
 
       -- Reduce to checking when domain is in a fiber
       -- TODO TRICKY AS THIS IS BY NO MEANS UNIQUE (actually might not matter?)
@@ -455,7 +460,7 @@ lemma FullofFullFiberStruct {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q : 𝒴 �
       have hτ := Classical.choose_spec (FiberStructFactorization' hφ₁ hψ)
 
 
-      sorry
+      sorry -/
 
 
     witness := sorry
