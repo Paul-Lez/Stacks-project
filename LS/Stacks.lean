@@ -1,6 +1,6 @@
 import LS.FiberedCategories
 import Mathlib.CategoryTheory.Sites.Grothendieck
-import Mathlib.CategoryTheory.Over
+import Mathlib.CategoryTheory.Comma.Over
 import Mathlib.CategoryTheory.NatIso
 
 open CategoryTheory Functor Category Fibered
@@ -62,12 +62,12 @@ noncomputable def dpbi {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
   PullbackObj hp.1 (PullbackObjLiftDomain hp.1 (ha hf') (pb2 f f')) (dpb1 f f' f'') ≅
     PullbackObj hp.1 (PullbackObjLiftDomain hp.1 (ha hf') (pb1 f' f'')) (dpb1 f' f'' f) := by
   have lem₁ : IsPullback p (dpb1 f f' f'' ≫ pb2 f f') (PullbackMap hp.1 (PullbackObjLiftDomain hp.1 (ha hf') (pb2 f f')) (dpb1 f f' f'')
-    ≫ PullbackMap hp.1 (ha hf') (pb2 f f'))
-  · apply IsPullback_comp
+    ≫ PullbackMap hp.1 (ha hf') (pb2 f f')) := by
+    apply IsPullback_comp
     apply PullbackMapIsPullback
     apply PullbackMapIsPullback
-  have lem₂ : IsPullback p (dpb1 f' f'' f ≫ pb1 f' f'') (PullbackMap hp.1 (PullbackObjLiftDomain hp.1 (ha hf') (pb1 f' f'')) (dpb1 f' f'' f) ≫ (PullbackMap hp.1 (ha hf') (pb1 f' f'')))
-  · apply IsPullback_comp
+  have lem₂ : IsPullback p (dpb1 f' f'' f ≫ pb1 f' f'') (PullbackMap hp.1 (PullbackObjLiftDomain hp.1 (ha hf') (pb1 f' f'')) (dpb1 f' f'' f) ≫ (PullbackMap hp.1 (ha hf') (pb1 f' f''))) := by
+    apply IsPullback_comp
     apply PullbackMapIsPullback
     apply PullbackMapIsPullback
   apply IsPullbackInducedMapIsoofIso _ lem₂ lem₁
