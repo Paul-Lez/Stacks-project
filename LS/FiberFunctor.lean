@@ -28,43 +28,12 @@ structure Morphism (p : 𝒳 ⥤ 𝒮) (q : 𝒴 ⥤ 𝒮) extends CategoryTheor
   .... -/
 class IsFiberMorphism {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [hp : FiberStruct p] [hq : FiberStruct q] (F : Morphism p q) where
   (fiber_functor (S : 𝒮) : hp.Fib S ⥤ hq.Fib S)
-  (comp_eq : ∀ (S : 𝒮), (fiber_functor S) ⋙ (hq.ι S) = (hp.ι S) ⋙ F.toFunctor)
+  (comp_eq : ∀ (S : 𝒮), (fiber_functor S) ⋙ (hq.ι S) = (hp.ι S) ⋙ F.toFunctor) -- TRY AESOP_CAT BY DEFAULT HERE?
 
 /-- A notion of functor between FiberedStructs. It is furthermore required to preserve pullbacks  -/
 class IsFiberedMorphism {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [hp : FiberedStruct p] [hq : FiberedStruct q] (F : Morphism p q)
     extends IsFiberMorphism F where
   (preservesPullbacks {R S : 𝒮} {f : R ⟶ S} {φ : a ⟶ b} (_ : IsPullback p f φ) : IsPullback q f (F.map φ))
-
-/-
-def IsFiberedMorphismOnFiber (p : 𝒳 ⥤ 𝒮) (q : 𝒴 ⥤ 𝒮) (F : 𝒳 ⥤ 𝒴) [IsFibered p]
-  [IsFibered q] [hF : IsFiberedMorphism p q F] (S : 𝒮) : Fiber p S ⥤ Fiber q S where
-    -- THIS SHOULD HAVE BEEN PUT IN AN API
-    obj := fun ⟨a, ha⟩ => ⟨F.obj a, show q.obj (F.obj a) = S by rwa [←comp_obj, hF.1]⟩
-    map := by
-      intro a b φ
-      refine ⟨F.map φ.val, ?_⟩
-      have h₁ := (IsFiberedMorphismMap p q F φ.1).1
-      rw [comp_eqToHom_iff] at h₁
-      rw [h₁]
-      have h₂ := φ.2
-      rw [comp_eqToHom_iff] at h₂
-      rw [h₂]
-      simp only [eqToHom_trans]
-    map_id :=
-      by
-        intro x
-        apply Subtype.val_inj.1
-        simp only [Eq.ndrec, id_eq, eq_mpr_eq_cast, cast_eq, eq_mp_eq_cast]
-        sorry
-        --have : (𝟙 x).1 = 𝟙 x.1 := rfl
-    map_comp :=
-      by
-        intro x y z f g
-        apply Subtype.val_inj.1
-        simp
-        sorry
-
--/
 
 @[simp]
 lemma Morphism.obj_proj {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} (F : Morphism p q) (a : 𝒳) : q.obj (F.obj a) = p.obj a := by
@@ -74,6 +43,9 @@ lemma Morphism.obj_proj {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} (F : Morphism p 
 lemma Morphism.fiber_proj {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [hp : FiberStruct p]
     (F : Morphism p q) {S : 𝒮} (a : hp.Fib S) : q.obj (F.obj ((hp.ι S).obj a)) = S := by
   rw [Morphism.obj_proj F ((hp.ι S).obj a), FiberStructObjLift]
+
+
+
 
 /-- TODO -/
 -- simp lemma??
@@ -103,6 +75,36 @@ lemma Morphism.HomLift_ofImage  {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} (F : Mor
   HomLift := ⟨by
     rw [congr_hom F.w.symm]
     simp only [Functor.comp_map, assoc, eqToHom_trans, hφ.HomLift.1, eqToHom_trans_assoc]⟩
+
+@[default_instance]
+instance Morphism.IsFiber_canonical {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} (F : Morphism p q) :
+    IsFiberMorphism F where
+  fiber_functor := fun S => {
+    obj := fun ⟨a, ha⟩ => ⟨F.obj a, by rwa [F.obj_proj]⟩
+    map := @fun a b φ => ⟨F.map φ.val, Morphism.pres_IsHomLift F φ.2⟩
+    map_id := by
+      intro
+      simp
+      -- should be done by simp w api
+      sorry
+    map_comp := by
+      intros
+      --apply Subtype.val_inj.1
+      --rw [←Functor.map_comp]
+      simp
+      sorry
+  }
+  comp_eq := by aesop_cat
+
+-- TODO: Remove "IsFiberedMorphism/FiberedStruct". Instead require IsFiber.../Fiberstruct & [IsFibered] separetely.
+-- instance Morphism.IsFibered_canonical {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [IsFibered p] [IsFibered q] (F : Morphism p q) :
+--     IsFiberedMorphism F where
+--   preservesPullbacks := by
+--     intros
+--     simp
+--     sorry
+
+
 
 -- NEED MORE COMMSQUARES API....
 -- ALSO NEED MORE API FOR PULLING BACK TO FIBERS

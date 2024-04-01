@@ -66,11 +66,11 @@ instance FiberInclusionFaithful (p : 𝒳 ⥤ 𝒮) (S : 𝒮) : Faithful (Fiber
   map_injective := Subtype.val_inj.1
 
 @[ext]
-lemma Fiber.hom_ext {p : 𝒳 ⥤ 𝒮} {S : 𝒮} {a b : Fiber p S} (φ ψ : a ⟶ b) : φ.val = ψ.val → φ = ψ := Subtype.ext
+lemma Fiber.hom_ext {p : 𝒳 ⥤ 𝒮} {S : 𝒮} {a b : Fiber p S} (φ ψ : a ⟶ b) : φ.1 = ψ.1 → φ = ψ := Subtype.ext
 
 @[simp]
 lemma Fiber.val_comp {p : 𝒳 ⥤ 𝒮} {S : 𝒮} {a b c : Fiber p S} (φ : a ⟶ b)
-    (ψ : b ⟶ c) : (φ ≫ ψ).val = φ.val ≫ ψ.val := rfl
+    (ψ : b ⟶ c) : (φ ≫ ψ).1 = φ.1 ≫ ψ.1 := rfl
 
 /-- Given a functor F : C ⥤ 𝒳 mapping constantly to some S in the base,
   we get an induced functor C ⥤ Fiber p S -/
@@ -215,9 +215,11 @@ def FiberStructMap {p : 𝒳 ⥤ 𝒮} [hp : FiberStruct p] {R S : 𝒮} {a : hp
     eqToHom (FiberStructObjLift b).symm ≫ (p.map φ) ≫ eqToHom (FiberStructObjLift a)
 
 /-- A Fibered structure is a FiberStruct such that the underlying functor p : 𝒳 ⥤ 𝒮 is a fibered category -/
+-- TODO: Maybe this shouldnt be its own class...?
 class FiberedStruct (p : 𝒳 ⥤ 𝒮) extends FiberStruct p where
   [isFibered : IsFibered p]
 
+@[default_instance]
 def FiberedStruct.canonical (p : 𝒳 ⥤ 𝒮) [IsFibered p] : FiberedStruct p :=
   {FiberStruct.canonical p with isFibered := inferInstance}
 
