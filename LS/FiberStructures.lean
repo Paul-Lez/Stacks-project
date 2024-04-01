@@ -36,6 +36,7 @@ lemma CommSqComp {W X X' Y Z Z' : 𝒮} {f : W ⟶ X} {f' : X ⟶ X'} {g : W ⟶
 def Fiber (p : 𝒳 ⥤ 𝒮) (S : 𝒮) := {a : 𝒳 // p.obj a = S}
 
 /-- We can turn Fiber p S into a category by taking the morphisms to be those lying over 𝟙 S -/
+@[simps]
 instance FiberCategory (p : 𝒳 ⥤ 𝒮) (S : 𝒮) : Category (Fiber p S) where
   -- TODO: Is this the best implementation? IsHomLift allows us to use the api,
   -- but then we need to "reprove" p.obj a = S and p.obj b = S...
@@ -44,7 +45,6 @@ instance FiberCategory (p : 𝒳 ⥤ 𝒮) (S : 𝒮) : Category (Fiber p S) whe
   id a := ⟨𝟙 a.1, IsHomLift_id a.2⟩
   comp φ ψ := ⟨φ.val ≫ ψ.val, by apply (comp_id (𝟙 S)) ▸ IsHomLift_comp φ.2 ψ.2⟩
 
--- TODO MIGHT NOT NEED THIS
 def Fiber.mk_obj {p : 𝒳 ⥤ 𝒮} {S : 𝒮} {a : 𝒳} (ha : p.obj a = S) : Fiber p S := ⟨a, ha⟩
 
 def Fiber.mk_map {p :𝒳 ⥤ 𝒮} {S : 𝒮} {a b : 𝒳} (ha : p.obj a = S) (hb : p.obj b = S) (φ : a ⟶ b) (hφ : IsHomLift p (𝟙 S) φ := by aesop_cat) : Fiber.mk_obj ha ⟶ Fiber.mk_obj hb := ⟨φ, hφ⟩
@@ -57,6 +57,7 @@ lemma Fiber.mk_map_id {p :𝒳 ⥤ 𝒮} {S : 𝒮} {a : 𝒳} (ha : p.obj a = S
 lemma Fiber.mk_obj_coe (p : 𝒳 ⥤ 𝒮) (a : 𝒳) : (Fiber.mk_obj (p:=p) (a:=a) rfl).1 = a := rfl
 
 /-- The functor including Fiber p S into 𝒳 -/
+@[simps]
 def FiberInclusion (p : 𝒳 ⥤ 𝒮) (S : 𝒮) : (Fiber p S) ⥤ 𝒳 where
   obj a := a.1
   map φ := φ.1
@@ -64,8 +65,16 @@ def FiberInclusion (p : 𝒳 ⥤ 𝒮) (S : 𝒮) : (Fiber p S) ⥤ 𝒳 where
 instance FiberInclusionFaithful (p : 𝒳 ⥤ 𝒮) (S : 𝒮) : Faithful (FiberInclusion p S) where
   map_injective := Subtype.val_inj.1
 
+@[ext]
+lemma Fiber.hom_ext {p : 𝒳 ⥤ 𝒮} {S : 𝒮} {a b : Fiber p S} (φ ψ : a ⟶ b) : φ.val = ψ.val → φ = ψ := Subtype.ext
+
+@[simp]
+lemma Fiber.val_comp {p : 𝒳 ⥤ 𝒮} {S : 𝒮} {a b c : Fiber p S} (φ : a ⟶ b)
+    (ψ : b ⟶ c) : (φ ≫ ψ).val = φ.val ≫ ψ.val := rfl
+
 /-- Given a functor F : C ⥤ 𝒳 mapping constantly to some S in the base,
   we get an induced functor C ⥤ Fiber p S -/
+@[simps]
 def FiberInducedFunctor {p : 𝒳 ⥤ 𝒮} {S : 𝒮} {C : Type _} [Category C]
   {F : C ⥤ 𝒳} (hF : F ⋙ p = (const C).obj S) : C ⥤ Fiber p S where
     obj := fun x => ⟨F.obj x, by simp only [←comp_obj, hF, const_obj_obj]⟩
@@ -81,20 +90,9 @@ def FiberInducedFunctorNat {p : 𝒳 ⥤ 𝒮} {S : 𝒮} {C : Type _} [Category
     hom := { app := fun a => 𝟙 (F.obj a) }
     inv := { app := fun a => 𝟙 ((FiberInducedFunctor hF ⋙ FiberInclusion p S).obj a) }
 
--- TODO UPDATE MATHLIB + USE EXT OF ISO
 lemma FiberInducedFunctorComp {p : 𝒳 ⥤ 𝒮} {S : 𝒮} {C : Type _} [Category C] {F : C ⥤ 𝒳}
-  (hF : F ⋙ p = (const C).obj S) : F = (FiberInducedFunctor hF) ⋙ (FiberInclusion p S) := sorry
-
-def FiberInducedFunctorUnique {p : 𝒳 ⥤ 𝒮} {S : 𝒮} {C : Type _} [Category C]
-  {F : C ⥤ 𝒳} (hF : F ⋙ p = (const C).obj S) {Φ : C ⥤ Fiber p S}
-  (hΦ : F = Φ ⋙ (FiberInclusion p S)) : Φ ≅ FiberInducedFunctor hF where
-    hom := {
-      app := fun x => sorry
-      naturality := sorry
-    }
-    inv := sorry
-    hom_inv_id := sorry
-    inv_hom_id := sorry
+  (hF : F ⋙ p = (const C).obj S) : F = (FiberInducedFunctor hF) ⋙ (FiberInclusion p S) :=
+  Functor.ext_of_iso (FiberInducedFunctorNat hF) (fun x => by rfl) (fun x => by rfl)
 
 -- TODO MAKE INTO A CLASS?
 /-- FiberStruct is an exttrinsic notion of fibers on a functor p : 𝒳 ⥤ 𝒮. It is given by a collection
@@ -117,6 +115,9 @@ instance {p : 𝒳 ⥤ 𝒮} (hp : FiberStruct p) {S : 𝒮} : EssSurj (FiberInd
 instance {p : 𝒳 ⥤ 𝒮} (hp : FiberStruct p) {S : 𝒮} : Faithful (hp.ι S) :=
   Faithful.of_iso (FiberInducedFunctorNat (hp.comp_const S)).symm
 
+
+
+
 /- Now we define the standard/canonical fiber associated to a fibered category.
 When the user does not wish to supply specific fiber categories, this will be the default choice. -/
 
@@ -126,17 +127,39 @@ def Fiber.comp_const_nat (p : 𝒳 ⥤ 𝒮) (S : 𝒮) : (FiberInclusion p S) �
     naturality := fun x y φ => by simpa using φ.prop.3.1}
   inv := {
     app := fun x => eqToHom (x.prop).symm
-    naturality := fun x y φ => by sorry
+    naturality := fun x y φ => by
+      -- TODO OPTIMIZE PROOF (could be solved by simp!!)
+      simp only [const_obj_obj, comp_obj, FiberInclusion_obj, const_obj_map, id_comp,
+        Functor.comp_map, FiberInclusion_map]
+      rw [←eqToHom_comp_iff, comp_eqToHom_iff]
+      have := φ.2.3.1
+      simp at this
+      rw [this]
       }
 
 lemma Fiber.comp_const (p : 𝒳 ⥤ 𝒮) (S : 𝒮) : (FiberInclusion p S) ⋙ p = (const (Fiber p S)).obj S := by
-  sorry
+  -- TODO OPTIMIZE PROOF
+  apply Functor.ext_of_iso (Fiber.comp_const_nat p S)
+  intro x
+  simp only [comp_const_nat]
+  intro x
+  simp only [comp_obj, FiberInclusion_obj, x.2, const_obj_obj]
+
 
 instance FiberStruct.canonical (p : 𝒳 ⥤ 𝒮) : FiberStruct p where
   Fib := Fiber p
   ι := FiberInclusion p
   comp_const := Fiber.comp_const p
-  equiv := sorry -- NEED IsInducedFunctor id!!
+  equiv := fun S =>
+  {
+    inverse :=  𝟭 (Fiber p S)
+    unitIso := {
+      hom := { app := fun x => ⟨𝟙 x.1, IsHomLift_id x.2⟩ }
+      inv := { app := fun x => ⟨𝟙 x.1, IsHomLift_id x.2⟩ } }
+    counitIso := {
+      hom := { app := fun x => ⟨𝟙 x.1, IsHomLift_id x.2⟩}
+      inv := { app := fun x => ⟨𝟙 x.1, IsHomLift_id x.2⟩} }
+  }
 
 -- BASIC API CONSTRUCTIONS
 def FiberStructProj {p : 𝒳 ⥤ 𝒮} {hp : FiberStruct p} {S R : 𝒮} {a : hp.Fib S} {b : hp.Fib R}
@@ -198,6 +221,9 @@ def FiberStructMap {p : 𝒳 ⥤ 𝒮} {hp : FiberStruct p} {R S : 𝒮} {a : hp
 /-- A Fibered structure is a FiberStruct such that the underlying functor p : 𝒳 ⥤ 𝒮 is a fibered category -/
 structure FiberedStruct (p : 𝒳 ⥤ 𝒮) extends FiberStruct p where
   [isFibered : IsFibered p]
+
+def FiberedStruct.canonical (p : 𝒳 ⥤ 𝒮) [IsFibered p] : FiberedStruct p :=
+  {FiberStruct.canonical p with isFibered := inferInstance}
 
 /-- Given a FiberStruct and a diagram
 ```

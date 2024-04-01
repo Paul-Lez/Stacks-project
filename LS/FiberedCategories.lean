@@ -20,7 +20,6 @@ This file defines fibered categories.
 ## Implementation
 -/
 
-
 universe u₁ v₁ u₂ v₂ u₃ w
 
 open CategoryTheory Functor Category
