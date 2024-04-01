@@ -14,18 +14,22 @@ variable {𝒮 : Type u₁} {𝒳 : Type u₂} {𝒴 : Type u₃} [Category 𝒳
 
 namespace Fibered
 
+/-
+TODO:
+Introduce Fibered.Morphism (or alt. notation) as in TwoMorphism and state lemmas in this generality
+THEN make FiberFunctor/FiberedFunctor structures extending this -/
+
 /-- A notion of functor between FiberStructs. It is given by a functor F : 𝒳 ⥤ 𝒴 such that F ⋙ q = p,
   and a collection of functors fiber_functor S between the fibers of p and q over S in 𝒮 such that
   .... -/
-structure FiberFunctor (F : 𝒳 ⥤ 𝒴) {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} (hp : FiberStruct p) (hq : FiberStruct q) where
-  -- TODO: miiiight follow from next axiom...
+structure FiberFunctor (F : 𝒳 ⥤ 𝒴) (p : 𝒳 ⥤ 𝒮) (q : 𝒴 ⥤ 𝒮) [hp : FiberStruct p] [hq : FiberStruct q] where
   (base_preserving : F ⋙ q = p)
   (fiber_functor (S : 𝒮) : hp.Fib S ⥤ hq.Fib S)
   (comp_eq : ∀ (S : 𝒮), (fiber_functor S) ⋙ (hq.ι S) = (hp.ι S) ⋙ F)
 
 /-- A notion of functor between FiberedStructs. It is furthermore required to preserve pullbacks  -/
-structure FiberedFunctor (F : 𝒳 ⥤ 𝒴) {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} (hp : FiberedStruct p) (hq : FiberedStruct q)
-  extends FiberFunctor F hp.toFiberStruct hq.toFiberStruct where
+structure FiberedFunctor (F : 𝒳 ⥤ 𝒴) (p : 𝒳 ⥤ 𝒮) (q : 𝒴 ⥤ 𝒮) [hp : FiberedStruct p] [hq : FiberedStruct q]
+  extends FiberFunctor F p q where
   (preservesPullbacks {R S : 𝒮} {f : R ⟶ S} {φ : a ⟶ b} (_ : IsPullback p f φ) : IsPullback q f (F.map φ))
 
 -- HERE NEED TO DEFINE THE "STANDARD ONE"
@@ -62,19 +66,19 @@ def IsFiberedFunctorOnFiber (p : 𝒳 ⥤ 𝒮) (q : 𝒴 ⥤ 𝒮) (F : 𝒳 �
 -/
 
 @[simp]
-lemma FiberFunctorObj {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : FiberStruct p}
-  {hq : FiberStruct q} (hF : FiberFunctor F hp hq) (a : 𝒳) : q.obj (F.obj a) = p.obj a := by
+lemma FiberFunctorObj {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [hp : FiberStruct p]
+  [hq : FiberStruct q] (hF : FiberFunctor F p q) (a : 𝒳) : q.obj (F.obj a) = p.obj a := by
   rw [←comp_obj, hF.base_preserving]
 
 @[simp]
-lemma FiberFunctorObjFiber {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : FiberStruct p}
-  {hq : FiberStruct q} {hF : FiberFunctor F hp hq} {S : 𝒮} (a : hp.Fib S) :
+lemma FiberFunctorObjFiber {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [hp : FiberStruct p]
+  [hq : FiberStruct q] {hF : FiberFunctor F p q} {S : 𝒮} (a : hp.Fib S) :
   q.obj (F.obj ((hp.ι S).obj a)) = S := by
   rw [FiberFunctorObj hF ((hp.ι S).obj a), FiberStructObjLift]
 
 /-- TODO -/
-lemma FiberFunctorHomLift {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : FiberStruct p}
-  {hq : FiberStruct q} (hF : FiberFunctor F hp hq) {a b : 𝒳} (φ : a ⟶ b) :
+lemma FiberFunctorHomLift {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [hp : FiberStruct p]
+  [hq : FiberStruct q] (hF : FiberFunctor F p q) {a b : 𝒳} (φ : a ⟶ b) :
   IsHomLift q (p.map φ) (F.map φ) where
     ObjLiftDomain := FiberFunctorObj hF a
     ObjLiftCodomain := FiberFunctorObj hF b
@@ -83,8 +87,8 @@ lemma FiberFunctorHomLift {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 
       subst h₁ -- TODO WHY DO I NEED THIS?? rw and simp_only fails...
       simp only [comp_obj, eqToHom_refl, comp_id, Functor.comp_map, id_comp]⟩
 
-lemma FiberFunctorPresHomLift {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : FiberStruct p}
-  {hq : FiberStruct q} (hF : FiberFunctor F hp hq) {R S : 𝒮} {a b : 𝒳} {φ : a ⟶ b}
+lemma FiberFunctorPresHomLift {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [hp : FiberStruct p]
+  [hq : FiberStruct q] (hF : FiberFunctor F p q) {R S : 𝒮} {a b : 𝒳} {φ : a ⟶ b}
   {f : R ⟶ S} (hφ : IsHomLift p f φ) : IsHomLift q f (F.map φ) where
     ObjLiftDomain := Eq.trans (FiberFunctorObj hF a) hφ.ObjLiftDomain
     ObjLiftCodomain := Eq.trans (FiberFunctorObj hF b) hφ.ObjLiftCodomain
@@ -95,8 +99,8 @@ lemma FiberFunctorPresHomLift {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q : 𝒴 
       subst h₂
       simpa using h₁ ⟩
 
-lemma FiberFunctorIsHomLiftOfImage {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : FiberStruct p}
-  {hq : FiberStruct q} (hF : FiberFunctor F hp hq) {S R : 𝒮} {a b : 𝒳} {φ : a ⟶ b}
+lemma FiberFunctorIsHomLiftOfImage {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [hp : FiberStruct p]
+  [hq : FiberStruct q] (hF : FiberFunctor F p q) {S R : 𝒮} {a b : 𝒳} {φ : a ⟶ b}
   {f : R ⟶ S} (hφ : IsHomLift q f (F.map φ)) : IsHomLift p f φ where
     -- TODO API?
     ObjLiftDomain := by
@@ -114,8 +118,8 @@ lemma FiberFunctorIsHomLiftOfImage {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q : 
 -- ALSO NEED MORE API FOR PULLING BACK TO FIBERS
 
 /-- If a FiberFunctor F is faithful, then it is also faithful pointwise -/
-lemma FiberStructFaithfulofFaithful {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : FiberStruct p}
-  {hq : FiberStruct q} (hF : FiberFunctor F hp hq) [Faithful F] : ∀ (S : 𝒮),
+lemma FiberStructFaithfulofFaithful {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [hp : FiberStruct p]
+  [hq : FiberStruct q] (hF : FiberFunctor F p q) [Faithful F] : ∀ (S : 𝒮),
   Faithful (hF.fiber_functor S) := by
   intro S
   haveI h : Faithful ((hF.fiber_functor S) ⋙ (hq.ι S)) := (hF.comp_eq S).symm ▸ Faithful.comp (hp.ι S) F
@@ -123,13 +127,13 @@ lemma FiberStructFaithfulofFaithful {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q :
 
 /-- A FiberFunctor F is faithful if it is so pointwise -/
 lemma FaithfulofFaithfulFiberStruct {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : FiberedStruct p}
-  {hq : FiberedStruct q} {hF : FiberedFunctor F hp hq} (hF₁ : ∀ (S : 𝒮), Faithful (hF.fiber_functor S)) :
+  {hq : FiberedStruct q} {hF : FiberedFunctor F p q} (hF₁ : ∀ (S : 𝒮), Faithful (hF.fiber_functor S)) :
   Faithful F := by
   constructor
   intro a b φ φ' heq
 
   -- Reduce to checking when domain is in a fiber
-  rcases FiberStructEssSurj' hp.1 (rfl (a := p.obj a)) with ⟨a', Φ, hΦ⟩
+  rcases FiberStructEssSurj' (rfl (a := p.obj a)) with ⟨a', Φ, hΦ⟩
   let φ₁ := Φ.hom ≫ φ
   let φ₁' := Φ.hom ≫ φ'
   suffices φ₁ = φ₁' by rwa [←CategoryTheory.Iso.cancel_iso_hom_left Φ]
@@ -186,12 +190,12 @@ lemma FaithfulofFaithfulFiberStruct {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q :
 
   apply Functor.map_injective (hF.fiber_functor (p.obj a)) heqττ'₁
 
-lemma PreimageIsHomLift {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : FiberStruct p}
-  {hq : FiberStruct q} (hF : FiberFunctor F hp hq) [hF₁ : Full F] {a b : 𝒳}
+lemma PreimageIsHomLift {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [hp : FiberStruct p]
+  [hq : FiberStruct q] (hF : FiberFunctor F p q) [hF₁ : Full F] {a b : 𝒳}
   (φ : F.obj a ⟶ F.obj b) : IsHomLift p (q.map φ) (hF₁.preimage φ) := by sorry
 
-lemma FiberFunctorsFullofFull {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : FiberStruct p}
-  {hq : FiberStruct q} (hF : FiberFunctor F hp hq) [hF₁ : Full F] : ∀ (S : 𝒮),
+lemma FiberFunctorsFullofFull {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [hp : FiberStruct p]
+  [hq : FiberStruct q] (hF : FiberFunctor F p q) [hF₁ : Full F] : ∀ (S : 𝒮),
   Full (hF.fiber_functor S) := fun S => {
 
     preimage := by
@@ -227,7 +231,7 @@ lemma FiberFunctorsFullofFull {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q : 𝒴 
       }
 
 lemma FullofFullFiberStruct {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : FiberedStruct p}
-  {hq : FiberedStruct q} {hF : FiberedFunctor F hp hq} (hF₁ : ∀ (S : 𝒮), Full (hF.fiber_functor S)) :
+  {hq : FiberedStruct q} {hF : FiberedFunctor F p q} (hF₁ : ∀ (S : 𝒮), Full (hF.fiber_functor S)) :
   Full F where
     preimage := by
       intro a b φ
@@ -237,9 +241,9 @@ lemma FullofFullFiberStruct {F : 𝒳 ⥤ 𝒴} {p : 𝒳 ⥤ 𝒮} {q : 𝒴 �
 
       -- Reduce to checking when domain is in a fiber
       -- TODO TRICKY AS THIS IS BY NO MEANS UNIQUE (actually might not matter?)
-      let a' := Classical.choose (FiberStructEssSurj' hp.1 (rfl (a:=R)))
-      let Φ := Classical.choose (Classical.choose_spec (FiberStructEssSurj' hp.1 (rfl (a := R))))
-      let hΦ := Classical.choose_spec (Classical.choose_spec (FiberStructEssSurj' hp.1 (rfl (a := R))))
+      let a' := Classical.choose (FiberStructEssSurj' (rfl (a:=R)))
+      let Φ := Classical.choose (Classical.choose_spec (FiberStructEssSurj' (rfl (a := R))))
+      let hΦ := Classical.choose_spec (Classical.choose_spec (FiberStructEssSurj' (rfl (a := R))))
 
       let h : R ⟶ S := eqToHom (FiberFunctorObj hF.1 a).symm ≫ q.map φ ≫ eqToHom (FiberFunctorObj hF.1 b)
 
