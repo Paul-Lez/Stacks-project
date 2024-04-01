@@ -1,6 +1,6 @@
 import LS.FiberedCategories
 import Mathlib.CategoryTheory.Sites.Grothendieck
-import Mathlib.CategoryTheory.Over
+import Mathlib.CategoryTheory.Comma.Over
 import Mathlib.CategoryTheory.NatIso
 import LS.FiberStructures
 
