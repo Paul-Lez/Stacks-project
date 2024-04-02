@@ -156,6 +156,7 @@ lemma PreimageIsHomLift {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} (F : Morphism p 
 
 /- We now show that a morphism F is full if and only if its full fiberwise -/
 
+@[simp]
 def fiber_functor_to_functor_congr {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [hp : FiberStruct p] [hq : FiberStruct q]
     (F : Morphism p q) [hF : IsFiberMorphism F] {S : 𝒮} {a b : hp.Fib S}
     (φ : (hF.fiber_functor S).obj a ⟶ (hF.fiber_functor S).obj b) :
@@ -167,8 +168,7 @@ lemma preimage_of_fiber_IsHomLift {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [hp : 
     (φ : (hF.fiber_functor S).obj a ⟶ (hF.fiber_functor S).obj b) :
     IsHomLift p (𝟙 S) (hF₁.preimage (fiber_functor_to_functor_congr F φ)) := by
   apply PreimageIsHomLift
-  simp only [fiber_functor_to_functor_congr]
-  apply IsHomLift_comp_eqToHom.1 (IsHomLift_eqToHom_comp.1 (FiberStructHomLift φ))
+  simp [FiberStructHomLift φ]
 
 noncomputable def FiberPreimageOfFull {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [hp : FiberStruct p] [FiberStruct q]
     {F : Morphism p q} [hF : IsFiberMorphism F] [Full F.toFunctor] {S : 𝒮} {a b : hp.Fib S}
@@ -222,10 +222,10 @@ lemma FullofFullFiberwise  {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : Fibered
       eqToHom ha' ≫ (F.mapIso Φ).hom ≫ φ
 
     have hφ₁ : IsHomLift q h φ₁ := by
-      -- TODO TRY TO MAKE IsHomLift_comp_eqToHom HAVE MORE IMPLICIT FIELDS!
+      -- TODO MOST OF THIS CAN BE SIMPED
       apply IsHomLift_eqToHom_comp' _
       apply IsHomLift_comp_eqToHom' _
-      apply IsHomLift_comp_eqToHom.1
+      apply IsHomLift_comp_eqToHom.2
       apply IsHomLift_of_IsHomLiftId_comp (IsHomLift_self q φ) (Morphism.pres_IsHomLift F hΦ)
 
     -- The following should be some hF.preservesPullbacks (wrt FiberStruct) API!!!
