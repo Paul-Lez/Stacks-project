@@ -89,57 +89,73 @@ lemma IsHomLift_comp {p : 𝒳 ⥤ 𝒮} {R S T : 𝒮} {a b c : 𝒳} {f : R �
       rw [←Category.assoc, ←hφ.3.1]
       simp only [map_comp, assoc, hψ.3.1]
 
-lemma IsHomLift_eqToHom {p : 𝒳 ⥤ 𝒮} {a b : 𝒳} (hba : b = a) {S : 𝒮}
+lemma IsHomLift_id_eqToHom {p : 𝒳 ⥤ 𝒮} {a b : 𝒳} (hba : b = a) {S : 𝒮}
     (hS : p.obj a = S) : IsHomLift p (𝟙 S) (eqToHom hba) where
       ObjLiftDomain := hba ▸ hS
       ObjLiftCodomain := hS
       HomLift := ⟨by simp only [eqToHom_map, eqToHom_trans, comp_id]⟩
 
-lemma IsHomLift_eqToHom' {p : 𝒳 ⥤ 𝒮} {a b : 𝒳} (hba : b = a) {S : 𝒮}
+lemma IsHomLift_id_eqToHom' {p : 𝒳 ⥤ 𝒮} {a b : 𝒳} (hba : b = a) {S : 𝒮}
     (hS : p.obj b = S) : IsHomLift p (𝟙 S) (eqToHom hba) where
       ObjLiftDomain := hS
       ObjLiftCodomain := hba ▸ hS
       HomLift := ⟨by simp only [eqToHom_map, eqToHom_trans, comp_id]⟩
 
+lemma IsHomLift_eqToHom_id {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} (hRS : R = S)
+    {a : 𝒳} (ha : p.obj a = S) : IsHomLift p (eqToHom hRS) (𝟙 a) where
+      ObjLiftDomain := hRS ▸ ha
+      ObjLiftCodomain := ha
+      HomLift := ⟨by simp only [map_id, id_comp, eqToHom_trans]⟩
+
+lemma IsHomLift_eqToHom_id' {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} (hRS : R = S)
+    {a : 𝒳} (ha : p.obj a = R) : IsHomLift p (eqToHom hRS) (𝟙 a) where
+      ObjLiftDomain := ha
+      ObjLiftCodomain := hRS ▸ ha
+      HomLift := ⟨by simp only [map_id, id_comp, eqToHom_trans]⟩
+
 @[simp]
 lemma IsHomLift_comp_eqToHom {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b c: 𝒳} {f : R ⟶ S}
     {φ : a ⟶ b} {hca : c = a} : IsHomLift p f (eqToHom hca ≫ φ) ↔ IsHomLift p f φ where
-      mp := by intro hφ'; subst hca; simpa using hφ'
-      mpr := fun hφ => id_comp f ▸ IsHomLift_comp (IsHomLift_eqToHom hca hφ.ObjLiftDomain) hφ
+  mp := by intro hφ'; subst hca; simpa using hφ'
+  mpr := fun hφ => id_comp f ▸ IsHomLift_comp (IsHomLift_id_eqToHom hca hφ.ObjLiftDomain) hφ
 
 @[simp]
 lemma IsHomLift_eqToHom_comp {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b c: 𝒳} {f : R ⟶ S}
     {φ : a ⟶ b} {hbc : b = c} : IsHomLift p f (φ ≫ eqToHom hbc) ↔ IsHomLift p f φ where
-      mp := by intro hφ'; subst hbc; simpa using hφ'
-      mpr := fun hφ => comp_id f ▸ IsHomLift_comp hφ (IsHomLift_eqToHom' hbc hφ.ObjLiftCodomain)
+  mp := by intro hφ'; subst hbc; simpa using hφ'
+  mpr := fun hφ => comp_id f ▸ IsHomLift_comp hφ (IsHomLift_id_eqToHom' hbc hφ.ObjLiftCodomain)
 
--- TODO: make these into iffs also
 @[simp]
 lemma IsHomLift_eqToHom_comp' {p : 𝒳 ⥤ 𝒮} {R S T: 𝒮} {a b : 𝒳} {f : R ⟶ S}
-  {φ : a ⟶ b} (hφ : IsHomLift p f φ) (hTR : T = R) : IsHomLift p ((eqToHom hTR) ≫ f) φ := by
-  subst hTR
-  rw [←id_comp φ]
-  apply IsHomLift_comp _ hφ
-  simp [hφ.ObjLiftDomain]
+    {φ : a ⟶ b} (hTR : T = R) : IsHomLift p ((eqToHom hTR) ≫ f) φ ↔ IsHomLift p f φ where
+  mp := by intro hφ'; subst hTR; simpa using hφ'
+  mpr := fun hφ => id_comp φ ▸ IsHomLift_comp (IsHomLift_eqToHom_id hTR hφ.ObjLiftDomain) hφ
 
 @[simp]
 lemma IsHomLift_comp_eqToHom' {p : 𝒳 ⥤ 𝒮} {R S T: 𝒮} {a b : 𝒳} {f : R ⟶ S}
-  {φ : a ⟶ b} (hφ : IsHomLift p f φ) (hST : S = T) : IsHomLift p (f ≫ (eqToHom hST)) φ := by
-  subst hST
-  rw [←comp_id φ]
-  apply IsHomLift_comp hφ _
-  simp [hφ.ObjLiftCodomain]
+    {φ : a ⟶ b} (hST : S = T) : IsHomLift p (f ≫ (eqToHom hST)) φ ↔ IsHomLift p f φ where
+  mp := by intro hφ'; subst hST; simpa using hφ'
+  mpr := fun hφ => comp_id φ ▸ IsHomLift_comp hφ (IsHomLift_eqToHom_id' hST hφ.ObjLiftCodomain)
 
 lemma IsHomLift_of_IsHomLiftId_comp {p : 𝒳 ⥤ 𝒮} {R S T : 𝒮} {a b c : 𝒳} {f : R ⟶ S}
-    {φ : b ⟶ a} (hφ : IsHomLift p f φ) {ψ : c ⟶ b} (hψ : IsHomLift p (𝟙 T) ψ)
-    : IsHomLift p f (ψ ≫ φ) where
-      ObjLiftDomain := by
-        rw [←hφ.ObjLiftDomain, hψ.ObjLiftCodomain, hψ.ObjLiftDomain]
-      ObjLiftCodomain := hφ.ObjLiftCodomain
-      HomLift := ⟨by
-        have : p.map ψ = eqToHom (_ : p.obj c = p.obj b) := by simpa [comp_eqToHom_iff] using hψ.3.1
-        rw [map_comp, assoc, hφ.3.1, this, eqToHom_trans_assoc] ⟩
+    {φ : b ⟶ a} (hφ : IsHomLift p f φ) {ψ : c ⟶ b} (hψ : IsHomLift p (𝟙 T) ψ) :
+    IsHomLift p f (ψ ≫ φ) where
+  ObjLiftDomain := by
+    rw [←hφ.ObjLiftDomain, hψ.ObjLiftCodomain, hψ.ObjLiftDomain]
+  ObjLiftCodomain := hφ.ObjLiftCodomain
+  HomLift := ⟨by
+    have : p.map ψ = eqToHom (_ : p.obj c = p.obj b) := by simpa [comp_eqToHom_iff] using hψ.3.1
+    rw [map_comp, assoc, hφ.3.1, this, eqToHom_trans_assoc] ⟩
 
+lemma IsHomLift_of_comp_IsHomLiftId {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b c : 𝒳} {f : R ⟶ S}
+    {φ : b ⟶ a} (hφ : IsHomLift p f φ) {ψ : a ⟶ c} (hψ : IsHomLift p (𝟙 S) ψ) :
+    IsHomLift p f (φ ≫ ψ) where
+  ObjLiftDomain := hφ.ObjLiftDomain
+  ObjLiftCodomain := by
+    rw [←hφ.ObjLiftCodomain, hψ.ObjLiftDomain, hψ.ObjLiftCodomain]
+  HomLift := ⟨by
+    have : p.map ψ = eqToHom (_ : p.obj a = p.obj c) := by simpa [comp_eqToHom_iff] using hψ.3.1
+    rw [map_comp, assoc, this, eqToHom_trans, hφ.3.1] ⟩
 
 /-- The proposition that a lift
 ```
@@ -291,11 +307,11 @@ lemma IsPullbackofIso {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳}
 /- eqToHom interactions -/
 lemma IsPullback_eqToHom {p : 𝒳 ⥤ 𝒮} {a b : 𝒳} (hba : b = a) {S : 𝒮} (hS : p.obj a = S) :
     IsPullback p (𝟙 S) (eqToHom hba) :=
-  IsPullbackofIso (IsHomLift_eqToHom hba hS) inferInstance
+  IsPullbackofIso (IsHomLift_id_eqToHom hba hS) inferInstance
 
 lemma IsPullback_eqToHom' {p : 𝒳 ⥤ 𝒮} {a b : 𝒳} (hba : b = a) {S : 𝒮} (hS : p.obj b = S) :
     IsPullback p (𝟙 S) (eqToHom hba) :=
-  IsPullbackofIso (IsHomLift_eqToHom' hba hS) inferInstance
+  IsPullbackofIso (IsHomLift_id_eqToHom' hba hS) inferInstance
 
 lemma IsPullback_eqToHom_comp {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b c : 𝒳} {f : R ⟶ S}
     {φ : b ⟶ a} (hφ : IsPullback p f φ) (hc : c = b) : IsPullback p f (eqToHom hc ≫ φ) :=

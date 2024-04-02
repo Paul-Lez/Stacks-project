@@ -122,10 +122,10 @@ lemma FaithfulofFiberwiseFaithful {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : 
     -- Let ψ : c ⟶ b be a pullback over h such that c : Fib (p.obj a)
     rcases FiberStructPullback' hp rfl h with ⟨c, ψ, hψ⟩
     -- Both φ₁ and φ₁' are lifts of h
-    have hφ₁ : IsHomLift p h φ₁ := IsHomLift_eqToHom_comp' (IsHomLift_self p φ₁) _
+    have hφ₁ : IsHomLift p h φ₁ := (IsHomLift_eqToHom_comp' _).2 (IsHomLift_self p φ₁)
     have hφ₁' : IsHomLift p h φ₁' :=  by
-      apply IsHomLift_eqToHom_comp'
-      rw [congr_hom F.w.symm, Functor.comp_map, heq₁, ←Functor.comp_map, ←congr_hom F.w.symm]
+      rw [IsHomLift_eqToHom_comp', congr_hom F.w.symm, Functor.comp_map]
+      rw [heq₁, ←Functor.comp_map, ←congr_hom F.w.symm]
       apply IsHomLift_self p φ₁'
     -- Let τ, τ' be the induced maps from a' to c given by φ and φ'
     rcases FiberStructFactorization hφ₁ hψ with ⟨τ, hτ⟩
@@ -205,10 +205,7 @@ lemma FullofFullFiberwise  {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : Fibered
   let hψ := Classical.choose_spec (Classical.choose_spec (FiberStructPullback' hp rfl h))
 
   have hφ₁ : IsHomLift q h φ₁ := by
-    -- TODO MOST OF THIS CAN BE SIMPED
-    apply IsHomLift_eqToHom_comp' _
-    apply IsHomLift_comp_eqToHom' _
-    apply IsHomLift_comp_eqToHom.2
+    simp [φ₁, h]
     apply IsHomLift_of_IsHomLiftId_comp (IsHomLift_self q φ) (Morphism.pres_IsHomLift F hΦ)
 
   -- The following should be some hF.preservesPullbacks (wrt FiberStruct) API!!!
@@ -223,8 +220,8 @@ lemma FullofFullFiberwise  {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : Fibered
 
   use Φ.inv ≫ (hp.ι R).map π ≫ ψ
 
-
-  simp only [map_comp] -- hhF.comp_eq, (hF₁ (p.obj a)).witness]
+  -- TODO GOLF THIS
+  simp only [map_comp]
   rw [←Functor.comp_map, congr_hom (hF.comp_eq (p.obj a)).symm]
   rw [Functor.comp_map, (hF₁ (p.obj a)).witness]
   rw [Category.assoc, Category.assoc]
@@ -232,14 +229,6 @@ lemma FullofFullFiberwise  {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : Fibered
   simp [φ₁]
   rw [←Category.assoc, ←Functor.mapIso_inv, ←Functor.mapIso_hom]
   rw [Iso.inv_hom_id, id_comp]
-
-
-/-
-TODO:
-2. Full if fibers are full
-3. Equivalence iff equivalence on fibers
-  -- NOTE THIS REQUIRES NEW DEFINITION OF EQUIVALENCE!!! (inverse needs to also preserve fibers. Immediate?)
--/
 
 -- class IsFiberedNatTrans (p : 𝒳 ⥤ 𝒮) (q : 𝒴 ⥤ 𝒮) [hp : IsFibered p] [hq : IsFibered q] {F : 𝒳 ⥤ 𝒴}
 --   {G : 𝒳 ⥤ 𝒴} [IsFiberedMorphism p q F] [IsFiberedMorphism p q G] (α : F ⟶ G) : Prop where
