@@ -88,74 +88,61 @@ instance Morphism.IsFiber_canonical {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} (F :
 lemma FiberwiseFaithfulofFaithful  {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [hp : FiberStruct p] [hq : FiberStruct q]
     (F : Morphism p q) [hF : IsFiberMorphism F] [Faithful F.toFunctor] : ∀ (S : 𝒮),
     Faithful (hF.fiber_functor S) := by
-  intro S
-  haveI h : Faithful ((hF.fiber_functor S) ⋙ (hq.ι S)) := (hF.comp_eq S).symm ▸ Faithful.comp (hp.ι S) F.toFunctor
-  apply Faithful.of_comp _ (hq.ι S)
+    intro S
+    haveI h : Faithful ((hF.fiber_functor S) ⋙ (hq.ι S)) := (hF.comp_eq S).symm ▸ Faithful.comp (hp.ι S) F.toFunctor
+    apply Faithful.of_comp _ (hq.ι S)
 
-/-- A FiberMorphism F is faithful if it is so pointwise -/
+/-- A FiberMorphism F is faithful if it is so pointwise. For proof see [Olsson] -/
 lemma FaithfulofFiberwiseFaithful {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : FiberedStruct p} {hq : FiberedStruct q}
     {F : Morphism p q} [hF : IsFiberedMorphism F] (hF₁ : ∀ (S : 𝒮), Faithful (hF.fiber_functor S)) :
-  Faithful F.toFunctor := by
-  constructor
-  intro a b φ φ' heq
-
-  -- Reduce to checking when domain is in a fiber
-  rcases FiberStructEssSurj' (rfl (a := p.obj a)) with ⟨a', Φ, hΦ⟩
-  let φ₁ := Φ.hom ≫ φ
-  let φ₁' := Φ.hom ≫ φ'
-  suffices φ₁ = φ₁' by rwa [←CategoryTheory.Iso.cancel_iso_hom_left Φ]
-  have heq₁ : F.map φ₁ = F.map φ₁' := by
-    simp only [F.map_comp]
-    apply (CategoryTheory.Iso.cancel_iso_hom_left (F.mapIso Φ) _ _).2 heq
-
-  let h : p.obj a ⟶ p.obj b := eqToHom ((FiberStructObjLift a').symm) ≫ p.map φ₁
-
-  -- Let ψ : c ⟶ b be a pullback over h such that c : Fib (p.obj a)
-  rcases FiberStructPullback' hp rfl h with ⟨c, ψ, hψ⟩
-
-  have hφ₁ : IsHomLift p h φ₁ := IsHomLift_eqToHom_comp' (IsHomLift_self p φ₁) _
-
-  have h₁ : h = eqToHom ((FiberStructObjLift a').symm) ≫ p.map φ₁' := by
-    rw [congr_hom F.w.symm]
-    rw [Functor.comp_map, ←heq₁, ←Functor.comp_map]
-    rw [←congr_hom F.w.symm]
-
-  have hφ₁' : IsHomLift p h φ₁' := h₁ ▸ IsHomLift_eqToHom_comp' (IsHomLift_self p φ₁') _
-
-  -- Let τ, τ' be the induced maps from b to c given by φ and φ'
-  rcases FiberStructFactorization hφ₁ hψ with ⟨τ, hτ⟩
-  rcases FiberStructFactorization hφ₁' hψ with ⟨τ', hτ'⟩
-
-  -- It suffices to show that τ = τ'
-  suffices τ = τ' by rw [←hτ, ←hτ', this]
-
-  -- 1. Show that F.map ψ is a pullback
-  have hψ' : IsPullback q h (F.map ψ) := hF.preservesPullbacks hψ
-
-  -- τ and τ' both solve the same pullback problem
-  have hτ₁ : F.map ((hp.ι (p.obj a)).map τ) ≫ F.map ψ = F.map φ₁ := by rw [←Functor.map_comp, hτ]
-  have hτ'₁ : F.map ((hp.ι (p.obj a)).map τ') ≫ F.map ψ = F.map φ₁ := by
-    rw [←Functor.map_comp, hτ']
-    apply heq₁.symm
-
-  have hτ_homlift := Morphism.pres_IsHomLift F (FiberStructHomLift τ)
-  have hτ'_homlift := Morphism.pres_IsHomLift F (FiberStructHomLift τ')
-
-  have hτ₂ := IsPullbackInducedMap_unique hψ' (show h = 𝟙 (p.obj a) ≫ h by simp)
-    (Morphism.pres_IsHomLift F hφ₁) hτ_homlift hτ₁
-
-  have hτ'₂ := IsPullbackInducedMap_unique hψ' (show h = 𝟙 (p.obj a) ≫ h by simp)
-    (Morphism.pres_IsHomLift F hφ₁) hτ'_homlift hτ'₁
-
-  -- Hence F.map τ = F.map τ'
-  have heqττ' : F.map ((hp.ι (p.obj a)).map τ) = F.map ((hp.ι (p.obj a)).map τ') := by rw [hτ₂, hτ'₂]
-
-  have heqττ'₁ : (hF.fiber_functor _).map τ = (hF.fiber_functor _).map τ' := by
-    apply Functor.map_injective (hq.ι (p.obj a))
-    simp_rw [←Functor.comp_map, congr_hom (hF.comp_eq (p.obj a)), Functor.comp_map]
-    rw [heqττ']
-
-  apply Functor.map_injective (hF.fiber_functor (p.obj a)) heqττ'₁
+    Faithful F.toFunctor where
+  map_injective := by
+    intro a b φ φ' heq
+    /- We start by reducing to a setting when the domains lie in some fiber of the FiberStruct.
+    We do this by finding some Φ : a' ≅ a by essential surjectivity of the fiber structures,
+    and then defining φ₁ := Φ.hom ≫ φ and φ₁' := Φ.hom ≫ φ'. -/
+    rcases FiberStructEssSurj' (rfl (a := p.obj a)) with ⟨a', Φ, _⟩
+    let φ₁ := Φ.hom ≫ φ
+    let φ₁' := Φ.hom ≫ φ'
+    suffices φ₁ = φ₁' by rwa [←CategoryTheory.Iso.cancel_iso_hom_left Φ]
+    -- We also have that F(φ₁) = F(φ₁')
+    have heq₁ : F.map φ₁ = F.map φ₁' := by
+      simp only [F.map_comp]
+      apply congrArg (F.map Φ.hom ≫ ·) heq
+    /- The goal is now to factor φ₁ and φ₁' through some pullback to reduce to checking
+    two morphisms τ and τ' in the fibers are equal, which will then follow from fiber-wise
+    faithfulness. -/
+    let h : p.obj a ⟶ p.obj b := eqToHom ((FiberStructObjLift a').symm) ≫ p.map φ₁
+    -- Let ψ : c ⟶ b be a pullback over h such that c : Fib (p.obj a)
+    rcases FiberStructPullback' hp rfl h with ⟨c, ψ, hψ⟩
+    -- Both φ₁ and φ₁' are lifts of h
+    have hφ₁ : IsHomLift p h φ₁ := IsHomLift_eqToHom_comp' (IsHomLift_self p φ₁) _
+    have hφ₁' : IsHomLift p h φ₁' :=  by
+      apply IsHomLift_eqToHom_comp'
+      rw [congr_hom F.w.symm, Functor.comp_map, heq₁, ←Functor.comp_map, ←congr_hom F.w.symm]
+      apply IsHomLift_self p φ₁'
+    -- Let τ, τ' be the induced maps from a' to c given by φ and φ'
+    rcases FiberStructFactorization hφ₁ hψ with ⟨τ, hτ⟩
+    rcases FiberStructFactorization hφ₁' hψ with ⟨τ', hτ'⟩
+    -- Thus, it suffices to show that τ = τ'
+    suffices τ = τ' by rw [←hτ, ←hτ', this]
+    have hψ' : IsPullback q h (F.map ψ) := hF.preservesPullbacks hψ
+    -- F(τ) and F(τ') both solve the same pullback problem in 𝒴
+    have hτ₁ : F.map ((hp.ι (p.obj a)).map τ) ≫ F.map ψ = F.map φ₁ := by rw [←Functor.map_comp, hτ]
+    have hτ'₁ : F.map ((hp.ι (p.obj a)).map τ') ≫ F.map ψ = F.map φ₁ := by
+      rw [←Functor.map_comp, hτ']
+      apply heq₁.symm
+    -- Hence we get that F(τ) = F(τ'), so we can conclude by fiberwise injectivity
+    have hτ₂ := IsPullbackInducedMap_unique hψ' ((id_comp h).symm)
+      (Morphism.pres_IsHomLift F hφ₁) (Morphism.pres_IsHomLift F (FiberStructHomLift τ)) hτ₁
+    have hτ'₂ := IsPullbackInducedMap_unique hψ' ((id_comp h).symm)
+      (Morphism.pres_IsHomLift F hφ₁) (Morphism.pres_IsHomLift F (FiberStructHomLift τ')) hτ'₁
+    have heqττ' : F.map ((hp.ι (p.obj a)).map τ) = F.map ((hp.ι (p.obj a)).map τ') := by rw [hτ₂, hτ'₂]
+    have heqττ'₁ : (hF.fiber_functor _).map τ = (hF.fiber_functor _).map τ' := by
+      apply Functor.map_injective (hq.ι (p.obj a))
+      simp_rw [←Functor.comp_map, congr_hom (hF.comp_eq (p.obj a)), Functor.comp_map]
+      rw [heqττ']
+    apply Functor.map_injective (hF.fiber_functor (p.obj a)) heqττ'₁
 
 -- lemma PreimageIsHomLift  {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [hp : FiberStruct p]
 --   [hq : FiberStruct q] (F : FiberMorphism p q) [hF₁ : Full F.toFunctor] {a b : 𝒳}
