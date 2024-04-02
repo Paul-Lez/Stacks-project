@@ -154,19 +154,6 @@ lemma PreimageIsHomLift {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} (F : Morphism p 
     {a b : 𝒳} {φ : F.obj a ⟶ F.obj b} {R S : 𝒮} {f : R ⟶ S} (hφ : IsHomLift q f φ) :
     IsHomLift p f (hF₁.preimage φ) := (hF₁.witness φ ▸ Morphism.HomLift_ofImage F) hφ
 
-/-
-Ideas for simplifying the following proof: develop some general preimage wrt fiber API.
-But maybe thats better to be developed after proving these lemmas... (so one knows that
-fibers are always full also?)
-
-TODO:
-1. Break out standalone lemma from below
-2. Create the preimage below outside "FiberwisepreimageofFull"?
-3. Show its a homlift
-4. Define fiberwise preimage?
--/
-
-
 /- We now show that a morphism F is full if and only if its full fiberwise -/
 
 def fiber_functor_to_functor_congr {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [hp : FiberStruct p] [hq : FiberStruct q]
@@ -220,6 +207,7 @@ lemma FullofFullFiberwise  {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : Fibered
     let Φ := Classical.choose (Classical.choose_spec (FiberStructEssSurj' (rfl (a := R))))
     let hΦ := Classical.choose_spec (Classical.choose_spec (FiberStructEssSurj' (rfl (a := R))))
 
+    -- THIS SHOULD BE A SEPARATE LEMMA. OR THINK OF API THAT AVOIDS THIS...
     let h : R ⟶ S := eqToHom (Morphism.obj_proj F a).symm ≫ q.map φ ≫ eqToHom (Morphism.obj_proj F b)
 
     -- Let ψ : c ⟶ b be a pullback over h such that c : Fib R
@@ -234,26 +222,17 @@ lemma FullofFullFiberwise  {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : Fibered
       eqToHom ha' ≫ (F.mapIso Φ).hom ≫ φ
 
     have hφ₁ : IsHomLift q h φ₁ := by
-      have H := IsHomLift_self q φ₁
-
-      simp only [φ₁, F.mapIso_hom]
+      -- TODO TRY TO MAKE IsHomLift_comp_eqToHom HAVE MORE IMPLICIT FIELDS!
       apply IsHomLift_eqToHom_comp' _
       apply IsHomLift_comp_eqToHom' _
-      apply IsHomLift_comp_eqToHom _
+      apply (IsHomLift_comp_eqToHom _).1
+      apply IsHomLift_of_IsHomLiftId_comp (IsHomLift_self q φ) (Morphism.pres_IsHomLift F hΦ)
 
-      have h₁ := Morphism.pres_IsHomLift F hΦ
-      -- API FOR THIS? Comp w/ homlift id is homlift
-      sorry
-
-    -- TODO: define "FromFiberObj" and "FromFiberHom" and use them to formulate FiberStructFactorization
+    -- The following should be some hF.preservesPullbacks (wrt FiberStruct) API!!!
     have hc : (hq.ι R).obj ((hF.fiber_functor R).obj c) = F.obj ((hp.ι R).obj c) := by
       rw [←comp_obj, ←comp_obj, hF.comp_eq]
     let ψ' := eqToHom hc ≫ F.map ψ
-
-    -- NEED: IsPullback comp eqToHom...!
-    have hψ' : IsPullback q h ψ' := by
-      have := hF.preservesPullbacks hψ
-      sorry -- hF.preservesPullbacks hψ + compiso pullback
+    have hψ' : IsPullback q h ψ' := IsPullback_eqToHom_comp (hF.preservesPullbacks hψ) _
 
     -- Let τ be the induced map from a' to c given by φ₁
     let τ := Classical.choose (FiberStructFactorization hφ₁ hψ')
