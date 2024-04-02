@@ -103,13 +103,13 @@ lemma IsHomLift_eqToHom' {p : 𝒳 ⥤ 𝒮} {a b : 𝒳} (hba : b = a) {S : �
 
 @[simp]
 lemma IsHomLift_comp_eqToHom {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b c: 𝒳} {f : R ⟶ S}
-    {φ : a ⟶ b} (hca : c = a) : IsHomLift p f φ ↔ IsHomLift p f (eqToHom hca ≫ φ) where
+    {φ : a ⟶ b} {hca : c = a} : IsHomLift p f φ ↔ IsHomLift p f (eqToHom hca ≫ φ) where
       mp := fun hφ => id_comp f ▸ IsHomLift_comp (IsHomLift_eqToHom hca hφ.ObjLiftDomain) hφ
       mpr := by intro hφ'; subst hca; simpa using hφ'
 
 @[simp]
 lemma IsHomLift_eqToHom_comp {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b c: 𝒳} {f : R ⟶ S}
-    {φ : a ⟶ b} (hbc : b = c) : IsHomLift p f φ ↔ IsHomLift p f (φ ≫ eqToHom hbc) where
+    {φ : a ⟶ b} {hbc : b = c} : IsHomLift p f φ ↔ IsHomLift p f (φ ≫ eqToHom hbc) where
       mp := fun hφ => comp_id f ▸ IsHomLift_comp hφ (IsHomLift_eqToHom' hbc hφ.ObjLiftCodomain)
       mpr := by intro hφ'; subst hbc; simpa using hφ'
 
