@@ -14,10 +14,6 @@ variable {𝒮 : Type u₁} {𝒳 : Type u₂} {𝒴 : Type u₃} [Category 𝒳
 
 namespace Fibered
 
-/- TODO:
-3. Renaming final part of file
--/
-
 -- @[simps] fails.. "target [anonymous]" is not a structure
 structure Morphism (p : 𝒳 ⥤ 𝒮) (q : 𝒴 ⥤ 𝒮) extends CategoryTheory.Functor 𝒳 𝒴 where
   (w : toFunctor ⋙ q = p)

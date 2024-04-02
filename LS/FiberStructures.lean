@@ -114,49 +114,6 @@ instance {p : 𝒳 ⥤ 𝒮} [hp : FiberStruct p] {S : 𝒮} : EssSurj (FiberInd
 instance {p : 𝒳 ⥤ 𝒮} [hp : FiberStruct p] {S : 𝒮} : Faithful (hp.ι S) :=
   Faithful.of_iso (FiberInducedFunctorNat (hp.comp_const S)).symm
 
-/- Now we define the standard/canonical fiber associated to a fibered category.
-When the user does not wish to supply specific fiber categories, this will be the default choice. -/
-
-def Fiber.comp_const_nat (p : 𝒳 ⥤ 𝒮) (S : 𝒮) : (FiberInclusion p S) ⋙ p ≅ (const (Fiber p S)).obj S where
-  hom := {
-    app := fun x => eqToHom x.prop
-    naturality := fun x y φ => by simpa using φ.prop.3.1}
-  inv := {
-    app := fun x => eqToHom (x.prop).symm
-    naturality := fun x y φ => by
-      -- TODO OPTIMIZE PROOF (could be solved by simp!!)
-      simp only [const_obj_obj, comp_obj, FiberInclusion_obj, const_obj_map, id_comp,
-        Functor.comp_map, FiberInclusion_map]
-      rw [←eqToHom_comp_iff, comp_eqToHom_iff]
-      have := φ.2.3.1
-      simp at this
-      rw [this]
-      }
-
-lemma Fiber.comp_const (p : 𝒳 ⥤ 𝒮) (S : 𝒮) : (FiberInclusion p S) ⋙ p = (const (Fiber p S)).obj S := by
-  -- TODO OPTIMIZE PROOF
-  apply Functor.ext_of_iso (Fiber.comp_const_nat p S)
-  intro x
-  simp only [comp_const_nat]
-  intro x
-  simp only [comp_obj, FiberInclusion_obj, x.2, const_obj_obj]
-
-@[default_instance]
-instance FiberStruct.canonical (p : 𝒳 ⥤ 𝒮) : FiberStruct p where
-  Fib := Fiber p
-  ι := FiberInclusion p
-  comp_const := Fiber.comp_const p
-  equiv := fun S =>
-  {
-    inverse :=  𝟭 (Fiber p S)
-    unitIso := {
-      hom := { app := fun x => ⟨𝟙 x.1, IsHomLift_id x.2⟩ }
-      inv := { app := fun x => ⟨𝟙 x.1, IsHomLift_id x.2⟩ } }
-    counitIso := {
-      hom := { app := fun x => ⟨𝟙 x.1, IsHomLift_id x.2⟩}
-      inv := { app := fun x => ⟨𝟙 x.1, IsHomLift_id x.2⟩} }
-  }
-
 -- BASIC API CONSTRUCTIONS
 def FiberStructProj {p : 𝒳 ⥤ 𝒮} [hp : FiberStruct p] {S R : 𝒮} {a : hp.Fib S} {b : hp.Fib R}
   (φ : (hp.ι S).obj a ⟶ (hp.ι R).obj b) : S ⟶ R := sorry
@@ -219,10 +176,6 @@ def FiberStructMap {p : 𝒳 ⥤ 𝒮} [hp : FiberStruct p] {R S : 𝒮} {a : hp
 class FiberedStruct (p : 𝒳 ⥤ 𝒮) extends FiberStruct p where
   [isFibered : IsFibered p]
 
-@[default_instance]
-instance FiberedStruct.canonical (p : 𝒳 ⥤ 𝒮) [IsFibered p] : FiberedStruct p :=
-  {FiberStruct.canonical p with isFibered := inferInstance}
-
 /-- Given a FiberStruct and a diagram
 ```
            a
@@ -274,13 +227,9 @@ noncomputable def FiberStructInducedMap {p : 𝒳 ⥤ 𝒮} [hp : FiberedStruct 
   Classical.choose (FiberStructFactorization hφ hψ)
 
 -- TODO FORMULATE...
-
 /- lemma FiberStructFactorizationUnique {p : 𝒳 ⥤ 𝒮} [hp : FiberedStruct p] {R S : 𝒮}
   {a : 𝒳} {b b' : hp.Fib R} {f : R ⟶ S} {φ : (hp.ι R).obj b ⟶ a}
   (hφ : IsHomLift p f φ) {ψ : (hp.ι R).obj b' ⟶ a} (hψ : IsPullback p f ψ) : -/
-
-
--- TODO INDUCEDMAP IN FIBER API
 
 
 -- TODO: In this lemma, should maybe just require that a lies over S (not necc in the fiber)
@@ -308,5 +257,52 @@ lemma fiber_factorization {p : 𝒳 ⥤ 𝒮} (hp : FiberedStruct p) {R S : 𝒮
     rcases (FiberStructPullback a f) with ⟨b', ψ, hψ⟩
     rcases FiberStructFactorization hφ hψ with ⟨τ, hτ⟩
     use b', τ, ψ, hψ
+
+/- Now we define the standard/canonical fiber associated to a fibered category.
+When the user does not wish to supply specific fiber categories, this will be the default choice. -/
+def Fiber.comp_const_nat (p : 𝒳 ⥤ 𝒮) (S : 𝒮) : (FiberInclusion p S) ⋙ p ≅ (const (Fiber p S)).obj S where
+  hom := {
+    app := fun x => eqToHom x.prop
+    naturality := fun x y φ => by simpa using φ.prop.3.1}
+  inv := {
+    app := fun x => eqToHom (x.prop).symm
+    naturality := fun x y φ => by
+      -- TODO OPTIMIZE PROOF (could be solved by simp!!)
+      simp only [const_obj_obj, comp_obj, FiberInclusion_obj, const_obj_map, id_comp,
+        Functor.comp_map, FiberInclusion_map]
+      rw [←eqToHom_comp_iff, comp_eqToHom_iff]
+      have := φ.2.3.1
+      simp at this
+      rw [this]
+      }
+
+lemma Fiber.comp_const (p : 𝒳 ⥤ 𝒮) (S : 𝒮) : (FiberInclusion p S) ⋙ p = (const (Fiber p S)).obj S := by
+  -- TODO OPTIMIZE PROOF
+  apply Functor.ext_of_iso (Fiber.comp_const_nat p S)
+  intro x
+  simp only [comp_const_nat]
+  intro x
+  simp only [comp_obj, FiberInclusion_obj, x.2, const_obj_obj]
+
+@[default_instance]
+instance FiberStruct.canonical (p : 𝒳 ⥤ 𝒮) : FiberStruct p where
+  Fib := Fiber p
+  ι := FiberInclusion p
+  comp_const := Fiber.comp_const p
+  equiv := fun S =>
+  {
+    inverse :=  𝟭 (Fiber p S)
+    unitIso := {
+      hom := { app := fun x => ⟨𝟙 x.1, IsHomLift_id x.2⟩ }
+      inv := { app := fun x => ⟨𝟙 x.1, IsHomLift_id x.2⟩ } }
+    counitIso := {
+      hom := { app := fun x => ⟨𝟙 x.1, IsHomLift_id x.2⟩}
+      inv := { app := fun x => ⟨𝟙 x.1, IsHomLift_id x.2⟩} }
+  }
+
+@[default_instance]
+instance FiberedStruct.canonical (p : 𝒳 ⥤ 𝒮) [IsFibered p] : FiberedStruct p :=
+  {FiberStruct.canonical p with isFibered := inferInstance}
+
 
 end Fibered
