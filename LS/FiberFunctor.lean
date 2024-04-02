@@ -14,7 +14,6 @@ variable {𝒮 : Type u₁} {𝒳 : Type u₂} {𝒴 : Type u₃} [Category 𝒳
 
 namespace Fibered
 
--- @[simps] fails.. "target [anonymous]" is not a structure
 structure Morphism (p : 𝒳 ⥤ 𝒮) (q : 𝒴 ⥤ 𝒮) extends CategoryTheory.Functor 𝒳 𝒴 where
   (w : toFunctor ⋙ q = p)
 
@@ -39,7 +38,6 @@ lemma Morphism.fiber_proj {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [hp : FiberStr
     (F : Morphism p q) {S : 𝒮} (a : hp.Fib S) : q.obj (F.obj ((hp.ι S).obj a)) = S := by
   rw [Morphism.obj_proj F ((hp.ι S).obj a), FiberStructObjLift]
 
--- NEED TO THINK ABOUT DOMAINS HERE...
 -- lemma IsFiberMorphism.congr_hom {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [hp : FiberStruct p] [hq : FiberStruct q]
 --     (F : Morphism p q) [hF : IsFiberMorphism F] {S : 𝒮} {a b : hp.Fib S} (φ : a ⟶ b ):
 --     (hq.ι S).map ((hF.fiber_functor S).map φ) = F.map ((hp.ι S).map φ) := by
@@ -86,9 +84,6 @@ instance Morphism.IsFiber_canonical {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} (F :
       rw [←Subtype.val_inj, FiberCategory_comp_coe q S _ _]
   }
   comp_eq := by aesop_cat
-
--- NEED MORE COMMSQUARES API....
--- ALSO NEED MORE API FOR PULLING BACK TO FIBERS
 
 /-- If a morphism F is faithFul, then it is also faithful fiberwise -/
 lemma FiberwiseFaithfulofFaithful  {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [hp : FiberStruct p] [hq : FiberStruct q]
@@ -171,7 +166,7 @@ lemma FiberwiseFullofFull  {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [hp : FiberSt
 
   use Classical.choose (FiberStructFull hφ₁)
   apply Functor.map_injective (hq.ι S)
-  -- Maybe its worth making this standalone
+  -- Maybe its worth making this a standalone lemma
   rw [←Functor.comp_map, congr_hom (hF.comp_eq S), Functor.comp_map]
   simp [Classical.choose_spec (FiberStructFull hφ₁), φ₁]
 
@@ -185,7 +180,6 @@ lemma FullofFullFiberwise  {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : Fibered
   let S := p.obj b
 
   -- Reduce to checking when domain is in a fiber
-  -- TODO TRICKY AS THIS IS BY NO MEANS UNIQUE (actually might not matter?)
   let a' := Classical.choose (FiberStructEssSurj' (rfl (a:=R)))
   let Φ := Classical.choose (Classical.choose_spec (FiberStructEssSurj' (rfl (a := R))))
   let hΦ := Classical.choose_spec (Classical.choose_spec (FiberStructEssSurj' (rfl (a := R))))
@@ -196,7 +190,6 @@ lemma FullofFullFiberwise  {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : Fibered
   let φ₁ : (hq.ι R).obj ((hF.fiber_functor R).obj a') ⟶ F.obj b :=
     eqToHom ha' ≫ (F.mapIso Φ).hom ≫ φ
 
-  -- q.map with domains/codomains more compatible with p
   let h : R ⟶ S := eqToHom (Morphism.obj_proj F a).symm ≫ q.map φ ≫ eqToHom (Morphism.obj_proj F b)
 
   -- Let ψ : c ⟶ b be a pullback over h such that c : Fib R
@@ -208,7 +201,7 @@ lemma FullofFullFiberwise  {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : Fibered
     simp [φ₁, h]
     apply IsHomLift_of_IsHomLiftId_comp (IsHomLift_self q φ) (Morphism.pres_IsHomLift F hΦ)
 
-  -- The following should be some hF.preservesPullbacks (wrt FiberStruct) API!!!
+  -- The following could be some hF.preservesPullbacks (wrt FiberStruct) API
   have hc : (hq.ι R).obj ((hF.fiber_functor R).obj c) = F.obj ((hp.ι R).obj c) := by
     rw [←comp_obj, ←comp_obj, hF.comp_eq] --
   let ψ' := eqToHom hc ≫ F.map ψ
@@ -229,7 +222,3 @@ lemma FullofFullFiberwise  {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : Fibered
   simp [φ₁]
   rw [←Category.assoc, ←Functor.mapIso_inv, ←Functor.mapIso_hom]
   rw [Iso.inv_hom_id, id_comp]
-
--- class IsFiberedNatTrans (p : 𝒳 ⥤ 𝒮) (q : 𝒴 ⥤ 𝒮) [hp : IsFibered p] [hq : IsFibered q] {F : 𝒳 ⥤ 𝒴}
---   {G : 𝒳 ⥤ 𝒴} [IsFiberedMorphism p q F] [IsFiberedMorphism p q G] (α : F ⟶ G) : Prop where
---   (pointwiseInFiber : ∀ (a : 𝒳), q.map (α.app a) = eqToHom (IsFiberedMorphismPresFiberObj p q F G a))

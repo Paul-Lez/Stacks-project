@@ -14,24 +14,6 @@ variable {𝒮 : Type u₁} {𝒳 : Type u₂} [Category 𝒳] [Category 𝒮]
 
 namespace Fibered
 
-
--- MISSING MATHLIB LEMMA
-
-/-- If the two inner squares below commute, then so does the outer square.
-```
-  W ---f---> X ---f'--> X'
-  |          |          |
-  g          h          h'
-  |          |          |
-  v          v          v
-  Y ---i---> Z ---i'--> Z'
-
-```
--/
-lemma CommSqComp {W X X' Y Z Z' : 𝒮} {f : W ⟶ X} {f' : X ⟶ X'} {g : W ⟶ Y} {h : X ⟶ Z} {h' : X' ⟶ Z'}
-  {i : Y ⟶ Z} {i' : Z ⟶ Z'} (hsq₁ : CommSq f g h i) (hsq₂ : CommSq f' h h' i') : CommSq (f ≫ f') g h' (i ≫ i') :=
-  ⟨by rw [←assoc, assoc, ←hsq₁.w, hsq₂.w, assoc]⟩
-
 /-- Fiber p S is the type of elements of 𝒳 mapping to S via p  -/
 def Fiber (p : 𝒳 ⥤ 𝒮) (S : 𝒮) := {a : 𝒳 // p.obj a = S}
 

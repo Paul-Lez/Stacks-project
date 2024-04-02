@@ -1,8 +1,7 @@
-import LS.FiberedCategories
 import Mathlib.CategoryTheory.Sites.Grothendieck
 import Mathlib.CategoryTheory.Comma.Over
 import Mathlib.CategoryTheory.NatIso
-import LS.FiberStructures
+import LS.FiberFunctor
 
 
 open CategoryTheory Functor Category Fibered
@@ -42,9 +41,6 @@ instance (S : 𝒮) : IsFiberedInGroupoids (Over.forget S) where
       UniversalProperty := sorry
     }
     exact pb
-
-structure Fibered.Morphism (p : 𝒳 ⥤ 𝒮) (q : 𝒴 ⥤ 𝒮) extends CategoryTheory.Functor 𝒳 𝒴 where
-  (w : toFunctor ⋙ q = p)
 
 structure Fibered.TwoMorphism {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} (f g : Fibered.Morphism p q) extends
   CategoryTheory.NatTrans f.toFunctor g.toFunctor where
