@@ -220,7 +220,7 @@ class FiberedStruct (p : 𝒳 ⥤ 𝒮) extends FiberStruct p where
   [isFibered : IsFibered p]
 
 @[default_instance]
-def FiberedStruct.canonical (p : 𝒳 ⥤ 𝒮) [IsFibered p] : FiberedStruct p :=
+instance FiberedStruct.canonical (p : 𝒳 ⥤ 𝒮) [IsFibered p] : FiberedStruct p :=
   {FiberStruct.canonical p with isFibered := inferInstance}
 
 /-- Given a FiberStruct and a diagram

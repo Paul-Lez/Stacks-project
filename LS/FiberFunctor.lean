@@ -15,7 +15,6 @@ variable {𝒮 : Type u₁} {𝒳 : Type u₂} {𝒴 : Type u₃} [Category 𝒳
 namespace Fibered
 
 /- TODO:
-2. Create default instance for IsFiber(ed)Morphism
 3. Renaming final part of file
 -/
 
@@ -45,7 +44,6 @@ lemma Morphism.fiber_proj {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [hp : FiberStr
   rw [Morphism.obj_proj F ((hp.ι S).obj a), FiberStructObjLift]
 
 /-- TODO -/
--- simp lemma??
 lemma Morphism.IsHomLift_map  {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} (F : Morphism p q)
     {a b : 𝒳} (φ : a ⟶ b) : IsHomLift q (p.map φ) (F.map φ) where
   ObjLiftDomain := Morphism.obj_proj F a
@@ -87,21 +85,11 @@ instance Morphism.IsFiber_canonical {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} (F :
   }
   comp_eq := by aesop_cat
 
--- TODO: Remove "IsFiberedMorphism/FiberedStruct". Instead require IsFiber.../Fiberstruct & [IsFibered] separetely.
--- instance Morphism.IsFibered_canonical {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [IsFibered p] [IsFibered q] (F : Morphism p q) :
---     IsFiberedMorphism F where
---   preservesPullbacks := by
---     intros
---     simp
---     sorry
-
-
-
 -- NEED MORE COMMSQUARES API....
 -- ALSO NEED MORE API FOR PULLING BACK TO FIBERS
 
-/-- If a functor F is faithFul, then it is also faithful pointwise -/
-lemma FiberStructFaithfulofFaithful  {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [hp : FiberStruct p] [hq : FiberStruct q]
+/-- If a morphism F is faithFul, then it is also faithful fiberwise -/
+lemma FiberwiseFaithfulofFaithful  {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [hp : FiberStruct p] [hq : FiberStruct q]
     (F : Morphism p q) [hF : IsFiberMorphism F] [Faithful F.toFunctor] : ∀ (S : 𝒮),
     Faithful (hF.fiber_functor S) := by
   intro S
@@ -109,7 +97,7 @@ lemma FiberStructFaithfulofFaithful  {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [hp
   apply Faithful.of_comp _ (hq.ι S)
 
 /-- A FiberMorphism F is faithful if it is so pointwise -/
-lemma FaithfulofFaithfulFiberStruct  {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : FiberedStruct p} {hq : FiberedStruct q}
+lemma FaithfulofFiberwiseFaithful {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : FiberedStruct p} {hq : FiberedStruct q}
     {F : Morphism p q} [hF : IsFiberedMorphism F] (hF₁ : ∀ (S : 𝒮), Faithful (hF.fiber_functor S)) :
   Faithful F.toFunctor := by
   constructor
@@ -177,7 +165,7 @@ lemma FaithfulofFaithfulFiberStruct  {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp
 --   [hq : FiberStruct q] (F : FiberMorphism p q) [hF₁ : Full F.toFunctor] {a b : 𝒳}
 --   (φ : F.obj a ⟶ F.obj b) : IsHomLift p (q.map φ) (hF₁.preimage φ) := by sorry
 
-lemma FiberMorphismsFullofFull  {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [hp : FiberStruct p] [hq : FiberStruct q]
+lemma FiberwiseFullofFull  {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [hp : FiberStruct p] [hq : FiberStruct q]
     (F : Morphism p q) [hF : IsFiberMorphism F] [hF₁ : Full F.toFunctor] : ∀ (S : 𝒮),
     Full (hF.fiber_functor S) :=
   fun S => {
@@ -213,7 +201,7 @@ lemma FiberMorphismsFullofFull  {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [hp : Fi
           id_comp, IsHomLift_eqToHom_comp, IsHomLift_comp_eqToHom]
       }
 
-lemma FullofFullFiberStruct  {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : FiberedStruct p} {hq : FiberedStruct q}
+lemma FullofFullFiberwise  {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : FiberedStruct p} {hq : FiberedStruct q}
     {F : Morphism p q} [hF : IsFiberedMorphism F] (hF₁ : ∀ (S : 𝒮), Full (hF.fiber_functor S)) :
     Full F.toFunctor where
   preimage := by
