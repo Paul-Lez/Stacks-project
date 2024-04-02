@@ -39,6 +39,12 @@ lemma Morphism.fiber_proj {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [hp : FiberStr
     (F : Morphism p q) {S : 𝒮} (a : hp.Fib S) : q.obj (F.obj ((hp.ι S).obj a)) = S := by
   rw [Morphism.obj_proj F ((hp.ι S).obj a), FiberStructObjLift]
 
+-- NEED TO THINK ABOUT DOMAINS HERE...
+-- lemma IsFiberMorphism.congr_hom {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [hp : FiberStruct p] [hq : FiberStruct q]
+--     (F : Morphism p q) [hF : IsFiberMorphism F] {S : 𝒮} {a b : hp.Fib S} (φ : a ⟶ b ):
+--     (hq.ι S).map ((hF.fiber_functor S).map φ) = F.map ((hp.ι S).map φ) := by
+--     rw [←comp_obj, congr_obj (hF.comp_eq S), comp_obj]
+
 /-- TODO -/
 lemma Morphism.IsHomLift_map  {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} (F : Morphism p q)
     {a b : 𝒳} (φ : a ⟶ b) : IsHomLift q (p.map φ) (F.map φ) where
@@ -144,45 +150,60 @@ lemma FaithfulofFiberwiseFaithful {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : 
       rw [heqττ']
     apply Functor.map_injective (hF.fiber_functor (p.obj a)) heqττ'₁
 
--- lemma PreimageIsHomLift  {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [hp : FiberStruct p]
---   [hq : FiberStruct q] (F : FiberMorphism p q) [hF₁ : Full F.toFunctor] {a b : 𝒳}
---   (φ : F.obj a ⟶ F.obj b) : IsHomLift p (q.map φ) (hF₁.preimage φ) := by sorry
+lemma PreimageIsHomLift {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} (F : Morphism p q) [hF₁ : Full F.toFunctor]
+    {a b : 𝒳} {φ : F.obj a ⟶ F.obj b} {R S : 𝒮} {f : R ⟶ S} (hφ : IsHomLift q f φ) :
+    IsHomLift p f (hF₁.preimage φ) := (hF₁.witness φ ▸ Morphism.HomLift_ofImage F) hφ
 
-lemma FiberwiseFullofFull  {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [hp : FiberStruct p] [hq : FiberStruct q]
-    (F : Morphism p q) [hF : IsFiberMorphism F] [hF₁ : Full F.toFunctor] : ∀ (S : 𝒮),
+/-
+Ideas for simplifying the following proof: develop some general preimage wrt fiber API.
+But maybe thats better to be developed after proving these lemmas... (so one knows that
+fibers are always full also?)
+
+TODO:
+1. Break out standalone lemma from below
+2. Create the preimage below outside "FiberwisepreimageofFull"?
+3. Show its a homlift
+4. Define fiberwise preimage?
+-/
+
+
+/- We now show that a morphism F is full if and only if its full fiberwise -/
+
+def fiber_functor_to_functor_congr {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [hp : FiberStruct p] [hq : FiberStruct q]
+    (F : Morphism p q) [hF : IsFiberMorphism F] {S : 𝒮} {a b : hp.Fib S}
+    (φ : (hF.fiber_functor S).obj a ⟶ (hF.fiber_functor S).obj b) :
+    (hp.ι S ⋙ F.toFunctor).obj a ⟶ (hp.ι S ⋙ F.toFunctor).obj b :=
+    eqToHom (congr_obj (hF.comp_eq S) a).symm ≫ ((hq.ι S).map φ) ≫ eqToHom (congr_obj (hF.comp_eq S) b)
+
+lemma preimage_of_fiber_IsHomLift {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [hp : FiberStruct p] [hq : FiberStruct q]
+    {F : Morphism p q} [hF : IsFiberMorphism F] [hF₁ : Full F.toFunctor] {S : 𝒮} {a b : hp.Fib S}
+    (φ : (hF.fiber_functor S).obj a ⟶ (hF.fiber_functor S).obj b) :
+    IsHomLift p (𝟙 S) (hF₁.preimage (fiber_functor_to_functor_congr F φ)) := by
+  apply PreimageIsHomLift
+  simp only [fiber_functor_to_functor_congr, FiberStructHomLift φ,
+    IsHomLift_eqToHom_comp, IsHomLift_comp_eqToHom]
+
+noncomputable def FiberPreimageOfFull {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [hp : FiberStruct p] [FiberStruct q]
+    {F : Morphism p q} [hF : IsFiberMorphism F] [Full F.toFunctor] {S : 𝒮} {a b : hp.Fib S}
+    (φ : (hF.fiber_functor S).obj a ⟶ (hF.fiber_functor S).obj b) : a ⟶ b :=
+  Classical.choose (FiberStructFull (preimage_of_fiber_IsHomLift φ))
+
+lemma FiberPreimageIsPreimage {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [hp : FiberStruct p] [hq : FiberStruct q]
+    {F : Morphism p q} [hF : IsFiberMorphism F] [Full F.toFunctor] {S : 𝒮} {a b : hp.Fib S}
+    (φ : (hF.fiber_functor S).obj a ⟶ (hF.fiber_functor S).obj b) :
+    (hF.fiber_functor S).map (FiberPreimageOfFull φ) = φ := by
+  apply Functor.map_injective (hq.ι S)
+  -- Maybe its worth making this standalone
+  rw [←Functor.comp_map, congr_hom (hF.comp_eq S), Functor.comp_map]
+  simp [FiberPreimageOfFull, fiber_functor_to_functor_congr,
+    Classical.choose_spec (FiberStructFull (preimage_of_fiber_IsHomLift φ))]
+
+lemma FiberwiseFullofFull  {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [FiberStruct p] [FiberStruct q]
+    (F : Morphism p q) [hF : IsFiberMorphism F] [Full F.toFunctor] : ∀ (S : 𝒮),
     Full (hF.fiber_functor S) :=
-  fun S => {
-    preimage := by
-      intro a b φ
-
-      -- TYPE THEORY HELL :D (rewrtite to use one equality on each side...)
-      let φ₁ := eqToHom (comp_obj _ _ a) ≫ ((hq.ι S).map φ) ≫ eqToHom (comp_obj _ _ b).symm
-
-      let φ₂  := eqToHom (congr_obj (hF.comp_eq S) a).symm ≫ φ₁ ≫ eqToHom (congr_obj (hF.comp_eq S) b)
-
-      let φ₃ := eqToHom (comp_obj _ _ a) ≫ φ₂ ≫ eqToHom (comp_obj _ _ b).symm
-
-      have hφ₃ : IsHomLift p (𝟙 S) (hF₁.preimage φ₃) := by
-        apply Morphism.HomLift_ofImage F
-        rw [hF₁.witness φ₃]
-        simp only [φ₃, φ₂, φ₁, FiberStructHomLift φ, eqToHom_refl, comp_id,
-          id_comp, IsHomLift_eqToHom_comp, IsHomLift_comp_eqToHom]
-
-      use Classical.choose (FiberStructFull hφ₃)
-
-    witness := by
-      intro a b φ
-      apply Functor.map_injective (hq.ι S)
-      simp only [comp_obj, eqToHom_refl, comp_id, id_comp, eq_mp_eq_cast]
-      rw [←Functor.comp_map, congr_hom (hF.comp_eq S), Functor.comp_map]
-      rw [Classical.choose_spec (FiberStructFull _)]
-      simp
-      -- TODO: THE FOLLOWING WAS ALREADY PROVED ABOVE CAN I RECYCLE THE PROOF?
-      apply Morphism.HomLift_ofImage F
-      rw [hF₁.witness _]
-      simp only [FiberStructHomLift φ, eqToHom_refl, comp_id,
-          id_comp, IsHomLift_eqToHom_comp, IsHomLift_comp_eqToHom]
-      }
+  fun _ => {
+    preimage := fun φ => FiberPreimageOfFull φ
+    witness := fun φ => FiberPreimageIsPreimage φ }
 
 lemma FullofFullFiberwise  {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : FiberedStruct p} {hq : FiberedStruct q}
     {F : Morphism p q} [hF : IsFiberedMorphism F] (hF₁ : ∀ (S : 𝒮), Full (hF.fiber_functor S)) :
