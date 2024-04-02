@@ -44,9 +44,6 @@ lemma Morphism.fiber_proj {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [hp : FiberStr
     (F : Morphism p q) {S : 𝒮} (a : hp.Fib S) : q.obj (F.obj ((hp.ι S).obj a)) = S := by
   rw [Morphism.obj_proj F ((hp.ι S).obj a), FiberStructObjLift]
 
-
-
-
 /-- TODO -/
 -- simp lemma??
 lemma Morphism.IsHomLift_map  {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} (F : Morphism p q)
@@ -65,13 +62,8 @@ lemma Morphism.pres_IsHomLift  {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} (F : Morp
 
 lemma Morphism.HomLift_ofImage  {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} (F : Morphism p q) {S R : 𝒮} {a b : 𝒳}
     {φ : a ⟶ b} {f : R ⟶ S} (hφ : IsHomLift q f (F.map φ)) : IsHomLift p f φ where
-  -- TODO API?
-  ObjLiftDomain := by
-    rw [←F.obj_proj]
-    exact hφ.ObjLiftDomain
-  ObjLiftCodomain := by
-    rw [←F.obj_proj]
-    exact hφ.ObjLiftCodomain
+  ObjLiftDomain := F.obj_proj a ▸ hφ.ObjLiftDomain
+  ObjLiftCodomain := F.obj_proj b ▸ hφ.ObjLiftCodomain
   HomLift := ⟨by
     rw [congr_hom F.w.symm]
     simp only [Functor.comp_map, assoc, eqToHom_trans, hφ.HomLift.1, eqToHom_trans_assoc]⟩
@@ -80,19 +72,18 @@ lemma Morphism.HomLift_ofImage  {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} (F : Mor
 instance Morphism.IsFiber_canonical {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} (F : Morphism p q) :
     IsFiberMorphism F where
   fiber_functor := fun S => {
-    obj := fun ⟨a, ha⟩ => ⟨F.obj a, by rwa [F.obj_proj]⟩
+    obj := fun a => ⟨F.obj a.1, by rw [F.obj_proj, a.2]⟩
     map := @fun a b φ => ⟨F.map φ.val, Morphism.pres_IsHomLift F φ.2⟩
     map_id := by
-      intro
-      simp
-      -- should be done by simp w api
-      sorry
+      intro a
+      -- TODO THIS SHOULD ALL BE SIMP SOMEHOW..
+      simp [FiberCategory_id_coe p S a]
+      rw [←Subtype.val_inj, FiberCategory_id_coe q S _]
     map_comp := by
-      intros
-      --apply Subtype.val_inj.1
-      --rw [←Functor.map_comp]
-      simp
-      sorry
+      intro x y z φ ψ
+      -- THIS SHOULD ALSO ALL BE SIMP SOMEHOW...
+      simp [FiberCategory_comp_coe p S φ ψ]
+      rw [←Subtype.val_inj, FiberCategory_comp_coe q S _ _]
   }
   comp_eq := by aesop_cat
 
