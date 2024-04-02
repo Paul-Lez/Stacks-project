@@ -192,72 +192,64 @@ lemma FiberwiseFullofFull  {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [FiberStruct 
     preimage := fun φ => FiberPreimageOfFull φ
     witness := fun φ => FiberPreimageIsPreimage φ }
 
+
 lemma FullofFullFiberwise  {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : FiberedStruct p} {hq : FiberedStruct q}
     {F : Morphism p q} [hF : IsFiberedMorphism F] (hF₁ : ∀ (S : 𝒮), Full (hF.fiber_functor S)) :
-    Full F.toFunctor where
-  preimage := by
-    intro a b φ
+    Full F.toFunctor := by
+  apply fullOfExists
+  intro a b φ
 
-    let R := p.obj a
-    let S := p.obj b
+  let R := p.obj a
+  let S := p.obj b
 
-    -- Reduce to checking when domain is in a fiber
-    -- TODO TRICKY AS THIS IS BY NO MEANS UNIQUE (actually might not matter?)
-    let a' := Classical.choose (FiberStructEssSurj' (rfl (a:=R)))
-    let Φ := Classical.choose (Classical.choose_spec (FiberStructEssSurj' (rfl (a := R))))
-    let hΦ := Classical.choose_spec (Classical.choose_spec (FiberStructEssSurj' (rfl (a := R))))
+  -- Reduce to checking when domain is in a fiber
+  -- TODO TRICKY AS THIS IS BY NO MEANS UNIQUE (actually might not matter?)
+  let a' := Classical.choose (FiberStructEssSurj' (rfl (a:=R)))
+  let Φ := Classical.choose (Classical.choose_spec (FiberStructEssSurj' (rfl (a := R))))
+  let hΦ := Classical.choose_spec (Classical.choose_spec (FiberStructEssSurj' (rfl (a := R))))
 
-    -- THIS SHOULD BE A SEPARATE LEMMA. OR THINK OF API THAT AVOIDS THIS...
-    let h : R ⟶ S := eqToHom (Morphism.obj_proj F a).symm ≫ q.map φ ≫ eqToHom (Morphism.obj_proj F b)
+  -- Now consider φ₁ : F.obj a' ⟶ F.obj b
+  have ha' : (hq.ι R).obj ((hF.fiber_functor R).obj a') = F.obj ((hp.ι R).obj a') := by
+    rw [←comp_obj, ←comp_obj, hF.comp_eq] --congr_obj comp_eq
+  let φ₁ : (hq.ι R).obj ((hF.fiber_functor R).obj a') ⟶ F.obj b :=
+    eqToHom ha' ≫ (F.mapIso Φ).hom ≫ φ
 
-    -- Let ψ : c ⟶ b be a pullback over h such that c : Fib R
-    let c := Classical.choose (FiberStructPullback' hp rfl h)
-    let ψ := Classical.choose (Classical.choose_spec (FiberStructPullback' hp rfl h))
-    let hψ := Classical.choose_spec (Classical.choose_spec (FiberStructPullback' hp rfl h))
+  -- q.map with domains/codomains more compatible with p
+  let h : R ⟶ S := eqToHom (Morphism.obj_proj F a).symm ≫ q.map φ ≫ eqToHom (Morphism.obj_proj F b)
 
-    -- Now consider φ₁ : F.obj a' ⟶ F.obj b
-    have ha' : (hq.ι R).obj ((hF.fiber_functor R).obj a') = F.obj ((hp.ι R).obj a') := by
-      rw [←comp_obj, ←comp_obj, hF.comp_eq]
-    let φ₁ : (hq.ι R).obj ((hF.fiber_functor R).obj a') ⟶ F.obj b :=
-      eqToHom ha' ≫ (F.mapIso Φ).hom ≫ φ
+  -- Let ψ : c ⟶ b be a pullback over h such that c : Fib R
+  let c := Classical.choose (FiberStructPullback' hp rfl h)
+  let ψ := Classical.choose (Classical.choose_spec (FiberStructPullback' hp rfl h))
+  let hψ := Classical.choose_spec (Classical.choose_spec (FiberStructPullback' hp rfl h))
 
-    have hφ₁ : IsHomLift q h φ₁ := by
-      -- TODO MOST OF THIS CAN BE SIMPED
-      apply IsHomLift_eqToHom_comp' _
-      apply IsHomLift_comp_eqToHom' _
-      apply IsHomLift_comp_eqToHom.2
-      apply IsHomLift_of_IsHomLiftId_comp (IsHomLift_self q φ) (Morphism.pres_IsHomLift F hΦ)
+  have hφ₁ : IsHomLift q h φ₁ := by
+    -- TODO MOST OF THIS CAN BE SIMPED
+    apply IsHomLift_eqToHom_comp' _
+    apply IsHomLift_comp_eqToHom' _
+    apply IsHomLift_comp_eqToHom.2
+    apply IsHomLift_of_IsHomLiftId_comp (IsHomLift_self q φ) (Morphism.pres_IsHomLift F hΦ)
 
-    -- The following should be some hF.preservesPullbacks (wrt FiberStruct) API!!!
-    have hc : (hq.ι R).obj ((hF.fiber_functor R).obj c) = F.obj ((hp.ι R).obj c) := by
-      rw [←comp_obj, ←comp_obj, hF.comp_eq]
-    let ψ' := eqToHom hc ≫ F.map ψ
-    have hψ' : IsPullback q h ψ' := IsPullback_eqToHom_comp (hF.preservesPullbacks hψ) _
+  -- The following should be some hF.preservesPullbacks (wrt FiberStruct) API!!!
+  have hc : (hq.ι R).obj ((hF.fiber_functor R).obj c) = F.obj ((hp.ι R).obj c) := by
+    rw [←comp_obj, ←comp_obj, hF.comp_eq] --
+  let ψ' := eqToHom hc ≫ F.map ψ
+  have hψ' : IsPullback q h ψ' := IsPullback_eqToHom_comp (hF.preservesPullbacks hψ) _
 
-    -- Let τ be the induced map from a' to c given by φ₁
-    let τ := Classical.choose (FiberStructFactorization hφ₁ hψ')
-    have hτ := Classical.choose_spec (FiberStructFactorization hφ₁ hψ')
+  -- Let τ be the induced map from a' to c given by φ₁
+  let τ := Classical.choose (FiberStructFactorization hφ₁ hψ')
+  let π := (hF₁ R).preimage τ
 
-    let π := (hF₁ R).preimage τ
-
-    exact Φ.inv ≫ (hp.ι R).map π ≫ ψ
+  use Φ.inv ≫ (hp.ι R).map π ≫ ψ
 
 
-  witness := by
-    intro a b φ
-    simp only [map_comp] -- hhF.comp_eq, (hF₁ (p.obj a)).witness]
-    rw [←Functor.comp_map, congr_hom (hF.comp_eq (p.obj a)).symm]
-    rw [Functor.comp_map, (hF₁ (p.obj a)).witness]
-    -- NEED API FOR THIS....
-
-    rw [Category.assoc, Category.assoc]
-    -- TODO: need way to get rid of extra goals here (problably via better API)
-    -- Maybe OK once sorries above have been resolved?
-    rw [Classical.choose_spec (FiberStructFactorization _ _)]
-    simp
-    rw [←Category.assoc, ←Functor.mapIso_inv, ←Functor.mapIso_hom]
-    rw [Iso.inv_hom_id, id_comp]
-    all_goals sorry
+  simp only [map_comp] -- hhF.comp_eq, (hF₁ (p.obj a)).witness]
+  rw [←Functor.comp_map, congr_hom (hF.comp_eq (p.obj a)).symm]
+  rw [Functor.comp_map, (hF₁ (p.obj a)).witness]
+  rw [Category.assoc, Category.assoc]
+  rw [Classical.choose_spec (FiberStructFactorization hφ₁ hψ')]
+  simp [φ₁]
+  rw [←Category.assoc, ←Functor.mapIso_inv, ←Functor.mapIso_hom]
+  rw [Iso.inv_hom_id, id_comp]
 
 
 /-
