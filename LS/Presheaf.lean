@@ -1,11 +1,12 @@
 import LS.HasFibers
-import Mathlib.CategoryTheory.Sites.Grothendieck
+import Mathlib.CategoryTheory.Category.Cat
+import Mathlib.CategoryTheory.DiscreteCategory
 
 /-!
 
-# Fibered categories
+# Fibered category associated to a presheaf
 
-This file defines the fibered category associated to a sheaf.
+This file defines the fibered category associated to a presheaf.
 
 ## Implementation
 
@@ -18,57 +19,204 @@ universe u₁ v₁ u₂ v₂ u₃ w
 
 open CategoryTheory Functor Category Fibered Opposite
 
-variable {𝒮 : Type u₁} {A : Type u₂} [Category 𝒮] [Category A] (F : 𝒮ᵒᵖ ⥤ Type u₃)
+variable {𝒮 : Type u₁} [Category 𝒮](F : 𝒮ᵒᵖ ⥤ Type u₃)
 
-def ℱ := (S : 𝒮) × (F.obj (op S))
+def ℱ := (S : 𝒮) × Discrete (F.obj (op S))
 
+@[simps]
 instance : Category (ℱ F) where
-  Hom X Y := X.1 ⟶ Y.1
-  id X := 𝟙 X.1
-  comp f g := f ≫ g
+  Hom X Y := (f : X.1 ⟶ Y.1) × (X.2 ⟶ (Discrete.mk ((F.map f.op) Y.2.1)))
+  -- TODO: figure out PLift up "::" meaning
+  id X := ⟨𝟙 X.1, eqToHom (by simp only [op_id, map_id]; rfl)⟩
+  comp {X Y Z} f g :=
+    have h₁ :  (F.map f.1.op) Y.2.1 = (F.map f.1.op) ((F.map g.1.op) Z.2.1) :=
+      congrArg ((F.map f.1.op) ·) (Discrete.eq_of_hom g.2)
+    have h : (F.map f.1.op) Y.2.1 =
+        (F.map (f.1 ≫ g.1).op) Z.2.1 := Eq.trans h₁
+      (by simp only [op_comp, FunctorToTypes.map_comp_apply])
+    ⟨f.1 ≫ g.1, f.2 ≫ Discrete.eqToHom h⟩
+  id_comp := by
+    intro X Y f
+    -- TODO: make this procedure into a helper lemma?
+    simp only; ext
+    { dsimp; exact id_comp _ }
+    apply Subsingleton.helim
+    simp only [id_comp]
+  comp_id := by
+    intro X Y f
+    simp only; ext
+    { dsimp; exact comp_id _ }
+    apply Subsingleton.helim
+    simp only [comp_id]
+  assoc := by
+    intro W X Y Z f g h
+    simp only; ext
+    { dsimp; exact assoc _ _ _ }
+    apply Subsingleton.helim
+    simp only [assoc]
 
-def ℱ.π (F : 𝒮ᵒᵖ ⥤ Type u₃) : ℱ F ⥤ 𝒮 :=
-  { obj := λ X => X.1,
-    map := @λ X Y f => f }
+@[simps]
+def ℱ.π (F : 𝒮ᵒᵖ ⥤ Type u₃) : ℱ F ⥤ 𝒮 where
+  obj := λ X => X.1
+  map := @λ X Y f => f.1
 
-lemma ℱ.mk_hom {R S : 𝒮} (f : R ⟶ S) {X Y : ℱ F} (hX : X.1 = R)
-    (hY : Y.1 = S) : X ⟶ Y := by subst hX; subst hY; exact f
+def ℱ.mk_obj {S : 𝒮} (a : F.obj (op S)) : ℱ F := ⟨S, Discrete.mk a⟩
 
-lemma ℱ.IsHomLift_self {X Y : ℱ F} (f : X ⟶ Y) : IsHomLift (ℱ.π F) f f where
-  ObjLiftDomain := rfl
-  ObjLiftCodomain := rfl
-  HomLift := ⟨by simp only [eqToHom_refl, comp_id, id_comp]; rfl⟩
+-- Need a way to lift f to a map on the correct fibers (some sort of congr lemma)
+
+def ℱ.mk_map {R S : 𝒮} (f : R ⟶ S) {X Y : ℱ F} (hX : X.1 = R)
+    (hY : Y.1 = S) : X ⟶ Y :=
+  ⟨(eqToHom (C := 𝒮) hX ≫ f ≫ eqToHom (C := 𝒮) hY.symm : X.1 ⟶ Y.1), sorry⟩
 
 instance : IsFibered (ℱ.π F) where
   has_pullbacks := by
     intros X R S hS f
     subst hS
-    let Y : ℱ F := ⟨R, (F.map (op f)) X.2⟩
-    use Y, (f : Y ⟶ X)
-    exact {
-      ObjLiftDomain := rfl
-      ObjLiftCodomain := rfl
-      HomLift := ⟨by simp only [eqToHom_refl, comp_id, id_comp]; rfl⟩
-      UniversalProperty := by
-        intro T Z g h w φ' hφ'
-        have := hφ'.1
-        subst this
-        use g
-        refine ⟨⟨?_, ?_⟩, ?_⟩
-        -- TODO: extract this somehow
-        exact {
-          ObjLiftDomain := rfl
-          ObjLiftCodomain := rfl
-          HomLift := ⟨by simp only [eqToHom_refl, comp_id, id_comp]; rfl⟩
-        }
-        have := hφ'.3.1
-        simp at this
-        rw [←this] at w
-        exact w.symm
+    let Y : ℱ F := ⟨R, Discrete.mk ((F.map (op f)) X.2.1)⟩
+    use Y
+    let φ : X ⟶ Y := by
+      sorry
+     --ℱ.mk_map F f rfl rfl
+    --exact ℱ.mk_map_IsPullback F f (show Y.1 = R from rfl) rfl
 
-        intro ψ hψ
-        have := hψ.1.3.1
-        simp at this
-        rw [←this]
-        rfl
-    }
+
+
+
+
+/-
+variable {𝒮 : Type u₁} [Category 𝒮](F : 𝒮ᵒᵖ ⥤ Type u₃)
+
+def ℱ := (S : 𝒮) × Discrete (F.obj (op S))
+
+@[simps]
+instance : Category (ℱ F) where
+  Hom X Y := (f : X.1 ⟶ Y.1) × (X.2 ⟶ (Discrete.mk ((F.map f.op) Y.2.1)))
+  -- TODO: figure out PLift up "::" meaning
+  id X := ⟨𝟙 X.1, eqToHom (by simp only [op_id, map_id]; rfl)⟩
+  comp {X Y Z} f g :=
+    have h :  (F.map f.1.op) ((F.map g.1.op) Z.2.1) =
+        (F.map (f.1 ≫ g.1).op) Z.2.1 := by simp only [op_comp, FunctorToTypes.map_comp_apply]
+    have := g.2
+    ⟨f.1 ≫ g.1, f.2 ≫ (F.map f.1.op) g.2 ≫ eqToHom h⟩
+  id_comp := by
+    intro X Y f
+    simp only; ext
+    { dsimp; exact id_comp _ }
+    dsimp
+    --rw [←conj_eqToHom_iff_heq]
+    sorry
+    --simp
+
+
+
+
+-/
+
+/-
+@[simps]
+instance : Category (ℱ F) where
+  Hom X Y := (f : X.1 ⟶ Y.1) × (X.2 ⟶ ((F.map f.op).obj Y.2))
+  -- TODO: figure out PLift up "::" meaning
+  id X := ⟨𝟙 X.1, eqToHom (by simp only [op_id, map_id]; rfl)⟩
+  comp {X Y Z} f g :=
+    have h :  (F.map f.fst.op).obj ((F.map g.fst.op).obj Z.2) =
+        (F.map (f.fst ≫ g.fst).op).obj Z.2 := by rw [op_comp, map_comp, Cat.comp_obj]
+    ⟨f.1 ≫ g.1, f.2 ≫ (F.map f.1.op).map g.2 ≫ eqToHom h⟩
+  id_comp := by
+    intro X Y f
+    simp only; ext
+    { dsimp; exact id_comp _ }
+    dsimp
+    rw [←conj_eqToHom_iff_heq _ _ rfl (by simp only [comp_id]),
+      congr_hom (map_id F (op X.1))]
+    simp
+  comp_id := by
+    intro X Y f
+    simp only; ext
+    { dsimp; exact comp_id _ }
+    dsimp
+    rw [←conj_eqToHom_iff_heq _ _ rfl (by simp only [id_comp])]
+    sorry
+  assoc := by
+    intro W X Y Z f g h
+    simp only; ext
+    { dsimp; exact assoc _ _ _ }
+    dsimp
+    rw [←conj_eqToHom_iff_heq _ _ rfl (by simp)]
+    rw [congr_hom (map_comp F _ _)]
+    simp
+    congr
+    rw [←comp_eqToHom_iff (by simp only [map_comp, Cat.comp_obj])]
+    simp only [eqToHom_trans, eqToHom_map]
+
+
+
+
+-/
+
+
+
+--by subst hX; subst hY; exact f
+
+-- lemma ℱ.IsHomLift_self {X Y : ℱ F} (f : X ⟶ Y) : IsHomLift (ℱ.π F) f f where
+--   ObjLiftDomain := rfl
+--   ObjLiftCodomain := rfl
+--   HomLift := ⟨by simp only [eqToHom_refl, comp_id, id_comp]; rfl⟩
+
+-- lemma ℱ.mk_map_IsHomLift {R S : 𝒮} (f : R ⟶ S) {X Y : ℱ F} (hX : X.1 = R)
+--     (hY : Y.1 = S) : IsHomLift (ℱ.π F) f (ℱ.mk_map F f hX hY) where
+--   ObjLiftDomain := hX
+--   ObjLiftCodomain := hY
+--   HomLift := ⟨by simp [ℱ.mk_map]⟩
+
+-- lemma ℱ.mk_map_IsPullback {R S : 𝒮} (f : R ⟶ S) {X Y : ℱ F} (hX : X.1 = R)
+--     (hY : Y.1 = S) : IsPullback (ℱ.π F) f (ℱ.mk_map F f hX hY) :=
+--   { ℱ.mk_map_IsHomLift F f hX hY with
+--     UniversalProperty := by
+--       intro T Z g h w φ' hφ'
+--       use ℱ.mk_map F g (hφ'.1) hX
+--       refine ⟨⟨ℱ.mk_map_IsHomLift F g _ hX, ?_⟩, ?_⟩
+
+--       have := hφ'.3.1
+--       simp [w, comp_eqToHom_iff] at this
+--       simp [ℱ.mk_map, this]
+
+--       intro ψ hψ
+--       have := hψ.1.3.1
+--       simp [comp_eqToHom_iff] at this
+--       simp [ℱ.mk_map, this]
+--   }
+
+-- instance : IsFibered (ℱ.π F) where
+--   has_pullbacks := by
+--     intros X R S hS f
+--     subst hS
+--     let Y : ℱ F := ⟨R, (F.map (op f)) X.2⟩
+--     use Y, ℱ.mk_map F f rfl rfl
+--     exact ℱ.mk_map_IsPullback F f (show Y.1 = R from rfl) rfl
+
+-- /- TODO: Define HasFibers instance to check it works OK -/
+-- noncomputable instance : HasFibers (ℱ.π F) where
+--   Fib S := Discrete (F.obj (op S))
+--   ι := fun S => {
+--     obj := fun a => ⟨S, a.1⟩
+--     map := @fun a b φ => 𝟙 S
+--     map_comp := @fun a b c φ ψ => by simp only [instCategoryℱ_comp, comp_id] }
+--   comp_const := by
+--     intro S
+--     simp
+--     apply Functor.ext_of_iso {
+--       hom := { app := by intro a; exact 𝟙 S }
+--       inv := { app := by intro a; exact 𝟙 S } }
+--     all_goals simp
+
+--   equiv := by
+--     intro S
+--     refine @Equivalence.ofFullyFaithfullyEssSurj _ _ _ _ _ ?_ ?_ ?_
+--     { apply fullOfExists
+--       intro X Y f
+--       -- here we need X = Y! The existence of f should give this..
+--       -- f : ⟨S, X⟩ ⟶ ⟨S, Y⟩ in the fiber ---> corr. to 𝟙 S
+--       -- HAVE AN ERROR IN DEFINITION OF ℱ!!!
+--       sorry
+--     }

@@ -188,8 +188,8 @@ lemma HasFibersEssSurj' {p : 𝒳 ⥤ 𝒮} [hp : HasFibers p] {S : 𝒮} {a : �
 
 -- MIGHT NOT NEED....
 def HasFibersMap {p : 𝒳 ⥤ 𝒮} [hp : HasFibers p] {R S : 𝒮} {a : hp.Fib S}
-  {b : hp.Fib R} (φ : (hp.ι R).obj b ⟶ (hp.ι S).obj a) : R ⟶ S :=
-    eqToHom (HasFibersObjLift b).symm ≫ (p.map φ) ≫ eqToHom (HasFibersObjLift a)
+    {b : hp.Fib R} (φ : (hp.ι R).obj b ⟶ (hp.ι S).obj a) : R ⟶ S :=
+  eqToHom (HasFibersObjLift b).symm ≫ (p.map φ) ≫ eqToHom (HasFibersObjLift a)
 
 /-- Given a HasFibers and a diagram
 ```
