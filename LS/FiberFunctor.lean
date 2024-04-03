@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Calle Sönne, Paul Lezeau
 -/
 
-import LS.FiberStructures
+import LS.HasFibers
 
 universe u₁ v₁ u₂ v₂ u₃ w
 
@@ -17,16 +17,16 @@ namespace Fibered
 structure Morphism (p : 𝒳 ⥤ 𝒮) (q : 𝒴 ⥤ 𝒮) extends CategoryTheory.Functor 𝒳 𝒴 where
   (w : toFunctor ⋙ q = p)
 
-/-- A notion of functor between FiberStructs. It is given by a functor F : 𝒳 ⥤ 𝒴 such that F ⋙ q = p,
+/-- A notion of functor between HasFiberss. It is given by a functor F : 𝒳 ⥤ 𝒴 such that F ⋙ q = p,
   and a collection of functors fiber_functor S between the fibers of p and q over S in 𝒮 such that
   .... -/
-class IsFiberMorphism {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [hp : FiberStruct p] [hq : FiberStruct q] (F : Morphism p q) where
+class IsFiberMorphism {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [hp : HasFibers p] [hq : HasFibers q] (F : Morphism p q) where
   (fiber_functor (S : 𝒮) : hp.Fib S ⥤ hq.Fib S)
   (comp_eq : ∀ (S : 𝒮), (fiber_functor S) ⋙ (hq.ι S) = (hp.ι S) ⋙ F.toFunctor) -- TRY AESOP_CAT BY DEFAULT HERE?
 
 /-- A notion of functor between FiberedStructs. It is furthermore required to preserve pullbacks  -/
-class IsFiberedMorphism {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [hp : FiberedStruct p] [hq : FiberedStruct q] (F : Morphism p q)
-    extends IsFiberMorphism F where
+class IsFiberedMorphism {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [IsFibered p] [hp : HasFibers p]
+    [IsFibered q] [hq : HasFibers q] (F : Morphism p q) extends IsFiberMorphism F where
   (preservesPullbacks {R S : 𝒮} {f : R ⟶ S} {φ : a ⟶ b} (_ : IsPullback p f φ) : IsPullback q f (F.map φ))
 
 @[simp]
@@ -34,11 +34,11 @@ lemma Morphism.obj_proj {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} (F : Morphism p 
   rw [←comp_obj, F.w]
 
 @[simp]
-lemma Morphism.fiber_proj {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [hp : FiberStruct p]
+lemma Morphism.fiber_proj {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [hp : HasFibers p]
     (F : Morphism p q) {S : 𝒮} (a : hp.Fib S) : q.obj (F.obj ((hp.ι S).obj a)) = S := by
-  rw [Morphism.obj_proj F ((hp.ι S).obj a), FiberStructObjLift]
+  rw [Morphism.obj_proj F ((hp.ι S).obj a), HasFibersObjLift]
 
--- lemma IsFiberMorphism.congr_hom {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [hp : FiberStruct p] [hq : FiberStruct q]
+-- lemma IsFiberMorphism.congr_hom {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [hp : HasFibers p] [hq : HasFibers q]
 --     (F : Morphism p q) [hF : IsFiberMorphism F] {S : 𝒮} {a b : hp.Fib S} (φ : a ⟶ b ):
 --     (hq.ι S).map ((hF.fiber_functor S).map φ) = F.map ((hp.ι S).map φ) := by
 --     rw [←comp_obj, congr_obj (hF.comp_eq S), comp_obj]
@@ -86,7 +86,7 @@ instance Morphism.IsFiber_canonical {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} (F :
   comp_eq := by aesop_cat
 
 /-- If a morphism F is faithFul, then it is also faithful fiberwise -/
-lemma FiberwiseFaithfulofFaithful  {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [hp : FiberStruct p] [hq : FiberStruct q]
+lemma FiberwiseFaithfulofFaithful  {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [hp : HasFibers p] [hq : HasFibers q]
     (F : Morphism p q) [hF : IsFiberMorphism F] [Faithful F.toFunctor] : ∀ (S : 𝒮),
     Faithful (hF.fiber_functor S) := by
     intro S
@@ -94,15 +94,15 @@ lemma FiberwiseFaithfulofFaithful  {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [hp :
     apply Faithful.of_comp _ (hq.ι S)
 
 /-- A FiberMorphism F is faithful if it is so pointwise. For proof see [Olsson] -/
-lemma FaithfulofFiberwiseFaithful {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : FiberedStruct p} {hq : FiberedStruct q}
-    {F : Morphism p q} [hF : IsFiberedMorphism F] (hF₁ : ∀ (S : 𝒮), Faithful (hF.fiber_functor S)) :
-    Faithful F.toFunctor where
+lemma FaithfulofFiberwiseFaithful {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [IsFibered p] [hp : HasFibers p]
+    [IsFibered q] [hq : HasFibers q] {F : Morphism p q} [hF : IsFiberedMorphism F]
+    (hF₁ : ∀ (S : 𝒮), Faithful (hF.fiber_functor S)) : Faithful F.toFunctor where
   map_injective := by
     intro a b φ φ' heq
-    /- We start by reducing to a setting when the domains lie in some fiber of the FiberStruct.
+    /- We start by reducing to a setting when the domains lie in some fiber of the HasFibers.
     We do this by finding some Φ : a' ≅ a by essential surjectivity of the fiber structures,
     and then defining φ₁ := Φ.hom ≫ φ and φ₁' := Φ.hom ≫ φ'. -/
-    rcases FiberStructEssSurj' (rfl (a := p.obj a)) with ⟨a', Φ, _⟩
+    rcases HasFibersEssSurj' (rfl (a := p.obj a)) with ⟨a', Φ, _⟩
     let φ₁ := Φ.hom ≫ φ
     let φ₁' := Φ.hom ≫ φ'
     suffices φ₁ = φ₁' by rwa [←CategoryTheory.Iso.cancel_iso_hom_left Φ]
@@ -113,9 +113,9 @@ lemma FaithfulofFiberwiseFaithful {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : 
     /- The goal is now to factor φ₁ and φ₁' through some pullback to reduce to checking
     two morphisms τ and τ' in the fibers are equal, which will then follow from fiber-wise
     faithfulness. -/
-    let h : p.obj a ⟶ p.obj b := eqToHom ((FiberStructObjLift a').symm) ≫ p.map φ₁
+    let h : p.obj a ⟶ p.obj b := eqToHom ((HasFibersObjLift a').symm) ≫ p.map φ₁
     -- Let ψ : c ⟶ b be a pullback over h such that c : Fib (p.obj a)
-    rcases FiberStructPullback' hp rfl h with ⟨c, ψ, hψ⟩
+    rcases HasFibersPullback' rfl h with ⟨c, ψ, hψ⟩
     -- Both φ₁ and φ₁' are lifts of h
     have hφ₁ : IsHomLift p h φ₁ := (IsHomLift_eqToHom_comp' _).2 (IsHomLift_self p φ₁)
     have hφ₁' : IsHomLift p h φ₁' :=  by
@@ -123,8 +123,8 @@ lemma FaithfulofFiberwiseFaithful {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : 
       rw [heq₁, ←Functor.comp_map, ←congr_hom F.w.symm]
       apply IsHomLift_self p φ₁'
     -- Let τ, τ' be the induced maps from a' to c given by φ and φ'
-    rcases FiberStructFactorization hφ₁ hψ with ⟨τ, hτ⟩
-    rcases FiberStructFactorization hφ₁' hψ with ⟨τ', hτ'⟩
+    rcases HasFibersFactorization hφ₁ hψ with ⟨τ, hτ⟩
+    rcases HasFibersFactorization hφ₁' hψ with ⟨τ', hτ'⟩
     -- Thus, it suffices to show that τ = τ'
     suffices τ = τ' by rw [←hτ, ←hτ', this]
     have hψ' : IsPullback q h (F.map ψ) := hF.preservesPullbacks hψ
@@ -135,9 +135,9 @@ lemma FaithfulofFiberwiseFaithful {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : 
       apply heq₁.symm
     -- Hence we get that F(τ) = F(τ'), so we can conclude by fiberwise injectivity
     have hτ₂ := IsPullbackInducedMap_unique hψ' ((id_comp h).symm)
-      (Morphism.pres_IsHomLift F hφ₁) (Morphism.pres_IsHomLift F (FiberStructHomLift τ)) hτ₁
+      (Morphism.pres_IsHomLift F hφ₁) (Morphism.pres_IsHomLift F (HasFibersHomLift τ)) hτ₁
     have hτ'₂ := IsPullbackInducedMap_unique hψ' ((id_comp h).symm)
-      (Morphism.pres_IsHomLift F hφ₁) (Morphism.pres_IsHomLift F (FiberStructHomLift τ')) hτ'₁
+      (Morphism.pres_IsHomLift F hφ₁) (Morphism.pres_IsHomLift F (HasFibersHomLift τ')) hτ'₁
     have heqττ' : F.map ((hp.ι (p.obj a)).map τ) = F.map ((hp.ι (p.obj a)).map τ') := by rw [hτ₂, hτ'₂]
     have heqττ'₁ : (hF.fiber_functor _).map τ = (hF.fiber_functor _).map τ' := by
       apply Functor.map_injective (hq.ι (p.obj a))
@@ -150,7 +150,7 @@ lemma PreimageIsHomLift {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} (F : Morphism p 
     IsHomLift p f (hF₁.preimage φ) := (hF₁.witness φ ▸ Morphism.HomLift_ofImage F) hφ
 
 /- We now show that a morphism F is full if and only if its full fiberwise -/
-lemma FiberwiseFullofFull  {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [hp : FiberStruct p] [hq : FiberStruct q]
+lemma FiberwiseFullofFull  {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [hp : HasFibers p] [hq : HasFibers q]
     (F : Morphism p q) [hF : IsFiberMorphism F] [hF₁ : Full F.toFunctor] : ∀ (S : 𝒮),
     Full (hF.fiber_functor S) := by
   intro S
@@ -162,15 +162,15 @@ lemma FiberwiseFullofFull  {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [hp : FiberSt
 
   have hφ₁ : IsHomLift p (𝟙 S) (hF₁.preimage φ₁) := by
     apply PreimageIsHomLift
-    simp [φ₁, FiberStructHomLift φ]
+    simp [φ₁, HasFibersHomLift φ]
 
-  use Classical.choose (FiberStructFull hφ₁)
+  use Classical.choose (HasFibersFull hφ₁)
   apply Functor.map_injective (hq.ι S)
   -- Maybe its worth making this a standalone lemma
   rw [←Functor.comp_map, congr_hom (hF.comp_eq S), Functor.comp_map]
-  simp [Classical.choose_spec (FiberStructFull hφ₁), φ₁]
+  simp [Classical.choose_spec (HasFibersFull hφ₁), φ₁]
 
-lemma FullofFullFiberwise  {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : FiberedStruct p} {hq : FiberedStruct q}
+lemma FullofFullFiberwise  {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [IsFibered p] [hp : HasFibers p]  [IsFibered q] [hq : HasFibers q]
     {F : Morphism p q} [hF : IsFiberedMorphism F] (hF₁ : ∀ (S : 𝒮), Full (hF.fiber_functor S)) :
     Full F.toFunctor := by
   apply fullOfExists
@@ -180,9 +180,9 @@ lemma FullofFullFiberwise  {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : Fibered
   let S := p.obj b
 
   -- Reduce to checking when domain is in a fiber
-  let a' := Classical.choose (FiberStructEssSurj' (rfl (a:=R)))
-  let Φ := Classical.choose (Classical.choose_spec (FiberStructEssSurj' (rfl (a := R))))
-  let hΦ := Classical.choose_spec (Classical.choose_spec (FiberStructEssSurj' (rfl (a := R))))
+  let a' := Classical.choose (HasFibersEssSurj' (rfl (a:=R)))
+  let Φ := Classical.choose (Classical.choose_spec (HasFibersEssSurj' (rfl (a := R))))
+  let hΦ := Classical.choose_spec (Classical.choose_spec (HasFibersEssSurj' (rfl (a := R))))
 
   -- Now consider φ₁ : F.obj a' ⟶ F.obj b
   have ha' : (hq.ι R).obj ((hF.fiber_functor R).obj a') = F.obj ((hp.ι R).obj a') := by
@@ -193,22 +193,22 @@ lemma FullofFullFiberwise  {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : Fibered
   let h : R ⟶ S := eqToHom (Morphism.obj_proj F a).symm ≫ q.map φ ≫ eqToHom (Morphism.obj_proj F b)
 
   -- Let ψ : c ⟶ b be a pullback over h such that c : Fib R
-  let c := Classical.choose (FiberStructPullback' hp rfl h)
-  let ψ := Classical.choose (Classical.choose_spec (FiberStructPullback' hp rfl h))
-  let hψ := Classical.choose_spec (Classical.choose_spec (FiberStructPullback' hp rfl h))
+  let c := Classical.choose (HasFibersPullback' rfl h)
+  let ψ := Classical.choose (Classical.choose_spec (HasFibersPullback' rfl h))
+  let hψ := Classical.choose_spec (Classical.choose_spec (HasFibersPullback' rfl h))
 
   have hφ₁ : IsHomLift q h φ₁ := by
     simp [φ₁, h]
     apply IsHomLift_of_IsHomLiftId_comp (IsHomLift_self q φ) (Morphism.pres_IsHomLift F hΦ)
 
-  -- The following could be some hF.preservesPullbacks (wrt FiberStruct) API
+  -- The following could be some hF.preservesPullbacks (wrt HasFibers) API
   have hc : (hq.ι R).obj ((hF.fiber_functor R).obj c) = F.obj ((hp.ι R).obj c) := by
     rw [←comp_obj, ←comp_obj, hF.comp_eq] --
   let ψ' := eqToHom hc ≫ F.map ψ
   have hψ' : IsPullback q h ψ' := IsPullback_eqToHom_comp (hF.preservesPullbacks hψ) _
 
   -- Let τ be the induced map from a' to c given by φ₁
-  let τ := Classical.choose (FiberStructFactorization hφ₁ hψ')
+  let τ := Classical.choose (HasFibersFactorization hφ₁ hψ')
   let π := (hF₁ R).preimage τ
 
   use Φ.inv ≫ (hp.ι R).map π ≫ ψ
@@ -218,7 +218,7 @@ lemma FullofFullFiberwise  {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {hp : Fibered
   rw [←Functor.comp_map, congr_hom (hF.comp_eq (p.obj a)).symm]
   rw [Functor.comp_map, (hF₁ (p.obj a)).witness]
   rw [Category.assoc, Category.assoc]
-  rw [Classical.choose_spec (FiberStructFactorization hφ₁ hψ')]
+  rw [Classical.choose_spec (HasFibersFactorization hφ₁ hψ')]
   simp [φ₁]
   rw [←Category.assoc, ←Functor.mapIso_inv, ←Functor.mapIso_hom]
   rw [Iso.inv_hom_id, id_comp]

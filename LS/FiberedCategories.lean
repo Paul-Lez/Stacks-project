@@ -7,10 +7,8 @@ Authors: Calle Sönne, Paul Lezeau
 import Mathlib.CategoryTheory.Functor.Category
 import Mathlib.CategoryTheory.CommSq
 import Mathlib.CategoryTheory.Functor.Const
--- TO GET HAS PULLBACKS, FIGURE OUT WHAT TO IMPORT LATER
 import Mathlib.CategoryTheory.Limits.Shapes.Pullbacks
 
---import Mathlib.CategoryTheory.Limits
 /-!
 
 # Fibered categories
@@ -27,10 +25,6 @@ open CategoryTheory Functor Category
 variable {𝒮 : Type u₁} {𝒳 : Type u₂} [Category 𝒳] [Category 𝒮]
 
 namespace Fibered
-
-/--
-MORE FLEXIBLE API
--/
 
 def HomLift' {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} (f : R ⟶ S) (φ : a ⟶ b)
  (ha : p.obj a = R) (hb : p.obj b = S) : Prop :=
