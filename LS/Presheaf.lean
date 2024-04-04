@@ -90,12 +90,14 @@ lemma ℱ.mk_map_IsPullback {R S : 𝒮} {f : R ⟶ S} {X Y : ℱ F} {hX : X.1 =
       have := hφ'.1
       -- TODO: mk_map₁ / IsHomLift interaction
       have hZY : Z.2 = Discrete.mk ((F.map (ℱ.mk_map₁ F g hY hφ'.1).op) Y.2.1) := by
-        have := (eq_of_hom φ'.2)
-        -- homlift => φ'.1 = h (up to conj) ----> MAKE HOMLIFT CONGR LEMMA
+        -- TODO GOLF...
+        have hZX := (eq_of_hom φ'.2)
+        have := IsHomLift_congr' hφ'
+        simp at this
+        simp [←this, w] at hZX
+        simp [ℱ.mk_map₁, hXY]
         ext
-        rw [this]
-        simp only
-        sorry
+        exact hZX
 
       use ℱ.mk_map F hZY
       refine ⟨⟨ℱ.mk_map_IsHomLift F hZY, ?_⟩, ?_⟩
@@ -115,9 +117,6 @@ lemma ℱ.mk_map_IsPullback {R S : 𝒮} {f : R ⟶ S} {X Y : ℱ F} {hX : X.1 =
       { simp [this] }
       { apply Subsingleton.helim; simp [this] }
   }
-
-
-
 
 instance : IsFibered (ℱ.π F) where
   has_pullbacks := by

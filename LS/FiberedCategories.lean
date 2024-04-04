@@ -51,10 +51,20 @@ lemma IsHomLift_id {p : 𝒳 ⥤ 𝒮} {R : 𝒮} {a : 𝒳} (ha : p.obj a = R) 
   HomLift := ⟨by simp only [map_id, id_comp, comp_id]⟩
 
 @[simp]
-instance IsHomLift_self (p : 𝒳 ⥤ 𝒮) {a b : 𝒳} (φ : a ⟶ b) : IsHomLift p (p.map φ) φ where
+lemma IsHomLift_self (p : 𝒳 ⥤ 𝒮) {a b : 𝒳} (φ : a ⟶ b) : IsHomLift p (p.map φ) φ where
   ObjLiftDomain := rfl
   ObjLiftCodomain := rfl
   HomLift := ⟨by simp only [eqToHom_refl, comp_id, id_comp]⟩
+
+lemma IsHomLift_congr {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} {f : R ⟶ S} {φ : a ⟶ b}
+    (hφ : IsHomLift p f φ) : eqToHom hφ.ObjLiftDomain.symm ≫ p.map φ ≫ eqToHom hφ.ObjLiftCodomain = f :=
+  (eqToHom_comp_iff hφ.ObjLiftDomain.symm _ _).2 hφ.HomLift.w
+
+
+lemma IsHomLift_congr' {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} {f : R ⟶ S} {φ : a ⟶ b}
+    (hφ : IsHomLift p f φ) : eqToHom hφ.ObjLiftDomain ≫ f ≫ eqToHom hφ.ObjLiftCodomain.symm = p.map φ := by
+  rw [←assoc, comp_eqToHom_iff hφ.ObjLiftCodomain.symm _ _]
+  exact hφ.HomLift.w.symm
 
 /-- If a --φ--> b lifts R --f--> S, then if φ is an isomorphism, so is f. -/
 lemma IsIsoofIsHomliftisIso {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} {f : R ⟶ S} {φ : a ⟶ b}
