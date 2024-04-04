@@ -2,6 +2,7 @@ import Mathlib.CategoryTheory.Sites.Grothendieck
 import Mathlib.CategoryTheory.Comma.Over
 import Mathlib.CategoryTheory.NatIso
 import LS.FiberFunctor
+import LS.HasFibers
 
 
 open CategoryTheory Functor Category Fibered

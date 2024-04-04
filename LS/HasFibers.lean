@@ -50,6 +50,8 @@ lemma Fiber.hom_ext {p : 𝒳 ⥤ 𝒮} {S : 𝒮} {a b : Fiber p S} (φ ψ : a 
 lemma Fiber.val_comp {p : 𝒳 ⥤ 𝒮} {S : 𝒮} {a b c : Fiber p S} (φ : a ⟶ b)
     (ψ : b ⟶ c) : (φ ≫ ψ).1 = φ.1 ≫ ψ.1 := rfl
 
+lemma Fiber.mk_map_com {p :𝒳 ⥤ 𝒮} {S : 𝒮} {a b c : 𝒳} (ha : p.obj a = S) (hb : p.obj b = S) (hc : p.obj c = S) (φ : a ⟶ b) (ψ : b ⟶ c) (hφ : IsHomLift p (𝟙 S) φ) (hψ : IsHomLift p (𝟙 S) ψ) : Fiber.mk_map ha hc (φ ≫ ψ) (IsHomLift_id_comp hφ hψ) = Fiber.mk_map ha hb φ hφ ≫ Fiber.mk_map hb hc ψ hψ := rfl
+
 /-- Given a functor F : C ⥤ 𝒳 mapping constantly to some S in the base,
   we get an induced functor C ⥤ Fiber p S -/
 @[simps]

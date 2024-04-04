@@ -34,6 +34,8 @@ noncomputable abbrev dpb3 [Limits.HasPullbacks 𝒮] {S : 𝒮}
 
 variable (J : GrothendieckTopology 𝒮) (S Y : 𝒮) (I : Sieve S) (hI : I ∈ J.sieves S) (f : Y ⟶ S) (hf : I f)
 
+-- Descent data
+
 /--  Say `S_i ⟶ S` is a cover in `𝒮`, `a b` elements of `𝒳` lying over `S`.
   The **morphism gluing condition**
   states that if we have a family of morphisms `φ_i : a|S_i ⟶ b` such that `φ_i|S_ij = φ_j|S_ij` then there exists a unique
@@ -115,6 +117,44 @@ def CocyleCondition {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
       PullbackObj hp.1 (PullbackObjLiftDomain hp.1 (ha hf) (pb1 f f')) (dpb1 f f' f'') from dpbi J hp hI hf'' hf hf').hom)
     = 𝟙 _
 
+structure PreDescentData {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p) [Limits.HasPullbacks 𝒮] where
+  (S : 𝒮)
+  (I : Sieve S)
+  (hI : I ∈ J.sieves S)
+  (a : ∀ {Y : 𝒮} {f : Y ⟶ S}, I f → 𝒳)
+  (ha : ∀ {Y : 𝒮} {f : Y ⟶ S} (hf : I f), p.obj (a hf) = Y)
+  (α : ∀ {Y Y' : 𝒮} {f : Y ⟶ S} {f' : Y' ⟶ S} (hf : I f) (hf' : I f'),
+    PullbackObj hp.1 (ha hf) (@Limits.pullback.fst _ _ _ _ _ f f' _)
+    ≅ PullbackObj hp.1 (ha hf') (@Limits.pullback.snd _ _ _ _ _ f f' _))
+  (hα : ∀ {Y Y' : 𝒮} {f : Y ⟶ S} {f' : Y' ⟶ S} (hf : I f) (hf' : I f'),
+    IsHomLift p (𝟙 (@Limits.pullback _ _ _ _ _ f f' _)) (α hf hf').hom)
+
+structure DescentData {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p) [Limits.HasPullbacks 𝒮] extends PreDescentData J hp where
+  (hCocyle : CocyleCondition J hp hI ha α hα)
+
+def DescentData.effective {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p) [Limits.HasPullbacks 𝒮]
+  (D : DescentData J hp) : Prop := ∃ (b : 𝒳) (hb : p.obj b = D.S)
+      (φ : ∀ {Y : 𝒮} {f : Y ⟶ D.S} (hf : D.I f), PullbackObj hp.1 hb f ≅ D.a hf)
+      (hφ : ∀ {Y : 𝒮} {f : Y ⟶ D.S} (hf : D.I f),
+      IsHomLift p (𝟙 Y) (φ hf).hom),
+     ∀ (Y Y' : 𝒮) (f : Y ⟶ D.S) (f' : Y' ⟶ D.S) (hf : D.I f) (hf' : D.I f'),
+    CommSq
+    (show PullbackObj hp.1 (PullbackObjLiftDomain hp.1 hb f) (pb1 f f') ⟶
+      PullbackObj hp.1 (D.ha hf) (Limits.pullback.fst) from
+        IsPullbackNaturalityHom (PullbackMapIsPullback hp.1 (PullbackObjLiftDomain hp.1 hb f)
+    (pb1 f f'))  (PullbackMapIsPullback hp.1 (D.ha hf) Limits.pullback.fst)
+       (show PullbackObj hp.1 hb f ⟶ D.a hf from (φ hf).hom) (hφ hf))
+    (show PullbackObj hp.1 (PullbackObjLiftDomain hp.1 hb f) (pb1 f f') ⟶ PullbackObj hp.1 (PullbackObjLiftDomain hp.1 hb f')
+      (pb1 f' f) from
+        (PullbackCompIsoPullbackPullback hp.1 hb f (pb1 f f')).symm.hom ≫ (PullbackPullbackIso'' hp.1 hb f f').hom ≫ (PullbackCompIsoPullbackPullback hp.1 _ _ _).hom)
+    (show PullbackObj hp.1 (D.ha hf) (Limits.pullback.fst) ⟶ PullbackObj hp.1 (D.ha hf') (pb1 f' f)from
+      ((D.α hf hf').hom ≫ (show PullbackObj hp.1 (D.ha hf') (pb2 f f') ⟶ PullbackObj hp.1 (D.ha hf') (pb1 f' f) from
+        (PullbackPullbackIso''' hp.1 (D.ha hf') f' f ).symm.hom)))
+      (show PullbackObj hp.1 (PullbackObjLiftDomain hp.1 hb f') (pb1 f' f) ⟶ PullbackObj hp.1 (D.ha hf') (pb1 f' f)
+    from IsPullbackNaturalityHom (PullbackMapIsPullback hp.1 (PullbackObjLiftDomain hp.1 hb f')
+    (pb1 f' f))  (PullbackMapIsPullback hp.1 (D.ha hf') Limits.pullback.fst)
+    (show PullbackObj hp.1 hb f' ⟶ D.a hf' from (φ hf').hom) (hφ hf'))
+
 /-TODO: the following should be defined in terms of a `descent datum` data type (containing
   all the information about the `a_i` and the `α_i`), which should have a predicate saying
   when it is effective.-/
@@ -122,39 +162,10 @@ def CocyleCondition {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
 /-- Say `S_i ⟶ S` is a cover in `𝒮` and `a_i` lies over `S_i`.
   The **object gluing condition** states that if we have a
   family of isomorphisms `α_ij : a_i|S_ij ⟶ a_j|S_ij ` above the identity that verify the cocyle condition then there
-  exists an object `a` lying over `S` together with maps `φ_i : a|S_i ⟶ a_i` such that `φ_j|S_ij ∘ α_ij = φ_i|S_ij` -/
+  exists an object `a` lying over `S` together with maps `φ_i : a|S_i ⟶ a_i` such that `φ_j|S_ij ∘ α_ij = φ_i|S_ij`.
+  In other words, every descent datum is effective -/
 def objects_glue {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
-  [Limits.HasPullbacks 𝒮] : Prop :=
-  ∀ (S : 𝒮) (I : Sieve S) (hI : I ∈ J.sieves S)
-  (a : ∀ {Y : 𝒮} {f : Y ⟶ S}, I f → 𝒳)
-  (ha : ∀ {Y : 𝒮} {f : Y ⟶ S} (hf : I f), p.obj (a hf) = Y)
-  (α : ∀ {Y Y' : 𝒮} {f : Y ⟶ S} {f' : Y' ⟶ S} (hf : I f) (hf' : I f'),
-    PullbackObj hp.1 (ha hf) (@Limits.pullback.fst _ _ _ _ _ f f' _)
-    ≅ PullbackObj hp.1 (ha hf') (@Limits.pullback.snd _ _ _ _ _ f f' _))
-  (hα : ∀ {Y Y' : 𝒮} {f : Y ⟶ S} {f' : Y' ⟶ S} (hf : I f) (hf' : I f'),
-    IsHomLift p (𝟙 (@Limits.pullback _ _ _ _ _ f f' _)) (α hf hf').hom),
-  CocyleCondition J hp hI ha α hα →
-  ∃ (b : 𝒳) (hb : p.obj b = S)
-      (φ : ∀ {Y : 𝒮} {f : Y ⟶ S} (hf : I f), PullbackObj hp.1 hb f ≅ a hf)
-      (hφ : ∀ {Y : 𝒮} {f : Y ⟶ S} (hf : I f),
-      IsHomLift p (𝟙 Y) (φ hf).hom),
-     ∀ (Y Y' : 𝒮) (f : Y ⟶ S) (f' : Y' ⟶ S) (hf : I f) (hf' : I f'),
-    CommSq
-    (show PullbackObj hp.1 (PullbackObjLiftDomain hp.1 hb f) (pb1 f f') ⟶
-      PullbackObj hp.1 (ha hf) (Limits.pullback.fst) from
-        IsPullbackNaturalityHom (PullbackMapIsPullback hp.1 (PullbackObjLiftDomain hp.1 hb f)
-    (pb1 f f'))  (PullbackMapIsPullback hp.1 (ha hf) Limits.pullback.fst)
-       (show PullbackObj hp.1 hb f ⟶ a hf from (φ hf).hom) (hφ hf))
-    (show PullbackObj hp.1 (PullbackObjLiftDomain hp.1 hb f) (pb1 f f') ⟶ PullbackObj hp.1 (PullbackObjLiftDomain hp.1 hb f')
-      (pb1 f' f) from
-        (PullbackCompIsoPullbackPullback hp.1 hb f (pb1 f f')).symm.hom ≫ (PullbackPullbackIso'' hp.1 hb f f').hom ≫ (PullbackCompIsoPullbackPullback hp.1 _ _ _).hom)
-    (show PullbackObj hp.1 (ha hf) (Limits.pullback.fst) ⟶ PullbackObj hp.1 (ha hf') (pb1 f' f)from
-      ((α hf hf').hom ≫ (show PullbackObj hp.1 (ha hf') (pb2 f f') ⟶ PullbackObj hp.1 (ha hf') (pb1 f' f) from
-        (PullbackPullbackIso''' hp.1 (ha hf') f' f ).symm.hom)))
-      (show PullbackObj hp.1 (PullbackObjLiftDomain hp.1 hb f') (pb1 f' f) ⟶ PullbackObj hp.1 (ha hf') (pb1 f' f)
-    from IsPullbackNaturalityHom (PullbackMapIsPullback hp.1 (PullbackObjLiftDomain hp.1 hb f')
-    (pb1 f' f))  (PullbackMapIsPullback hp.1 (ha hf') Limits.pullback.fst)
-    (show PullbackObj hp.1 hb f' ⟶ a hf' from (φ hf').hom) (hφ hf'))
+  [Limits.HasPullbacks 𝒮] : Prop := ∀ (D : DescentData J hp), D.effective
 
 /-- A **Stack** `p : 𝒳 ⥤ 𝒮` is a functor fibered in groupoids that satisfies the object gluing and morphism gluing
   properties -/
