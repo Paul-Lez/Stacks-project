@@ -5,13 +5,23 @@ import Mathlib.CategoryTheory.DiscreteCategory
 set_option maxHeartbeats 400000
 
 /-!
-
 # Fibered category associated to a presheaf
 
-This file defines the fibered category associated to a presheaf.
+In this file we associate to any presheaf valued in types `F : 𝒮ᵒᵖ ⥤ Type _` a fibered
+category `ℱ F ⥤ 𝒮`.
 
-## Implementation
+The category `ℱ F` is defined as follows:
+* Objects: pairs `(S, a)` where `S` is an object of the base category and `a` is an element of the
+  presheaf `F` on `S`
+* Morphisms: pairs `(f, h)` where `f` is a morphism in the base category and `h` is a proof that the
+  morphism `F.map f.op` sends `a` to `b`
 
+The projection functor `ℱ F ⥤ 𝒮` is then given by projecting to the first factors, i.e.
+* On objects, it sends `(S, a)` to `S`
+* On morphisms, it sends `(f, h)` to `f`
+
+We also provide a `HasFibers` instance `ℱ F`, such that the fiber over `S` is the discrete category
+associated to `F(S)`.
 
 ## References
 [Vistoli2008] "Notes on Grothendieck Topologies, Fibered Categories and Descent Theory" by Angelo Vistoli
@@ -209,102 +219,8 @@ noncomputable instance (S : 𝒮) : EssSurj (FiberInducedFunctor (ℱ.comp_const
 noncomputable instance (S : 𝒮) : IsEquivalence (FiberInducedFunctor (ℱ.comp_const F S)) :=
   Equivalence.ofFullyFaithfullyEssSurj _
 
+-- TODO: this should probably be given a name?
 noncomputable instance : HasFibers (ℱ.π F) where
   Fib S := Discrete (F.obj (op S))
   ι := ℱ.ι F
   comp_const := ℱ.comp_const F
-
-/- noncomputable instance : HasFibers (ℱ.π F) where
-  Fib S := Discrete (F.obj (op S))
-  ι := ℱ.ι F
-  comp_const := by
-    intro S
-    apply Functor.ext_of_iso {
-      hom := { app := by intro a; exact 𝟙 S }
-      inv := { app := by intro a; exact 𝟙 S } }
-    all_goals simp only [comp_obj, ℱ.π_obj, const_obj_obj, eqToHom_refl, implies_true]
-  equiv := fun S => {
-    inverse := {
-      obj := fun X => Discrete.mk ((F.map (eqToHom (congrArg op X.2))) X.1.2.as)
-      map := @fun X Y φ => by
-        -- Should have lemma: morphism in same fiber => eq!
-        -- THIS IS AWFUL FOR NOW...
-        have h' := IsHomLift_congr' φ.2
-        have h := eq_of_hom φ.1.2
-        simp only [ℱ.π_obj, id_comp, eqToHom_trans, ℱ.π_map] at h'
-        rw [←h'] at h
-        apply Discrete.eqToHom
-
-        #exit
-        simp only [ℱ.π_obj, h, eqToHom_op, FunctorToTypes.eqToHom_map_comp_apply]
-      map_id := sorry
-      map_comp := sorry
-    }
-    unitIso := {
-      hom := {
-        app := by
-          intro a
-          apply Discrete.eqToHom
-          dsimp; apply (FunctorToTypes.map_id_apply F a.as).symm
-        naturality := @fun X Y φ => Subsingleton.elim _ _
-      }
-      inv := {
-        app := by
-          intro X
-          apply Discrete.eqToHom
-          dsimp; apply FunctorToTypes.map_id_apply
-        naturality := @fun X Y φ => Subsingleton.elim _ _
-      }
-      hom_inv_id := by ext; dsimp; simp only [eqToHom_trans, eqToHom_refl]
-      inv_hom_id := by ext; dsimp; simp only [eqToHom_trans, eqToHom_refl]
-    }
-    counitIso := {
-      hom := {
-        app := by
-          intro a
-        naturality := sorry
-      }
-      inv := sorry
-      hom_inv_id := sorry
-      inv_hom_id := sorry
-    }
-    functor_unitIso_comp := sorry
-  } -/
-
-/-
-@[simps]
-instance : Category (ℱ F) where
-  Hom X Y := (f : X.1 ⟶ Y.1) × (X.2 ⟶ ((F.map f.op).obj Y.2))
-  -- TODO: figure out PLift up "::" meaning
-  id X := ⟨𝟙 X.1, eqToHom (by simp only [op_id, map_id]; rfl)⟩
-  comp {X Y Z} f g :=
-    have h :  (F.map f.fst.op).obj ((F.map g.fst.op).obj Z.2) =
-        (F.map (f.fst ≫ g.fst).op).obj Z.2 := by rw [op_comp, map_comp, Cat.comp_obj]
-    ⟨f.1 ≫ g.1, f.2 ≫ (F.map f.1.op).map g.2 ≫ eqToHom h⟩
-  id_comp := by
-    intro X Y f
-    simp only; ext
-    { dsimp; exact id_comp _ }
-    dsimp
-    rw [←conj_eqToHom_iff_heq _ _ rfl (by simp only [comp_id]),
-      congr_hom (map_id F (op X.1))]
-    simp
-  comp_id := by
-    intro X Y f
-    simp only; ext
-    { dsimp; exact comp_id _ }
-    dsimp
-    rw [←conj_eqToHom_iff_heq _ _ rfl (by simp only [id_comp])]
-    sorry
-  assoc := by
-    intro W X Y Z f g h
-    simp only; ext
-    { dsimp; exact assoc _ _ _ }
-    dsimp
-    rw [←conj_eqToHom_iff_heq _ _ rfl (by simp)]
-    rw [congr_hom (map_comp F _ _)]
-    simp
-    congr
-    rw [←comp_eqToHom_iff (by simp only [map_comp, Cat.comp_obj])]
-    simp only [eqToHom_trans, eqToHom_map]
--/
