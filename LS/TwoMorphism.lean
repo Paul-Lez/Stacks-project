@@ -11,7 +11,7 @@ variable {𝒮 : Type u₁} {𝒳 : Type u₂} {𝒴 : Type u₃} [Category 𝒳
   [Category 𝒴]
 
 class IsFiberedInGroupoids (p : 𝒳 ⥤ 𝒮) extends IsFibered p where
-  (IsPullback {a b : 𝒳} (φ : b ⟶ a) :  IsPullback p (p.map φ) φ)
+  (IsPullback {a b : 𝒳} (φ : b ⟶ a) : IsPullback p (p.map φ) φ)
 
 instance (S : 𝒮) : IsFiberedInGroupoids (Over.forget S) where
   has_pullbacks := fun h f => by
@@ -185,8 +185,7 @@ def TwoYoneda.toFun (p : 𝒳 ⥤ 𝒮) (S : 𝒮) [IsFiberedInGroupoids p] : Fi
     apply Fiber.mk_obj (show p.obj (f.toFunctor.obj (Over.mk (𝟙 S))) = S from _)
     rw [←Functor.comp_obj, f.w, Over.forget_obj, Over.mk_left]
   map := fun f => by
-    --let f' := (Over.homMk f)
-    apply Fiber.mk_map _ _ (f.toIso.hom.app (Over.mk (𝟙 S))) _ --(λ a => IsHomLift_comp (f.aboveId _) (IsHomLift_id _)
+    apply Fiber.mk_map _ _ (f.toIso.hom.app (Over.mk (𝟙 S))) _
     apply f.aboveId
     simp only [Over.forget_obj, Over.mk_left]
   map_id := by
@@ -196,4 +195,29 @@ def TwoYoneda.toFun (p : 𝒳 ⥤ 𝒮) (S : 𝒮) [IsFiberedInGroupoids p] : Fi
   map_comp := by
     intro X Y Z f g
     simp only [comp_obj, Eq.ndrec, id_eq, Over.forget_obj, Over.mk_left, eq_mpr_eq_cast, cast_eq]
-    sorry
+    rw [←Fiber.mk_map_com]
+    rfl
+
+noncomputable def TwoIsomorphism.of_fiber {p : 𝒳 ⥤ 𝒮} {S : 𝒮} (hp : IsFiberedInGroupoids p) (a : Fiber p S) : Fibered.Morphism (Over.forget S) p where
+  obj := fun b => PullbackObj hp.toIsFibered a.2 b.hom
+  map := fun f => by
+    apply IsPullbackInducedMap (p:= p) (f := (_ : Over S).hom) (g := f.left) (f' := f.left ≫ (_ : Over S).hom) (φ := PullbackMap hp.toIsFibered a.2 (_ : Over S).hom)
+    rfl
+    --(hf' := f.w)
+    --simp only [id_obj, const_obj_obj, Functor.id_map, Over.w]
+    --(PullbackMapIsPullback hp.toIsFibered a.2 f)
+    --rw [f.w]
+    constructor
+    constructor
+    simp only [id_obj, const_obj_obj, Over.w]
+    all_goals sorry
+  map_id := sorry
+  map_comp := sorry
+  w := sorry
+
+/- def TwoYoneda.invFun (p : 𝒳 ⥤ 𝒮) (S : 𝒮) [IsFiberedInGroupoids p] : Fiber p S ⥤ Fibered.Morphism (Over.forget S) p where
+  obj := fun a => by
+    apply Fibered.Morphism.mk
+  map := _
+  map_id := _
+  map_comp := _ -/

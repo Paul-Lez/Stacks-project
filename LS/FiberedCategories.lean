@@ -90,6 +90,12 @@ lemma IsHomLift_comp {p : 𝒳 ⥤ 𝒮} {R S T : 𝒮} {a b c : 𝒳} {f : R �
       rw [←Category.assoc, ←hφ.3.1]
       simp only [map_comp, assoc, hψ.3.1]
 
+lemma IsHomLift_id_comp {p : 𝒳 ⥤ 𝒮} {R : 𝒮} {a b c : 𝒳} {φ : a ⟶ b} {ψ : b ⟶ c} (hφ : IsHomLift p (𝟙 R) φ)
+  (hψ : IsHomLift p (𝟙 R) ψ) : IsHomLift p (𝟙 R) (φ ≫ ψ) := by
+  have := IsHomLift_comp hφ hψ
+  rw [comp_id] at this
+  exact this
+
 @[simp]
 lemma IsHomLift_comp_eqToHom {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b c: 𝒳} {f : R ⟶ S}
   {φ : a ⟶ b} (hφ : IsHomLift p f φ) (hca : c = a) : IsHomLift p f (eqToHom hca ≫ φ) := by
