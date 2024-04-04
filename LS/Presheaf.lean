@@ -27,14 +27,21 @@ associated to `F(S)`.
 [Vistoli2008] "Notes on Grothendieck Topologies, Fibered Categories and Descent Theory" by Angelo Vistoli
 -/
 
+/-
+TODO:
+- Fix naming
+- (Later) Provide a splitting for this category
+-/
+
 universe u₁ v₁ u₂ v₂ u₃ w
 
 open CategoryTheory Functor Category Fibered Opposite Discrete
 
-variable {𝒮 : Type u₁} [Category 𝒮](F : 𝒮ᵒᵖ ⥤ Type u₃)
+variable {𝒮 : Type u₁} [Category 𝒮] {F : 𝒮ᵒᵖ ⥤ Type u₃}
 
-def ℱ := (S : 𝒮) × Discrete (F.obj (op S))
+def ℱ (F : 𝒮ᵒᵖ ⥤ Type u₃) := (S : 𝒮) × Discrete (F.obj (op S))
 
+-- TODO: rename these simp lemmas somehow
 @[simps]
 instance : Category (ℱ F) where
   Hom X Y := (f : X.1 ⟶ Y.1) × (X.2 ⟶ (Discrete.mk ((F.map f.op) Y.2.1)))
@@ -67,8 +74,6 @@ instance : Category (ℱ F) where
     apply Subsingleton.helim
     simp only [assoc]
 
---lemma ℱ.hom_ext
-
 @[simps]
 def ℱ.π (F : 𝒮ᵒᵖ ⥤ Type u₃) : ℱ F ⥤ 𝒮 where
   obj := λ X => X.1
@@ -84,81 +89,59 @@ def ℱ.mk_map₁ {R S : 𝒮} (f : R ⟶ S) {X Y : ℱ F} (hX : X.1 = S)
 
 @[simp]
 def ℱ.mk_map {R S : 𝒮} {f : R ⟶ S} {X Y : ℱ F} {hX : X.1 = S}
-    {hY : Y.1 = R} (hXY : Y.2 = Discrete.mk ((F.map (ℱ.mk_map₁ F f hX hY).op) X.2.1)) : Y ⟶ X :=
-  ⟨ℱ.mk_map₁ F f hX hY, eqToHom hXY⟩
+    {hY : Y.1 = R} (hXY : Y.2 = Discrete.mk ((F.map (ℱ.mk_map₁ f hX hY).op) X.2.1)) : Y ⟶ X :=
+  ⟨ℱ.mk_map₁ f hX hY, eqToHom hXY⟩
 
 @[ext]
 lemma ℱ.map_ext {X Y : ℱ F} {f g : X ⟶ Y} (hfg : f.1 = g.1) : f = g :=
   Sigma.ext hfg (Subsingleton.helim (by rw [hfg]) _ _)
 
-
 @[simp]
 lemma ℱ.map_ext_iff {X Y : ℱ F} (f g : X ⟶ Y) : f = g ↔ f.1 = g.1 where
   mp := fun hfg => congrArg _ hfg
-  mpr := fun hfg => ℱ.map_ext F hfg
+  mpr := fun hfg => ℱ.map_ext hfg
 
-
--- lemma ℱ.IsHomLift_self {X Y : ℱ F} (f : X ⟶ Y) : IsHomLift (ℱ.π F) f f where
---   ObjLiftDomain := rfl
---   ObjLiftCodomain := rfl
---   HomLift := ⟨by simp only [eqToHom_refl, comp_id, id_comp]; rfl⟩
+lemma ℱ.IsHomLift_eq_snd {R S : 𝒮} {f : R ⟶ S} {X Y : ℱ F} {φ : Y ⟶ X} (hφ : IsHomLift (ℱ.π F) f φ) :
+    Y.2 = Discrete.mk ((F.map (ℱ.mk_map₁ f hφ.2 hφ.1).op) X.2.1) := by
+  have h : ℱ.mk_map₁ f hφ.2 hφ.1 = φ.1 := IsHomLift_congr' hφ
+  rw [h]
+  ext
+  apply (Discrete.eq_of_hom φ.2)
 
 lemma ℱ.mk_map_IsHomLift {R S : 𝒮} {f : R ⟶ S} {X Y : ℱ F} {hX : X.1 = S}
-    {hY : Y.1 = R} (hXY : Y.2 = Discrete.mk ((F.map (ℱ.mk_map₁ F f hX hY).op) X.2.1) )
-    : IsHomLift (ℱ.π F) f (ℱ.mk_map F hXY) where
+    {hY : Y.1 = R} (hXY : Y.2 = Discrete.mk ((F.map (ℱ.mk_map₁ f hX hY).op) X.2.1) )
+    : IsHomLift (ℱ.π F) f (ℱ.mk_map hXY) where
   ObjLiftDomain := hY
   ObjLiftCodomain := hX
   HomLift := ⟨by simp⟩
 
 lemma ℱ.mk_map_IsPullback {R S : 𝒮} {f : R ⟶ S} {X Y : ℱ F} {hX : X.1 = S}
-    {hY : Y.1 = R} (hXY : Y.2 = Discrete.mk ((F.map (ℱ.mk_map₁ F f hX hY).op) X.2.1))
-    : IsPullback (ℱ.π F) f (ℱ.mk_map F hXY) :=
-  { ℱ.mk_map_IsHomLift F hXY with
+    {hY : Y.1 = R} (hXY : Y.2 = Discrete.mk ((F.map (ℱ.mk_map₁ f hX hY).op) X.2.1))
+    : IsPullback (ℱ.π F) f (ℱ.mk_map hXY) :=
+  { ℱ.mk_map_IsHomLift hXY with
     UniversalProperty := by
       intro T Z g h w φ' hφ'
-      have := hφ'.1
-      -- TODO: mk_map₁ / IsHomLift interaction
-      have hZY : Z.2 = Discrete.mk ((F.map (ℱ.mk_map₁ F g hY hφ'.1).op) Y.2.1) := by
-        -- TODO GOLF...
-        have hZX := (eq_of_hom φ'.2)
-        have := IsHomLift_congr' hφ'
-        simp at this
-        simp [←this, w] at hZX
-        simp [hXY]
+      have hZY : Z.2 = Discrete.mk ((F.map (ℱ.mk_map₁ g hY hφ'.1).op) Y.2.1) := by
         ext
-        exact hZX
-
-      use ℱ.mk_map F hZY
-      refine ⟨⟨ℱ.mk_map_IsHomLift F hZY, ?_⟩, ?_⟩
-
-      have := hφ'.3.1
-      simp [w, comp_eqToHom_iff] at this
-      simp [this]
-
+        simp [w, IsHomLift_eq_snd hφ', hXY]
+      use ℱ.mk_map hZY
+      refine ⟨⟨ℱ.mk_map_IsHomLift hZY, ?_⟩, ?_⟩
+      { simpa [w] using IsHomLift_congr' hφ'}
       intro ψ hψ
-      have := hψ.1.3.1
-      simp [comp_eqToHom_iff] at this
-      simp [this]
-  }
+      simp [IsHomLift_congr' hψ.1]}
 
 instance : IsFibered (ℱ.π F) where
   has_pullbacks := by
     intros X R S hS f
     subst hS
     let Y : ℱ F := ⟨R, Discrete.mk ((F.map (op f)) X.2.1)⟩
-    have hY : Y.2 = Discrete.mk ((F.map (ℱ.mk_map₁ F f rfl (show Y.1 = R from rfl)).op) X.2.1) := by
+    have hY : Y.2 = Discrete.mk ((F.map (ℱ.mk_map₁ f rfl (show Y.1 = R from rfl)).op) X.2.1) := by
       simp [ℱ.mk_map₁]; rfl
-    use Y, ℱ.mk_map F hY
-    exact ℱ.mk_map_IsPullback F hY
-
-lemma ℱ.Fiber_eq_of_hom {S : 𝒮} {a b : Fiber (ℱ.π F) S} (φ : a ⟶ b) : a = b := by
-  have := eq_of_hom φ.1.2
-  have hφ := IsHomLift_congr' φ.2
-  simp at hφ
-  sorry
+    use Y, ℱ.mk_map hY
+    exact ℱ.mk_map_IsPullback hY
 
 @[simps]
-def ℱ.ι (S : 𝒮) : Discrete (F.obj (op S)) ⥤ ℱ F where
+def ℱ.ι (F : 𝒮ᵒᵖ ⥤ Type u₃) (S : 𝒮) : Discrete (F.obj (op S)) ⥤ ℱ F where
   obj := fun a => ⟨S, a⟩
   map := @fun a b φ => ⟨𝟙 S, φ ≫ eqToHom (by simp only [op_id,
     FunctorToTypes.map_id_apply, mk_as])⟩
@@ -170,11 +153,12 @@ def ℱ.ι (S : 𝒮) : Discrete (F.obj (op S)) ⥤ ℱ F where
 
 -- TODO FiberInducedFunctor lemmas here
 
-lemma ℱ.comp_const (S : 𝒮) : (ℱ.ι F S) ⋙ ℱ.π F = (const (Discrete (F.obj (op S)))).obj S := by
+lemma ℱ.comp_const (F : 𝒮ᵒᵖ ⥤ Type u₃) (S : 𝒮) : (ℱ.ι F S) ⋙ ℱ.π F = (const (Discrete (F.obj (op S)))).obj S := by
   apply Functor.ext_of_iso {
-    hom := { app := by intro a; exact 𝟙 S }
-    inv := { app := by intro a; exact 𝟙 S } }
-  all_goals simp only [comp_obj, ℱ.π_obj, const_obj_obj, eqToHom_refl, implies_true]
+    hom := { app := by intro _; exact 𝟙 S }
+    inv := { app := by intro _; exact 𝟙 S } }
+  all_goals simp only [comp_obj, π_obj, ι_obj_fst, const_obj_obj, eqToHom_refl, implies_true]
+
 
 noncomputable instance (S : 𝒮) : Full (FiberInducedFunctor (ℱ.comp_const F S)) := by
   apply fullOfExists
