@@ -31,6 +31,8 @@ associated to `F(S)`.
 TODO:
 - Fix naming
 - (Later) Provide a splitting for this category
+- Functoriality!
+- Isomorphism between the overcategory and fibered category associated to the corresponding presheaf?
 -/
 
 universe u₁ v₁ u₂ v₂ u₃ w
