@@ -129,6 +129,8 @@ structure PreDescentData {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p) [Limi
   (hα : ∀ {Y Y' : 𝒮} {f : Y ⟶ S} {f' : Y' ⟶ S} (hf : I f) (hf' : I f'),
     IsHomLift p (𝟙 (@Limits.pullback _ _ _ _ _ f f' _)) (α hf hf').hom)
 
+
+
 structure DescentData {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p) [Limits.HasPullbacks 𝒮] extends PreDescentData J hp where
   (hCocyle : CocyleCondition J hp hI ha α hα)
 

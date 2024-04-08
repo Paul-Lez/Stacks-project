@@ -120,13 +120,9 @@ def Fiber.comp_const_nat (p : 𝒳 ⥤ 𝒮) (S : 𝒮) : (FiberInclusion p S) �
   inv := {
     app := fun x => eqToHom (x.prop).symm
     naturality := fun x y φ => by
-      -- TODO OPTIMIZE PROOF (could be solved by simp!!)
-      simp only [const_obj_obj, comp_obj, FiberInclusion_obj, const_obj_map, id_comp,
-        Functor.comp_map, FiberInclusion_map]
-      rw [←eqToHom_comp_iff, comp_eqToHom_iff]
-      have := φ.2.3.1
-      simp at this
-      rw [this]
+      -- TODO OPTIMIZE PROOF (could be solved by simp!!). probably need extra api to simplify
+      simp only [const_obj_obj, comp_obj, FiberInclusion_obj, const_obj_map, id_comp, Functor.comp_map, FiberInclusion_map]
+      rw [←eqToHom_comp_iff, comp_eqToHom_iff, φ.2.3.1, comp_id]
       }
 
 lemma Fiber.comp_const (p : 𝒳 ⥤ 𝒮) (S : 𝒮) : (FiberInclusion p S) ⋙ p = (const (Fiber p S)).obj S := by

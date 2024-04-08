@@ -225,8 +225,8 @@ lemma IsPullbackInducedMap_unique {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} 
 
 @[simp]
 lemma IsPullbackInducedMap_self_eq_id {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} {f : R ⟶ S} {φ : a ⟶ b}
-  (hφ : IsPullback p f φ) : 𝟙 a = IsPullbackInducedMap hφ (show f = 𝟙 R ≫ f by simp) hφ.toIsHomLift :=
-  IsPullbackInducedMap_unique hφ (show f = 𝟙 R ≫ f by simp) hφ.toIsHomLift (IsHomLift_id hφ.ObjLiftDomain) (id_comp _)
+  (hφ : IsPullback p f φ) : IsPullbackInducedMap hφ (show f = 𝟙 R ≫ f by simp) hφ.toIsHomLift = 𝟙 a:=
+  (IsPullbackInducedMap_unique hφ (show f = 𝟙 R ≫ f by simp) hφ.toIsHomLift (IsHomLift_id hφ.ObjLiftDomain) (id_comp _)).symm
 
 /-- TODO IS THIS PARTICULAR STATEMENT OPTIMAL? Assumes "big" squares are commutative...
 ```
@@ -376,9 +376,9 @@ noncomputable def IsPullbackInducedMapIsoofIso {p : 𝒳 ⥤ 𝒮}
           exact hφ.toIsHomLift)
     -- TODO SIMP SHOULD DO AUTOMATICALLY.....
     hom_inv_id := by
-      simp only [Iso.inv_hom_id_assoc, IsPullbackInducedMap_comp, Iso.hom_inv_id, ←IsPullbackInducedMap_self_eq_id]
+      simp only [Iso.inv_hom_id_assoc, IsPullbackInducedMap_comp, Iso.hom_inv_id, IsPullbackInducedMap_self_eq_id]
     inv_hom_id := by
-      simp only [Iso.inv_hom_id_assoc, IsPullbackInducedMap_comp, Iso.inv_hom_id, ←IsPullbackInducedMap_self_eq_id]
+      simp only [Iso.inv_hom_id_assoc, IsPullbackInducedMap_comp, Iso.inv_hom_id, IsPullbackInducedMap_self_eq_id]
 
 noncomputable def IsPullbackIso {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a' a b : 𝒳} {f : R ⟶ S} {φ : a ⟶ b}
   {φ' : a' ⟶ b} (hφ : IsPullback p f φ) (hφ' : IsPullback p f φ') : a' ≅ a :=
