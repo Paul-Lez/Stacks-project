@@ -8,8 +8,6 @@ namespace Fibered
 
 variable {𝒮 : Type u₁} [Category.{v₁} 𝒮]
 
-variable {𝒮 : Type u₁} [Category.{v₁} 𝒮]
-
 structure BasedFunctor (𝒮 : Type u₁) [Category.{v₁} 𝒮] where
   (carrier : Type u₂) -- TODO: other types also OK?
   [isCat : Category.{v₂} carrier]
