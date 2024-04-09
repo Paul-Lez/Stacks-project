@@ -243,6 +243,7 @@ noncomputable def TwoIsomorphism.TwoIsomorphism_of_fiber_morphism {p : 𝒳 ⥤ 
         apply CommSq.w
         simp only [Fibered_Morphism_of_fiber_obj_obj, id_obj, Fibered_Morphism_of_fiber_obj_map,
           const_obj_obj, Over.w]
+        constructor
         sorry
     }
     inv := {

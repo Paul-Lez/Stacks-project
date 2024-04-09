@@ -307,8 +307,7 @@ lemma IsPullbackofIso {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳}
       existsi φ' ≫ inv φ
       constructor
       · simp only [assoc, IsIso.inv_hom_id, comp_id, and_true]
-        have hf : IsIso f := IsIsoofIsHomliftisIso hlift hφ
-        have h₁ := IsHomLift_comp hφ' (IsHomLift_inv hlift hφ hf)
+        have h₁ := IsHomLift_comp hφ' (IsHomLift_inv hlift hφ (IsIsoofIsHomliftisIso hlift hφ))
         simp only [hf', assoc, IsIso.hom_inv_id, comp_id] at h₁
         exact h₁
       intro ψ hψ
@@ -330,8 +329,6 @@ lemma IsPullback_eqToHom_comp {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b c : 𝒳} {f
 lemma IsPullback_comp_eqToHom {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b c : 𝒳} {f : R ⟶ S}
     {φ : b ⟶ a} (hφ : IsPullback p f φ) (hc : a = c) : IsPullback p f (φ ≫ eqToHom hc) :=
   comp_id f ▸ IsPullback_comp hφ (IsPullback_eqToHom' hc hφ.ObjLiftCodomain)
-
-
 
 -- NEED TO CHECK PROOFS FROM HERE ONWARDS
 lemma IsPullbackIsoofIso {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} {f : R ⟶ S} {φ : a ⟶ b}
@@ -374,7 +371,6 @@ noncomputable def IsPullbackInducedMapIsoofIso {p : 𝒳 ⥤ 𝒮}
       (by
           rw [←assoc, g.inv_hom_id, id_comp]
           exact hφ.toIsHomLift)
-    -- TODO SIMP SHOULD DO AUTOMATICALLY.....
     hom_inv_id := by
       simp only [Iso.inv_hom_id_assoc, IsPullbackInducedMap_comp, Iso.hom_inv_id, IsPullbackInducedMap_self_eq_id]
     inv_hom_id := by
@@ -384,16 +380,14 @@ noncomputable def IsPullbackIso {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a' a b : 𝒳}
   {φ' : a' ⟶ b} (hφ : IsPullback p f φ) (hφ' : IsPullback p f φ') : a' ≅ a :=
   IsPullbackInducedMapIsoofIso (show f = (Iso.refl R).hom ≫ f by simp only [Iso.refl_hom, id_comp]) hφ hφ'
 
-/-
-Naturality API: TODO IS IT NEEDED, minimal for now.
+/-- Given a diagram
 
--/
--- TODO: make ψ non-explicit... Need to fix Stacks2 first for this
-/-
+      a ⟶  b
+            |         above     R ⟶ S
+            |
+      a' ⟶ b'
 
-
-
-
+`IsPullbackNaturalityHom` is induced map `a ⟶ a'`
 -/
 noncomputable def IsPullbackNaturalityHom {p : 𝒳 ⥤ 𝒮}
   {R S : 𝒮} {a a' b b' : 𝒳} {f : R ⟶ S} {φ : a ⟶ b} {φ' : a' ⟶ b'}
@@ -402,6 +396,18 @@ noncomputable def IsPullbackNaturalityHom {p : 𝒳 ⥤ 𝒮}
   IsPullbackInducedMap hφ' (show (f ≫ 𝟙 S = 𝟙 R ≫ f) by simp only [comp_id, id_comp])
     (IsHomLift_comp hφ.toIsHomLift hψ)
 
+/--The natural map `IsPullbackNaturalityHom : a ⟶ a'` lies above the identity -/
+lemma IsPullbackNaturalityHom_IsHomLift {p : 𝒳 ⥤ 𝒮}
+  {R S : 𝒮} {a a' b b' : 𝒳} {f : R ⟶ S} {φ : a ⟶ b} {φ' : a' ⟶ b'}
+  (hφ : IsPullback p f φ) (hφ' : IsPullback p f φ')
+  {ψ : b ⟶ b'} (hψ : IsHomLift p (𝟙 S) ψ) :
+  IsHomLift p (𝟙 R) (IsPullbackNaturalityHom hφ hφ' hψ) := IsPullbackInducedMap_IsHomLift _ _ _
+
+/--The natural map `IsPullbackNaturalityHom : a ⟶ a'` makes the following diagram commute
+      a ⟶  b
+      |     |
+      |     |
+      a' ⟶ b'   -/
 lemma IsPullbackNaturalityHom_CommSq {p : 𝒳 ⥤ 𝒮}
   {R S : 𝒮} {a a' b b' : 𝒳} {f : R ⟶ S} {φ : a ⟶ b} {φ' : a' ⟶ b'}
   (hφ : IsPullback p f φ) (hφ' : IsPullback p f φ')
@@ -409,18 +415,51 @@ lemma IsPullbackNaturalityHom_CommSq {p : 𝒳 ⥤ 𝒮}
   CommSq (IsPullbackNaturalityHom hφ hφ' hψ) φ φ' ψ where
     w := IsPullbackInducedMap_Diagram hφ' _ _
 
+/--The map `IsPullbackNaturalityHom : a ⟶ a'` is the unique map `a ⟶ a'` above the identity that makes the following diagram commute
+      a  ⟶ b
+      |     |
+      |     |
+      a' ⟶ b'    -/
 lemma IsPullbackNaturalityHom_uniqueness {p : 𝒳 ⥤ 𝒮}
   {R S : 𝒮} {a a' b b' : 𝒳} {f : R ⟶ S} {φ : a ⟶ b} {φ' : a' ⟶ b'}
   (hφ : IsPullback p f φ) (hφ' : IsPullback p f φ')
-  (ψ : b ⟶ b') (hψ : IsHomLift p (𝟙 S) ψ)
-  (μ : a ⟶ a') (hμ : IsHomLift p (𝟙 R) μ)
-  (hμ' : CommSq μ φ φ' ψ) : μ = IsPullbackNaturalityHom hφ hφ' hψ := by sorry
+  {ψ : b ⟶ b'} (hψ : IsHomLift p (𝟙 S) ψ)
+  {μ : a ⟶ a'} (hμ : IsHomLift p (𝟙 R) μ)
+  (hμ' : CommSq μ φ φ' ψ) : μ = IsPullbackNaturalityHom hφ hφ' hψ := IsPullbackInducedMap_unique _ _ _ hμ hμ'.w
 
+/--If we have a diagram
+      a  ⟶ b
+            ||
+            ||
+      a  ⟶ b
+then the induced map `IsPullbackNaturalityHom : a ⟶ a'` is just the identity -/
 @[simp]
 lemma IsPullbackNaturalityHom_id {p : 𝒳 ⥤ 𝒮}
   {R S : 𝒮} {a b : 𝒳} {f : R ⟶ S} {φ : a ⟶ b}
-  (hφ : IsPullback p f φ) : IsPullbackNaturalityHom hφ hφ (IsHomLift_id hφ.toIsHomLift.ObjLiftCodomain) = 𝟙 a := sorry
+  (hφ : IsPullback p f φ) : IsPullbackNaturalityHom hφ hφ (IsHomLift_id hφ.toIsHomLift.ObjLiftCodomain) = 𝟙 a := by
+  apply (IsPullbackNaturalityHom_uniqueness _ _ _ (IsHomLift_id hφ.ObjLiftDomain) _).symm
+  constructor
+  aesop
 
+lemma CommSq.comp {C : Type*} [Category C] {U V W X Y Z : C} {c : U ⟶ W} {d : U ⟶ V} {e : V ⟶ Y} {f : W ⟶ X} {g : W ⟶ Y} {h : X ⟶ Z} {i : Y ⟶ Z} (h₁ : CommSq c d g e) (h₂ : CommSq f g h i) :
+  CommSq (c ≫ f) d h (e ≫ i) := by
+  constructor
+  rw [←Category.assoc, ←h₁.w, Category.assoc c g, ← h₂.w, Category.assoc]
+
+
+
+/--The construction of `IsPullbackNaturalityHom` preserves compositions. More precisely if we have
+      a  ⟶ b
+            |
+            |
+      a' ⟶ b'               above         R ⟶ S
+            |
+            |
+      a''⟶ b''
+then the diagram a ⟶ a' that arise by taking induced maps `IsPullbackNaturalityHom` commutes
+                  \   |
+                    \ |
+                    a''                                                                     -/
 @[simp]
 lemma IsPullbackNaturalityHom_comp {p : 𝒳 ⥤ 𝒮}
   {R S : 𝒮} {a a' a'' b b' b'' : 𝒳} {f : R ⟶ S} {φ : a ⟶ b} {φ' : a' ⟶ b'} {φ'' : a'' ⟶ b''}
@@ -428,8 +467,9 @@ lemma IsPullbackNaturalityHom_comp {p : 𝒳 ⥤ 𝒮}
   (hφ'' : IsPullback p f φ'')
   {ψ : b ⟶ b'} (hψ : IsHomLift p (𝟙 S) ψ)
   {ψ' : b' ⟶ b''} (hψ' : IsHomLift p (𝟙 S) ψ') :
-  IsPullbackNaturalityHom hφ hφ'' (IsHomLift_id_comp hψ hψ') = IsPullbackNaturalityHom hφ hφ' hψ ≫
-    IsPullbackNaturalityHom hφ' hφ'' hψ' := sorry
+  IsPullbackNaturalityHom hφ hφ'' (IsHomLift_id_comp hψ hψ') = IsPullbackNaturalityHom hφ hφ' hψ ≫ IsPullbackNaturalityHom hφ' hφ'' hψ' := (IsPullbackNaturalityHom_uniqueness _ _ _ (IsHomLift_id_comp (IsPullbackNaturalityHom_IsHomLift _ _ _)
+    (IsPullbackNaturalityHom_IsHomLift _ _ _)) (CommSq.comp (IsPullbackNaturalityHom_CommSq _ _ _) (IsPullbackNaturalityHom_CommSq _ _ _))).symm
+
 
 /-- Definition of a Fibered category. -/
 class IsFibered (p : 𝒳 ⥤ 𝒮) : Prop where
