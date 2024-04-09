@@ -1,5 +1,5 @@
 import LS.refactor.Bicategory
-import LS.refactor.IsFibered
+import LS.refactor.HasFibers
 
 /-!
 In this file we construct the bicategory of fibered categories
@@ -9,11 +9,23 @@ In this file we construct the bicategory of fibered categories
 
 /-
 Plan:
-- Construct "FiberedCategory" structure
+- "HasFibers" bicategory
+- "FiberedCategory" bicategory
  -- This should use HasFibers, but should infer standard structure if there is none!
 
 Need:
-- Convert HasFibers file
 - Put stuff from FiberFunctor in here!
 
 -/
+
+
+universe u₁ v₁ u₂ v₂
+
+open CategoryTheory Functor Category Based
+
+variable {𝒮 : Type u₁} [Category 𝒮]
+
+namespace Fibered
+
+
+end Fibered

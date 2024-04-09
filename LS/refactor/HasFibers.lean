@@ -7,7 +7,7 @@ Authors: Calle Sönne, Paul Lezeau
 import LS.refactor.IsFibered
 import Mathlib.CategoryTheory.Functor.Const
 
-universe u₁ v₁ u₂ v₂ u₃ w
+universe u₁ v₁ u₂ v₂
 
 open CategoryTheory Functor Category
 
