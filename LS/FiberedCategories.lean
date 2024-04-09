@@ -389,6 +389,12 @@ Naturality API: TODO IS IT NEEDED, minimal for now.
 
 -/
 -- TODO: make ψ non-explicit... Need to fix Stacks2 first for this
+/-
+
+
+
+
+-/
 noncomputable def IsPullbackNaturalityHom {p : 𝒳 ⥤ 𝒮}
   {R S : 𝒮} {a a' b b' : 𝒳} {f : R ⟶ S} {φ : a ⟶ b} {φ' : a' ⟶ b'}
   (hφ : IsPullback p f φ) (hφ' : IsPullback p f φ')
@@ -396,6 +402,12 @@ noncomputable def IsPullbackNaturalityHom {p : 𝒳 ⥤ 𝒮}
   IsPullbackInducedMap hφ' (show (f ≫ 𝟙 S = 𝟙 R ≫ f) by simp only [comp_id, id_comp])
     (IsHomLift_comp hφ.toIsHomLift hψ)
 
+lemma IsPullbackNaturalityHom_comp {p : 𝒳 ⥤ 𝒮}
+  {R S : 𝒮} {a a' b b' : 𝒳} {f : R ⟶ S} {φ : a ⟶ b} {φ' : a' ⟶ b'}
+  (hφ : IsPullback p f φ) (hφ' : IsPullback p f φ')
+  (ψ : b ⟶ b') (hψ : IsHomLift p (𝟙 S) ψ) :
+  CommSq (IsPullbackNaturalityHom hφ hφ' ψ hψ) φ φ' ψ where
+    w := IsPullbackInducedMap_Diagram hφ' _ _
 
 /-- Definition of a Fibered category. -/
 class IsFibered (p : 𝒳 ⥤ 𝒮) : Prop where

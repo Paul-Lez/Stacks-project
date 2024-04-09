@@ -197,6 +197,7 @@ def TwoYoneda.toFun (p : 𝒳 ⥤ 𝒮) (S : 𝒮) [IsFiberedInGroupoids p] : Fi
 
 -- Any object a in the fiber above S (i.e. a morphism a ⟶ S in 𝒮) gives rise to a fibered morphism from the forgetful functor
 -- (Fiber p S ⥤ 𝒮) to p
+@[simps]
 noncomputable def TwoIsomorphism.Fibered_Morphism_of_fiber_obj {p : 𝒳 ⥤ 𝒮} {S : 𝒮} (hp : IsFiberedInGroupoids p) (a : Fiber p S) : Fibered.Morphism (Over.forget S) p where
   obj := fun b => PullbackObj hp.toIsFibered a.2 b.hom
   map := fun f => by
@@ -209,12 +210,39 @@ noncomputable def TwoIsomorphism.Fibered_Morphism_of_fiber_obj {p : 𝒳 ⥤ �
     simp only [id_obj, const_obj_obj, id_eq, eq_mpr_eq_cast, Over.comp_left, assoc, Over.w,
       IsPullbackInducedMap_comp, implies_true]
   w := by
-    sorry
+    apply Functor.ext ?_ ?_
+    · intro X
+      simp only [id_obj, const_obj_obj, Over.w, comp_obj, Over.forget_obj, PullbackObjLiftDomain]
+    · intro X Y f
+      simp only [id_obj, const_obj_obj, id_eq, Over.id_left, Over.comp_left, comp_obj,
+        Functor.comp_map, Over.w, Over.forget_obj, Over.forget_map]
+      rw [←Category.assoc, ←comp_eqToHom_iff]
+      apply (IsPullbackInducedMap_IsHomLift _ _ _).HomLift.w
+
+/- lemma TwoIsomorphism.Fibered_Morphism_of_fiber_obj_apply_obj {p : 𝒳 ⥤ 𝒮} {S : 𝒮} (hp : IsFiberedInGroupoids p) (a : Fiber p S) {b : Over S} : (TwoIsomorphism.Fibered_Morphism_of_fiber_obj hp a).obj a =  -/
 
 -- Any morphism f : a ⟶ b in the fiber above S (i.e. a morphism a ⟶ b above S) gives rise to a 2-isomorphism between the fibered
 -- morphisms defined above
 noncomputable def TwoIsomorphism.TwoIsomorphism_of_fiber_morphism {p : 𝒳 ⥤ 𝒮} {S : 𝒮}
-  (hp : IsFiberedInGroupoids p) {a b : Fiber p S} (f : a ⟶ b) : Fibered.TwoIsomorphism (TwoIsomorphism.Fibered_Morphism_of_fiber_obj hp a) (TwoIsomorphism.Fibered_Morphism_of_fiber_obj hp b) := sorry
+  (hp : IsFiberedInGroupoids p) {a b : Fiber p S} (f : a ⟶ b) : Fibered.TwoIsomorphism (TwoIsomorphism.Fibered_Morphism_of_fiber_obj hp a) (TwoIsomorphism.Fibered_Morphism_of_fiber_obj hp b) where
+    hom := {
+      app := fun x => IsPullbackNaturalityHom (p := p) (PullbackMapIsPullback hp.toIsFibered a.2 _) (PullbackMapIsPullback hp.toIsFibered b.2 _) f.1 (HasFibersHomLift  _)
+      naturality := by
+        intro X Y f
+        simp only [id_obj]
+        apply CommSq.w
+        simp only [Fibered_Morphism_of_fiber_obj_obj, id_obj, Fibered_Morphism_of_fiber_obj_map,
+          const_obj_obj, Over.w]
+        sorry
+    }
+    inv := {
+      app := fun x => sorry
+        /- IsPullbackNaturalityHom (p := p) (PullbackMapIsPullback hp.toIsFibered b.2 _) (PullbackMapIsPullback hp.toIsFibered a.2 _) f.1 (HasFibersHomLift  _)  -/
+      naturality := sorry
+    }
+    hom_inv_id := sorry
+    inv_hom_id := sorry
+    aboveId := sorry
 
 -- the pseudo-inverse two yoneda functor
 noncomputable def TwoYoneda.invFun (p : 𝒳 ⥤ 𝒮) (S : 𝒮) [IsFiberedInGroupoids p] : Fiber p S ⥤ Fibered.Morphism (Over.forget S) p where
