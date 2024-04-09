@@ -45,7 +45,7 @@ instance (S : 𝒮) : IsFiberedInGroupoids (Over.forget S) where
 
 structure Fibered.TwoMorphism {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} (f g : Fibered.Morphism p q) extends
   CategoryTheory.NatTrans f.toFunctor g.toFunctor where
-  (aboveId : ∀ {a : 𝒳} {S : 𝒮} (_ : p.obj a = S), IsHomLift q  (𝟙 S) (toNatTrans.app a))
+  (aboveId : ∀ {a : 𝒳} {S : 𝒮} (_ :p.obj a = S), IsHomLift q  (𝟙 S) (toNatTrans.app a))
 
 @[ext]
 lemma Fibered.TwoMorphism.ext {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {f g : Fibered.Morphism p q} (α β : Fibered.TwoMorphism f g)

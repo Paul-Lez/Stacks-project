@@ -50,7 +50,10 @@ lemma Fiber.hom_ext {p : 𝒳 ⥤ 𝒮} {S : 𝒮} {a b : Fiber p S} (φ ψ : a 
 lemma Fiber.val_comp {p : 𝒳 ⥤ 𝒮} {S : 𝒮} {a b c : Fiber p S} (φ : a ⟶ b)
     (ψ : b ⟶ c) : (φ ≫ ψ).1 = φ.1 ≫ ψ.1 := rfl
 
-lemma Fiber.mk_map_com {p :𝒳 ⥤ 𝒮} {S : 𝒮} {a b c : 𝒳} (ha : p.obj a = S) (hb : p.obj b = S) (hc : p.obj c = S) (φ : a ⟶ b) (ψ : b ⟶ c) (hφ : IsHomLift p (𝟙 S) φ) (hψ : IsHomLift p (𝟙 S) ψ) : Fiber.mk_map ha hc (φ ≫ ψ) (IsHomLift_id_comp hφ hψ) = Fiber.mk_map ha hb φ hφ ≫ Fiber.mk_map hb hc ψ hψ := rfl
+lemma Fiber.mk_map_com {p :𝒳 ⥤ 𝒮} {S : 𝒮} {a b c : 𝒳} (ha : p.obj a = S) (hb : p.obj b = S)
+    (hc : p.obj c = S) (φ : a ⟶ b) (ψ : b ⟶ c) (hφ : IsHomLift p (𝟙 S) φ)
+    (hψ : IsHomLift p (𝟙 S) ψ) : Fiber.mk_map ha hc (φ ≫ ψ) (IsHomLift_id_comp hφ hψ) =
+    Fiber.mk_map ha hb φ hφ ≫ Fiber.mk_map hb hc ψ hψ := rfl
 
 /-- Given a functor F : C ⥤ 𝒳 mapping constantly to some S in the base,
   we get an induced functor C ⥤ Fiber p S -/
@@ -178,7 +181,7 @@ lemma HasFibersEssSurj {p : 𝒳 ⥤ 𝒮} [hp : HasFibers p] {S : 𝒮} {a : �
   refine ⟨inferInstance, Φ.hom.2⟩
 
 lemma HasFibersEssSurj' {p : 𝒳 ⥤ 𝒮} [hp : HasFibers p] {S : 𝒮} {a : 𝒳} (ha : p.obj a = S) :
-  ∃ (b : hp.Fib S) (φ : (hp.ι S).obj b ≅ a), IsHomLift p (𝟙 S) φ.hom := by
+    ∃ (b : hp.Fib S) (φ : (hp.ι S).obj b ≅ a), IsHomLift p (𝟙 S) φ.hom := by
   -- This will be easy to inline
   use Functor.objPreimage (FiberInducedFunctor (hp.comp_const S)) (Fiber.mk_obj ha)
   let Φ := Functor.objObjPreimageIso (FiberInducedFunctor (hp.comp_const S)) (Fiber.mk_obj ha)
@@ -199,17 +202,17 @@ def HasFibersMap {p : 𝒳 ⥤ 𝒮} [hp : HasFibers p] {R S : 𝒮} {a : hp.Fib
 ```
 with a in Fib S, we can take a pullback b = `R ×_S a` in Fib R -/
 lemma HasFibersPullback {p : 𝒳 ⥤ 𝒮} [hp : HasFibers p] [IsFibered p] {R S : 𝒮} (a : hp.Fib S)
-  (f : R ⟶ S) : ∃ (b : hp.Fib R) (φ : (hp.ι R).obj b ⟶ (hp.ι S).obj a), IsPullback p f φ := by
-    rcases IsFibered.has_pullbacks (HasFibersObjLift a) f with ⟨b, φ, hφ⟩
-    rcases HasFibersEssSurj hφ.ObjLiftDomain with ⟨b', ψ, hψ⟩
-    use b', ψ ≫ φ
-    rw [←id_comp f]
-    exact IsPullback_comp (IsPullbackofIso hψ.2 hψ.1) hφ
+    (f : R ⟶ S) : ∃ (b : hp.Fib R) (φ : (hp.ι R).obj b ⟶ (hp.ι S).obj a), IsPullback p f φ := by
+  rcases IsFibered.has_pullbacks (HasFibersObjLift a) f with ⟨b, φ, hφ⟩
+  rcases HasFibersEssSurj hφ.ObjLiftDomain with ⟨b', ψ, hψ⟩
+  use b', ψ ≫ φ
+  rw [←id_comp f]
+  exact IsPullback_comp (IsPullbackofIso hψ.2 hψ.1) hφ
 
 -- TODO MAYBE REPLACE THE ABOVE WITH THIS LEMMA
 lemma HasFibersPullback' {p : 𝒳 ⥤ 𝒮} [hp : HasFibers p] [IsFibered p] {R S : 𝒮} {a : 𝒳}
-  (ha : p.obj a = S) (f : R ⟶ S) : ∃ (b : hp.Fib R) (φ : (hp.ι R).obj b ⟶ a),
-    IsPullback p f φ := by
+    (ha : p.obj a = S) (f : R ⟶ S) : ∃ (b : hp.Fib R) (φ : (hp.ι R).obj b ⟶ a),
+      IsPullback p f φ := by
   rcases IsFibered.has_pullbacks ha f with ⟨b, φ, hφ⟩
   rcases HasFibersEssSurj hφ.ObjLiftDomain with ⟨b', ψ, hψ⟩
   use b', ψ ≫ φ
@@ -225,9 +228,9 @@ R ====== R --f--> S
 ```
 Then the induced map τ : b' ⟶ b to lies in the fiber over R -/
 lemma HasFibersFactorization {p : 𝒳 ⥤ 𝒮} [hp : HasFibers p] [IsFibered p] {R S : 𝒮}
-  {a : 𝒳} {b b' : hp.Fib R} {f : R ⟶ S} {φ : (hp.ι R).obj b ⟶ a}
-  (hφ : IsHomLift p f φ) {ψ : (hp.ι R).obj b' ⟶ a} (hψ : IsPullback p f ψ) :
-    ∃ (τ : b ⟶ b'), (hp.ι R).map τ ≫ ψ = φ := by
+    {a : 𝒳} {b b' : hp.Fib R} {f : R ⟶ S} {φ : (hp.ι R).obj b ⟶ a}
+    (hφ : IsHomLift p f φ) {ψ : (hp.ι R).obj b' ⟶ a} (hψ : IsPullback p f ψ) :
+      ∃ (τ : b ⟶ b'), (hp.ι R).map τ ≫ ψ = φ := by
   -- By fullness, we can pull back τ to the fiber over R
   rcases HasFibersFull (IsPullbackInducedMap_IsHomLift hψ (id_comp f).symm hφ) with ⟨τ, hτ⟩
   use τ
@@ -235,8 +238,8 @@ lemma HasFibersFactorization {p : 𝒳 ⥤ 𝒮} [hp : HasFibers p] [IsFibered p
   exact (IsPullbackInducedMap_Diagram hψ (id_comp f).symm hφ)
 
 noncomputable def HasFibersInducedMap {p : 𝒳 ⥤ 𝒮} [hp : HasFibers p] [IsFibered p] {R S : 𝒮}
-  {a : 𝒳} {b b' : hp.Fib R} {f : R ⟶ S} {φ : (hp.ι R).obj b ⟶ a}
-  (hφ : IsHomLift p f φ) {ψ : (hp.ι R).obj b' ⟶ a} (hψ : IsPullback p f ψ) : b ⟶ b' :=
+    {a : 𝒳} {b b' : hp.Fib R} {f : R ⟶ S} {φ : (hp.ι R).obj b ⟶ a}
+    (hφ : IsHomLift p f φ) {ψ : (hp.ι R).obj b' ⟶ a} (hψ : IsPullback p f ψ) : b ⟶ b' :=
   Classical.choose (HasFibersFactorization hφ hψ)
 
 -- TODO FORMULATE...
@@ -264,13 +267,11 @@ It can be factorized as
 ```
 with ψ a pullback of f and τ a map in Fib R -/
 lemma fiber_factorization {p : 𝒳 ⥤ 𝒮} [hp : HasFibers p] [IsFibered p] {R S : 𝒮}
-  {a : hp.Fib S} {b : hp.Fib R} {f : R ⟶ S} {φ : (hp.ι R).obj b ⟶ (hp.ι S).obj a}
-  (hφ : IsHomLift p f φ) : ∃ (b' : hp.Fib R)
-  (τ : b ⟶ b') (ψ : (hp.ι R).obj b' ⟶ (hp.ι S).obj a), IsPullback p f ψ ∧ (((hp.ι R).map τ) ≫ ψ = φ) := by
-    rcases (HasFibersPullback a f) with ⟨b', ψ, hψ⟩
-    rcases HasFibersFactorization hφ hψ with ⟨τ, hτ⟩
-    use b', τ, ψ, hψ
-
-
+    {a : hp.Fib S} {b : hp.Fib R} {f : R ⟶ S} {φ : (hp.ι R).obj b ⟶ (hp.ι S).obj a}
+    (hφ : IsHomLift p f φ) : ∃ (b' : hp.Fib R) (τ : b ⟶ b') (ψ : (hp.ι R).obj b' ⟶ (hp.ι S).obj a),
+      IsPullback p f ψ ∧ (((hp.ι R).map τ) ≫ ψ = φ) := by
+  rcases (HasFibersPullback a f) with ⟨b', ψ, hψ⟩
+  rcases HasFibersFactorization hφ hψ with ⟨τ, hτ⟩
+  use b', τ, ψ, hψ
 
 end Fibered

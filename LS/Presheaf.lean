@@ -31,17 +31,23 @@ associated to `F(S)`.
 TODO:
 - Fix naming
 - (Later) Provide a splitting for this category
+- Functoriality!
+- Isomorphism between the overcategory and fibered category associated to the corresponding presheaf?
 -/
 
 universe u₁ v₁ u₂ v₂ u₃ w
 
 open CategoryTheory Functor Category Fibered Opposite Discrete
 
+namespace Presheaf
+
 variable {𝒮 : Type u₁} [Category 𝒮] {F : 𝒮ᵒᵖ ⥤ Type u₃}
 
+/-- The type of objects in the fibered category associated to a presheaf valued in types. -/
 def ℱ (F : 𝒮ᵒᵖ ⥤ Type u₃) := (S : 𝒮) × Discrete (F.obj (op S))
 
 -- TODO: rename these simp lemmas somehow
+/-- The category structure on the fibered category associated to a presheaf valued in types. -/
 @[simps]
 instance : Category (ℱ F) where
   Hom X Y := (f : X.1 ⟶ Y.1) × (X.2 ⟶ (Discrete.mk ((F.map f.op) Y.2.1)))
@@ -74,6 +80,7 @@ instance : Category (ℱ F) where
     apply Subsingleton.helim
     simp only [assoc]
 
+/-- The projection `ℱ F ⥤ 𝒮` given by projecting both objects and homs to the first factor -/
 @[simps]
 def ℱ.π (F : 𝒮ᵒᵖ ⥤ Type u₃) : ℱ F ⥤ 𝒮 where
   obj := λ X => X.1
@@ -130,6 +137,7 @@ lemma ℱ.mk_map_IsPullback {R S : 𝒮} {f : R ⟶ S} {X Y : ℱ F} {hX : X.1 =
       intro ψ hψ
       simp [IsHomLift_congr' hψ.1]}
 
+/-- `ℱ.π` is a fibered category. -/
 instance : IsFibered (ℱ.π F) where
   has_pullbacks := by
     intros X R S hS f
@@ -151,14 +159,11 @@ def ℱ.ι (F : 𝒮ᵒᵖ ⥤ Type u₃) (S : 𝒮) : Discrete (F.obj (op S)) �
     { apply Subsingleton.helim
       simp only [op_id, FunctorToTypes.map_id_apply, mk_as, instCategoryℱ_comp_fst, comp_id] }
 
--- TODO FiberInducedFunctor lemmas here
-
 lemma ℱ.comp_const (F : 𝒮ᵒᵖ ⥤ Type u₃) (S : 𝒮) : (ℱ.ι F S) ⋙ ℱ.π F = (const (Discrete (F.obj (op S)))).obj S := by
   apply Functor.ext_of_iso {
     hom := { app := by intro _; exact 𝟙 S }
     inv := { app := by intro _; exact 𝟙 S } }
   all_goals simp only [comp_obj, π_obj, ι_obj_fst, const_obj_obj, eqToHom_refl, implies_true]
-
 
 noncomputable instance (S : 𝒮) : Full (FiberInducedFunctor (ℱ.comp_const F S)) := by
   apply fullOfExists

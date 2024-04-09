@@ -12,12 +12,17 @@ open CategoryTheory Functor Category
 
 variable {𝒮 : Type u₁} {𝒳 : Type u₂} {𝒴 : Type u₃} [Category 𝒳] [Category 𝒮] [Category 𝒴]
 
+#check Bundled
+
 namespace Fibered
 
 structure Morphism (p : 𝒳 ⥤ 𝒮) (q : 𝒴 ⥤ 𝒮) extends CategoryTheory.Functor 𝒳 𝒴 where
   (w : toFunctor ⋙ q = p)
 
-/-- A notion of functor between HasFiberss. It is given by a functor F : 𝒳 ⥤ 𝒴 such that F ⋙ q = p,
+protected def Morphism.id (p : 𝒳 ⥤ 𝒮) : Morphism p p :=
+  { 𝟭 𝒳 with w := CategoryTheory.Functor.id_comp _ }
+
+/-- A notion of functor between HasFibers. It is given by a functor F : 𝒳 ⥤ 𝒴 such that F ⋙ q = p,
   and a collection of functors fiber_functor S between the fibers of p and q over S in 𝒮 such that
   .... -/
 class IsFiberMorphism {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [hp : HasFibers p] [hq : HasFibers q] (F : Morphism p q) where
@@ -43,7 +48,7 @@ lemma Morphism.fiber_proj {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [hp : HasFiber
 --     (hq.ι S).map ((hF.fiber_functor S).map φ) = F.map ((hp.ι S).map φ) := by
 --     rw [←comp_obj, congr_obj (hF.comp_eq S), comp_obj]
 
-/-- TODO -/
+-- TODO: this one is probably not needed
 lemma Morphism.IsHomLift_map  {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} (F : Morphism p q)
     {a b : 𝒳} (φ : a ⟶ b) : IsHomLift q (p.map φ) (F.map φ) where
   ObjLiftDomain := Morphism.obj_proj F a
