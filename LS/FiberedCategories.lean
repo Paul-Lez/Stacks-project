@@ -398,16 +398,38 @@ Naturality API: TODO IS IT NEEDED, minimal for now.
 noncomputable def IsPullbackNaturalityHom {p : 𝒳 ⥤ 𝒮}
   {R S : 𝒮} {a a' b b' : 𝒳} {f : R ⟶ S} {φ : a ⟶ b} {φ' : a' ⟶ b'}
   (hφ : IsPullback p f φ) (hφ' : IsPullback p f φ')
-  (ψ : b ⟶ b') (hψ : IsHomLift p (𝟙 S) ψ) : a ⟶ a' :=
+  {ψ : b ⟶ b'} (hψ : IsHomLift p (𝟙 S) ψ) : a ⟶ a' :=
   IsPullbackInducedMap hφ' (show (f ≫ 𝟙 S = 𝟙 R ≫ f) by simp only [comp_id, id_comp])
     (IsHomLift_comp hφ.toIsHomLift hψ)
 
-lemma IsPullbackNaturalityHom_comp {p : 𝒳 ⥤ 𝒮}
+lemma IsPullbackNaturalityHom_CommSq {p : 𝒳 ⥤ 𝒮}
   {R S : 𝒮} {a a' b b' : 𝒳} {f : R ⟶ S} {φ : a ⟶ b} {φ' : a' ⟶ b'}
   (hφ : IsPullback p f φ) (hφ' : IsPullback p f φ')
-  (ψ : b ⟶ b') (hψ : IsHomLift p (𝟙 S) ψ) :
-  CommSq (IsPullbackNaturalityHom hφ hφ' ψ hψ) φ φ' ψ where
+  {ψ : b ⟶ b'} (hψ : IsHomLift p (𝟙 S) ψ) :
+  CommSq (IsPullbackNaturalityHom hφ hφ' hψ) φ φ' ψ where
     w := IsPullbackInducedMap_Diagram hφ' _ _
+
+lemma IsPullbackNaturalityHom_uniqueness {p : 𝒳 ⥤ 𝒮}
+  {R S : 𝒮} {a a' b b' : 𝒳} {f : R ⟶ S} {φ : a ⟶ b} {φ' : a' ⟶ b'}
+  (hφ : IsPullback p f φ) (hφ' : IsPullback p f φ')
+  (ψ : b ⟶ b') (hψ : IsHomLift p (𝟙 S) ψ)
+  (μ : a ⟶ a') (hμ : IsHomLift p (𝟙 R) μ)
+  (hμ' : CommSq μ φ φ' ψ) : μ = IsPullbackNaturalityHom hφ hφ' hψ := by sorry
+
+@[simp]
+lemma IsPullbackNaturalityHom_id {p : 𝒳 ⥤ 𝒮}
+  {R S : 𝒮} {a b : 𝒳} {f : R ⟶ S} {φ : a ⟶ b}
+  (hφ : IsPullback p f φ) : IsPullbackNaturalityHom hφ hφ (IsHomLift_id hφ.toIsHomLift.ObjLiftCodomain) = 𝟙 a := sorry
+
+@[simp]
+lemma IsPullbackNaturalityHom_comp {p : 𝒳 ⥤ 𝒮}
+  {R S : 𝒮} {a a' a'' b b' b'' : 𝒳} {f : R ⟶ S} {φ : a ⟶ b} {φ' : a' ⟶ b'} {φ'' : a'' ⟶ b''}
+  (hφ : IsPullback p f φ) (hφ' : IsPullback p f φ')
+  (hφ'' : IsPullback p f φ'')
+  {ψ : b ⟶ b'} (hψ : IsHomLift p (𝟙 S) ψ)
+  {ψ' : b' ⟶ b''} (hψ' : IsHomLift p (𝟙 S) ψ') :
+  IsPullbackNaturalityHom hφ hφ'' (IsHomLift_id_comp hψ hψ') = IsPullbackNaturalityHom hφ hφ' hψ ≫
+    IsPullbackNaturalityHom hφ' hφ'' hψ' := sorry
 
 /-- Definition of a Fibered category. -/
 class IsFibered (p : 𝒳 ⥤ 𝒮) : Prop where

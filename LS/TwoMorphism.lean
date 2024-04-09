@@ -147,7 +147,7 @@ def Fibered.TwoIsomorphism.comp {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {f g h :
   }
 
 @[simp]
-lemma Fibered.TwoIsomorphism.comp_app {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {f g h : Fibered.Morphism p q} (α : Fibered.TwoIsomorphism f g) (β : Fibered.TwoIsomorphism g h) (x : 𝒳) : (comp α β).hom.app x = (α.hom.app x) ≫ β.hom.app x:= rfl
+lemma Fibered.TwoIsomorphism.comp_app {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {f g h : Fibered.Morphism p q} (α : Fibered.TwoIsomorphism f g) (β : Fibered.TwoIsomorphism g h) (x : 𝒳) : (comp α β).hom.app x = (α.hom.app x) ≫ β.hom.app x := rfl
 
 @[simp]
 lemma Fibered.TwoIsomorphism.comp_toIso {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {f g h : Fibered.Morphism p q} (α : Fibered.TwoIsomorphism f g) (β : Fibered.TwoIsomorphism g h) : (comp α β).toIso = α.toIso.trans β.toIso := rfl
@@ -176,6 +176,15 @@ instance (p : 𝒳 ⥤ 𝒮) (q : 𝒴 ⥤ 𝒮) [IsFiberedInGroupoids p] [IsFib
   id_comp := Fibered.TwoIsomorphism.id_comp
   comp_id := Fibered.TwoIsomorphism.comp_id
   assoc := Fibered.TwoIsomorphism.comp_assoc
+
+@[simp]
+lemma Fibered.Morphism_Cat_id_apply (p : 𝒳 ⥤ 𝒮) (q : 𝒴 ⥤ 𝒮) [IsFiberedInGroupoids p] [IsFiberedInGroupoids q] (f : Fibered.Morphism p q) (x : 𝒳) :
+  (𝟙 f : Fibered.TwoIsomorphism f f).hom.app x = 𝟙 (f.obj x) := rfl
+
+@[simp]
+lemma Fibered.Morphism_Cat_comp_apply (p : 𝒳 ⥤ 𝒮) (q : 𝒴 ⥤ 𝒮) [IsFiberedInGroupoids p] [IsFiberedInGroupoids q] (f g h : Fibered.Morphism p q) (α : f ⟶ g) (β : g ⟶ h) (x : 𝒳) :
+  (α ≫ β : Fibered.TwoIsomorphism f h).hom.app x = (α.hom.app x) ≫ β.hom.app x := rfl
+
 
 def TwoYoneda.toFun (p : 𝒳 ⥤ 𝒮) (S : 𝒮) [IsFiberedInGroupoids p] : Fibered.Morphism (Over.forget S) p ⥤ Fiber p S where
   obj := fun f => by
@@ -223,10 +232,11 @@ noncomputable def TwoIsomorphism.Fibered_Morphism_of_fiber_obj {p : 𝒳 ⥤ �
 
 -- Any morphism f : a ⟶ b in the fiber above S (i.e. a morphism a ⟶ b above S) gives rise to a 2-isomorphism between the fibered
 -- morphisms defined above
+@[simps]
 noncomputable def TwoIsomorphism.TwoIsomorphism_of_fiber_morphism {p : 𝒳 ⥤ 𝒮} {S : 𝒮}
   (hp : IsFiberedInGroupoids p) {a b : Fiber p S} (f : a ⟶ b) : Fibered.TwoIsomorphism (TwoIsomorphism.Fibered_Morphism_of_fiber_obj hp a) (TwoIsomorphism.Fibered_Morphism_of_fiber_obj hp b) where
     hom := {
-      app := fun x => IsPullbackNaturalityHom (p := p) (PullbackMapIsPullback hp.toIsFibered a.2 _) (PullbackMapIsPullback hp.toIsFibered b.2 _) f.1 (HasFibersHomLift  _)
+      app := fun x => IsPullbackNaturalityHom (p := p) (PullbackMapIsPullback hp.toIsFibered a.2 _) (PullbackMapIsPullback hp.toIsFibered b.2 _) (ψ := f.1) (HasFibersHomLift  _)
       naturality := by
         intro X Y f
         simp only [id_obj]
@@ -249,5 +259,29 @@ noncomputable def TwoYoneda.invFun (p : 𝒳 ⥤ 𝒮) (S : 𝒮) [IsFiberedInGr
   obj := fun a => TwoIsomorphism.Fibered_Morphism_of_fiber_obj (p := p) (by infer_instance) a
   map := fun f => TwoIsomorphism.TwoIsomorphism_of_fiber_morphism (p := p) (by infer_instance) f
   map_id := by
-    sorry
-  map_comp := sorry
+    intro X
+    simp only
+    apply Fibered.TwoIsomorphism.ext
+    ext x
+    simp only [TwoIsomorphism.Fibered_Morphism_of_fiber_obj_obj, id_obj,
+      TwoIsomorphism.TwoIsomorphism_of_fiber_morphism_hom_app, FiberCategory_id_coe]
+    rw [Fibered.Morphism_Cat_id_apply]
+    rw [IsPullbackNaturalityHom_id]
+  map_comp := by
+    intro X Y Z f g
+    apply Fibered.TwoIsomorphism.ext
+    ext x
+    simp only [IsPullbackNaturalityHom_comp]
+    simp only [TwoIsomorphism.Fibered_Morphism_of_fiber_obj_obj, id_obj,
+      TwoIsomorphism.TwoIsomorphism_of_fiber_morphism_hom_app, FiberCategory_comp_coe]
+    simp only [id_obj, TwoIsomorphism.Fibered_Morphism_of_fiber_obj_obj, Morphism_Cat_comp_apply,
+      TwoIsomorphism.TwoIsomorphism_of_fiber_morphism_hom_app]
+    rw [IsPullbackNaturalityHom_comp]
+
+noncomputable def TwoYoneda.Equivalence (p : 𝒳 ⥤ 𝒮) (S : 𝒮) [IsFiberedInGroupoids p] :
+  Fibered.Morphism (Over.forget S) p  ≌ Fiber p S  where
+    functor := TwoYoneda.toFun p S
+    inverse := TwoYoneda.invFun p S
+    unitIso := sorry
+    counitIso := sorry
+    functor_unitIso_comp := sorry
