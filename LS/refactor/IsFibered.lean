@@ -19,7 +19,7 @@ variable {𝒮 : Type u₁} [Category.{v₁} 𝒮]
 ```
 is a pullback.
 -/
-class IsPullback (𝒳 : BasedFunctor 𝒮) {R S : 𝒮} {a b : 𝒳.1} (f : R ⟶ S) (φ : a ⟶ b)
+class IsPullback (𝒳 : BasedCategory 𝒮) {R S : 𝒮} {a b : 𝒳.1} (f : R ⟶ S) (φ : a ⟶ b)
     extends IsHomLift 𝒳 f φ : Prop where
   (UniversalProperty {R' : 𝒮} {a' : 𝒳.1} {g : R' ⟶ R} {f' : R' ⟶ S}
     (_ : f' = g ≫ f) {φ' : a' ⟶ b} (_ : IsHomLift 𝒳 f' φ') :
@@ -35,19 +35,19 @@ R' --g--> R --f--> S
 such that φ is a pullback, and an arrow φ' : a' ⟶ b,
 the induced map is the map a' ⟶ a obtained from the
 universal property of φ. -/
-noncomputable def IsPullbackInducedMap {𝒳 : BasedFunctor 𝒮} {R S : 𝒮} {a b : 𝒳.1} {f : R ⟶ S}
+noncomputable def IsPullbackInducedMap {𝒳 : BasedCategory 𝒮} {R S : 𝒮} {a b : 𝒳.1} {f : R ⟶ S}
     {φ : a ⟶ b} (hφ : IsPullback 𝒳 f φ) {R' : 𝒮} {a' : 𝒳.1} {g : R' ⟶ R} {f' : R' ⟶ S}
     (hf' : f' = g ≫ f) {φ' : a' ⟶ b} (hφ' : IsHomLift 𝒳 f' φ') : a' ⟶ a :=
   Classical.choose $ hφ.UniversalProperty hf' hφ'
 
-lemma IsPullbackInducedMap_IsHomLift {𝒳 : BasedFunctor 𝒮} {R S : 𝒮} {a b : 𝒳.1} {f : R ⟶ S}
+lemma IsPullbackInducedMap_IsHomLift {𝒳 : BasedCategory 𝒮} {R S : 𝒮} {a b : 𝒳.1} {f : R ⟶ S}
     {φ : a ⟶ b} (hφ : IsPullback 𝒳 f φ) {R' : 𝒮} {a' : 𝒳.1} {g : R' ⟶ R} {f' : R' ⟶ S}
     (hf' : f' = g ≫ f) {φ' : a' ⟶ b} (hφ' : IsHomLift 𝒳 f' φ') :
     IsHomLift 𝒳 g (IsPullbackInducedMap hφ hf' hφ') :=
   (Classical.choose_spec (hφ.UniversalProperty hf' hφ')).1.1
 
 @[simp]
-lemma IsPullbackInducedMap_Diagram {𝒳 : BasedFunctor 𝒮} {R S : 𝒮} {a b : 𝒳.1} {f : R ⟶ S} {φ : a ⟶ b}
+lemma IsPullbackInducedMap_Diagram {𝒳 : BasedCategory 𝒮} {R S : 𝒮} {a b : 𝒳.1} {f : R ⟶ S} {φ : a ⟶ b}
     (hφ : IsPullback 𝒳 f φ) {R' : 𝒮} {a' : 𝒳.1} {g : R' ⟶ R} {f' : R' ⟶ S} (hf' : f' = g ≫ f)
     {φ' : a' ⟶ b} (hφ' : IsHomLift 𝒳 f' φ') : (IsPullbackInducedMap hφ hf' hφ') ≫ φ = φ' :=
   (Classical.choose_spec (hφ.UniversalProperty hf' hφ')).1.2
@@ -61,14 +61,14 @@ R' --g--> R --f--> S
 ```
 with φ a pullback. Then for any arrow φ' : a' ⟶ b, and ψ : a' ⟶ a such that
 g ≫ ψ = φ'. Then ψ equals the induced pullback map. -/
-lemma IsPullbackInducedMap_unique {𝒳 : BasedFunctor 𝒮} {R S : 𝒮} {a b : 𝒳.1} {f : R ⟶ S} {φ : a ⟶ b}
+lemma IsPullbackInducedMap_unique {𝒳 : BasedCategory 𝒮} {R S : 𝒮} {a b : 𝒳.1} {f : R ⟶ S} {φ : a ⟶ b}
     (hφ : IsPullback 𝒳 f φ) {R' : 𝒮} {a' : 𝒳.1} {g : R' ⟶ R} {f' : R' ⟶ S} (hf' : f' = g ≫ f)
     {φ' : a' ⟶ b} (hφ' : IsHomLift 𝒳 f' φ') {ψ : a' ⟶ a} (hψ : IsHomLift 𝒳 g ψ)
     (hcomp : ψ ≫ φ = φ') : ψ = IsPullbackInducedMap hφ hf' hφ' :=
   (Classical.choose_spec (hφ.UniversalProperty hf' hφ')).2 ψ ⟨hψ, hcomp⟩
 
 @[simp]
-lemma IsPullbackInducedMap_self_eq_id {𝒳 : BasedFunctor 𝒮} {R S : 𝒮} {a b : 𝒳.1} {f : R ⟶ S}
+lemma IsPullbackInducedMap_self_eq_id {𝒳 : BasedCategory 𝒮} {R S : 𝒮} {a b : 𝒳.1} {f : R ⟶ S}
     {φ : a ⟶ b} (hφ : IsPullback 𝒳 f φ) : IsPullbackInducedMap hφ (id_comp f).symm hφ.toIsHomLift = 𝟙 a :=
   (IsPullbackInducedMap_unique hφ (id_comp f).symm hφ.toIsHomLift (IsHomLift_id hφ.ObjLiftDomain) (id_comp _)).symm
 
@@ -78,7 +78,7 @@ lemma IsPullbackInducedMap_self_eq_id {𝒳 : BasedFunctor 𝒮} {R S : 𝒮} {a
 
 ``` -/
 @[simp]
-lemma IsPullbackInducedMap_comp {𝒳 : BasedFunctor 𝒮} {R R' R'' S: 𝒮} {a a' a'' b : 𝒳.1}
+lemma IsPullbackInducedMap_comp {𝒳 : BasedCategory 𝒮} {R R' R'' S: 𝒮} {a a' a'' b : 𝒳.1}
     {f : R ⟶ S} {f' : R' ⟶ S} {f'' : R'' ⟶ S} {g : R' ⟶ R} {h : R'' ⟶ R'}
     (H : f' = g ≫ f) (H' : f'' = h ≫ f') {φ : a ⟶ b} {φ' : a' ⟶ b} {φ'' : a'' ⟶ b}
     (hφ : IsPullback 𝒳 f φ) (hφ' : IsPullback 𝒳 f' φ') (hφ'' : IsHomLift 𝒳 f'' φ'') :
@@ -98,7 +98,7 @@ v        v        v
 R --f--> S --g--> T
 ```
 Then also the composite φ ≫ ψ is a pullback square. -/
-lemma IsPullback_comp {𝒳 : BasedFunctor 𝒮} {R S T : 𝒮} {a b c : 𝒳.1} {f : R ⟶ S} {g : S ⟶ T}
+lemma IsPullback_comp {𝒳 : BasedCategory 𝒮} {R S T : 𝒮} {a b c : 𝒳.1} {f : R ⟶ S} {g : S ⟶ T}
     {φ : a ⟶ b} {ψ : b ⟶ c} (hφ : IsPullback 𝒳 f φ) (hψ : IsPullback 𝒳 g ψ) :
     IsPullback 𝒳 (f ≫ g) (φ ≫ ψ) where
   toIsHomLift := IsHomLift_comp hφ.toIsHomLift hψ.toIsHomLift
@@ -123,7 +123,7 @@ v        v        v
 R --f--> S --g--> T
 ```
 such that the composite φ ≫ ψ and ψ are pullbacks, then so is φ. -/
-lemma IsPullback_of_comp {𝒳 : BasedFunctor 𝒮} {R S T : 𝒮} {a b c : 𝒳.1} {f : R ⟶ S} {g : S ⟶ T}
+lemma IsPullback_of_comp {𝒳 : BasedCategory 𝒮} {R S T : 𝒮} {a b c : 𝒳.1} {f : R ⟶ S} {g : S ⟶ T}
   {φ : a ⟶ b} {ψ : b ⟶ c} (hψ : IsPullback 𝒳 g ψ) (hcomp : IsPullback 𝒳 (f ≫ g) (φ ≫ ψ))
   (hφ : IsHomLift 𝒳 f φ) : IsPullback 𝒳 f φ where
     toIsHomLift := hφ
@@ -143,7 +143,7 @@ lemma IsPullback_of_comp {𝒳 : BasedFunctor 𝒮} {R S T : 𝒮} {a b c : 𝒳
       intro π' hπ'
       apply IsPullbackInducedMap_unique _ _ _ hπ'.1 (by rw [←hπ'.2, assoc])
 
-lemma IsPullbackofIso {𝒳 : BasedFunctor 𝒮} {R S : 𝒮} {a b : 𝒳.1}
+lemma IsPullbackofIso {𝒳 : BasedCategory 𝒮} {R S : 𝒮} {a b : 𝒳.1}
   {f : R ⟶ S} {φ : a ⟶ b} (hlift : IsHomLift 𝒳 f φ) (hφ : IsIso φ) : IsPullback 𝒳 f φ where
     toIsHomLift := hlift
     UniversalProperty := by
@@ -159,24 +159,24 @@ lemma IsPullbackofIso {𝒳 : BasedFunctor 𝒮} {R S : 𝒮} {a b : 𝒳.1}
       simp only [IsIso.eq_comp_inv, hψ.2]
 
 /- eqToHom interactions -/
-lemma IsPullback_eqToHom {𝒳 : BasedFunctor 𝒮} {a b : 𝒳.1} (hba : b = a) {S : 𝒮} (hS : 𝒳.p.obj a = S) :
+lemma IsPullback_eqToHom {𝒳 : BasedCategory 𝒮} {a b : 𝒳.1} (hba : b = a) {S : 𝒮} (hS : 𝒳.p.obj a = S) :
     IsPullback 𝒳 (𝟙 S) (eqToHom hba) :=
   IsPullbackofIso (IsHomLift_id_eqToHom hba hS) inferInstance
 
-lemma IsPullback_eqToHom' {𝒳 : BasedFunctor 𝒮} {a b : 𝒳.1} (hba : b = a) {S : 𝒮} (hS : 𝒳.p.obj b = S) :
+lemma IsPullback_eqToHom' {𝒳 : BasedCategory 𝒮} {a b : 𝒳.1} (hba : b = a) {S : 𝒮} (hS : 𝒳.p.obj b = S) :
     IsPullback 𝒳 (𝟙 S) (eqToHom hba) :=
   IsPullbackofIso (IsHomLift_id_eqToHom' hba hS) inferInstance
 
-lemma IsPullback_eqToHom_comp {𝒳 : BasedFunctor 𝒮} {R S : 𝒮} {a b c : 𝒳.1} {f : R ⟶ S}
+lemma IsPullback_eqToHom_comp {𝒳 : BasedCategory 𝒮} {R S : 𝒮} {a b c : 𝒳.1} {f : R ⟶ S}
     {φ : b ⟶ a} (hφ : IsPullback 𝒳 f φ) (hc : c = b) : IsPullback 𝒳 f (eqToHom hc ≫ φ) :=
   id_comp f ▸ IsPullback_comp (IsPullback_eqToHom hc hφ.ObjLiftDomain) hφ
 
-lemma IsPullback_comp_eqToHom {𝒳 : BasedFunctor 𝒮} {R S : 𝒮} {a b c : 𝒳.1} {f : R ⟶ S}
+lemma IsPullback_comp_eqToHom {𝒳 : BasedCategory 𝒮} {R S : 𝒮} {a b c : 𝒳.1} {f : R ⟶ S}
     {φ : b ⟶ a} (hφ : IsPullback 𝒳 f φ) (hc : a = c) : IsPullback 𝒳 f (φ ≫ eqToHom hc) :=
   comp_id f ▸ IsPullback_comp hφ (IsPullback_eqToHom' hc hφ.ObjLiftCodomain)
 
 -- NEED TO CHECK PROOFS FROM HERE ONWARDS
-lemma IsPullbackIsoofIso {𝒳 : BasedFunctor 𝒮} {R S : 𝒮} {a b : 𝒳.1} {f : R ⟶ S} {φ : a ⟶ b}
+lemma IsPullbackIsoofIso {𝒳 : BasedCategory 𝒮} {R S : 𝒮} {a b : 𝒳.1} {f : R ⟶ S} {φ : a ⟶ b}
   (hφ : IsPullback 𝒳 f φ) (hf : IsIso f): IsIso φ :=
   by
     constructor
@@ -206,7 +206,7 @@ lemma IsPullbackIsoofIso {𝒳 : BasedFunctor 𝒮} {R S : 𝒮} {a b : 𝒳.1} 
     simp only [id_comp, comp_id]
 
 -- TODO: Keep this as a separate lemma...?
-noncomputable def IsPullbackInducedMapIsoofIso {𝒳 : BasedFunctor 𝒮}
+noncomputable def IsPullbackInducedMapIsoofIso {𝒳 : BasedCategory 𝒮}
   {R R' S : 𝒮} {a a' b : 𝒳.1} {f : R ⟶ S} {f' : R' ⟶ S} {g : R' ≅ R}
   (H : f' = g.hom ≫ f) {φ : a ⟶ b} {φ' : a' ⟶ b}
   (hφ : IsPullback 𝒳 f φ) (hφ' : IsPullback 𝒳 f' φ') : a' ≅ a where
@@ -222,7 +222,7 @@ noncomputable def IsPullbackInducedMapIsoofIso {𝒳 : BasedFunctor 𝒮}
     inv_hom_id := by
       simp only [Iso.inv_hom_id_assoc, IsPullbackInducedMap_comp, Iso.inv_hom_id, IsPullbackInducedMap_self_eq_id]
 
-noncomputable def IsPullbackIso {𝒳 : BasedFunctor 𝒮} {R S : 𝒮} {a' a b : 𝒳.1} {f : R ⟶ S} {φ : a ⟶ b}
+noncomputable def IsPullbackIso {𝒳 : BasedCategory 𝒮} {R S : 𝒮} {a' a b : 𝒳.1} {f : R ⟶ S} {φ : a ⟶ b}
   {φ' : a' ⟶ b} (hφ : IsPullback 𝒳 f φ) (hφ' : IsPullback 𝒳 f φ') : a' ≅ a :=
   IsPullbackInducedMapIsoofIso (show f = (Iso.refl R).hom ≫ f by simp only [Iso.refl_hom, id_comp]) hφ hφ'
 
@@ -231,7 +231,7 @@ Naturality API: TODO IS IT NEEDED, minimal for now.
 
 -/
 -- TODO: make ψ non-explicit... Need to fix Stacks2 first for this
-noncomputable def IsPullbackNaturalityHom {𝒳 : BasedFunctor 𝒮}
+noncomputable def IsPullbackNaturalityHom {𝒳 : BasedCategory 𝒮}
   {R S : 𝒮} {a a' b b' : 𝒳.1} {f : R ⟶ S} {φ : a ⟶ b} {φ' : a' ⟶ b'}
   (hφ : IsPullback 𝒳 f φ) (hφ' : IsPullback 𝒳 f φ')
   (ψ : b ⟶ b') (hψ : IsHomLift 𝒳 (𝟙 S) ψ) : a ⟶ a' :=
@@ -240,7 +240,7 @@ noncomputable def IsPullbackNaturalityHom {𝒳 : BasedFunctor 𝒮}
 
 
 /-- Definition of a Fibered category. -/
-class IsFibered (𝒳 : BasedFunctor 𝒮) : Prop where
+class IsFibered (𝒳 : BasedCategory 𝒮) : Prop where
   (has_pullbacks {a : 𝒳.1} {R S : 𝒮} (_ : 𝒳.p.obj a = S) (f : R ⟶ S) :
     ∃ (b : 𝒳.1) (φ : b ⟶ a), IsPullback 𝒳 f φ)
 
@@ -255,7 +255,7 @@ class IsFibered (𝒳 : BasedFunctor 𝒮) : Prop where
   R --f--> S
 ```
 we have a pullback `R ×_S a` -/
-noncomputable def PullbackObj {𝒳 : BasedFunctor 𝒮} (hp : IsFibered 𝒳) {R S : 𝒮}
+noncomputable def PullbackObj {𝒳 : BasedCategory 𝒮} (hp : IsFibered 𝒳) {R S : 𝒮}
   {a : 𝒳.1} (ha : 𝒳.p.obj a = S) (f : R ⟶ S) : 𝒳.1 :=
   Classical.choose (hp.1 ha f)
 
@@ -268,15 +268,15 @@ noncomputable def PullbackObj {𝒳 : BasedFunctor 𝒮} (hp : IsFibered 𝒳) {
 R --f--> S
 ```
 we get a map R ×_S b ⟶ a -/
-noncomputable def PullbackMap {𝒳 : BasedFunctor 𝒮} (hp : IsFibered 𝒳)
+noncomputable def PullbackMap {𝒳 : BasedCategory 𝒮} (hp : IsFibered 𝒳)
   {R S : 𝒮} {a : 𝒳.1} (ha : 𝒳.p.obj a = S) (f : R ⟶ S) : PullbackObj hp ha f ⟶ a :=
   Classical.choose (Classical.choose_spec (hp.1 ha f))
 
-lemma PullbackMapIsPullback {𝒳 : BasedFunctor 𝒮} (hp : IsFibered 𝒳)
+lemma PullbackMapIsPullback {𝒳 : BasedCategory 𝒮} (hp : IsFibered 𝒳)
   {R S : 𝒮} {a : 𝒳.1} (ha : 𝒳.p.obj a = S) (f : R ⟶ S) : IsPullback 𝒳 f (PullbackMap hp ha f) :=
   Classical.choose_spec (Classical.choose_spec (hp.1 ha f))
 
-lemma PullbackObjLiftDomain {𝒳 : BasedFunctor 𝒮} (hp : IsFibered 𝒳)
+lemma PullbackObjLiftDomain {𝒳 : BasedCategory 𝒮} (hp : IsFibered 𝒳)
   {R S : 𝒮} {a : 𝒳.1} (ha : 𝒳.p.obj a = S) (f : R ⟶ S) : 𝒳.p.obj (PullbackObj hp ha f) = R := (PullbackMapIsPullback hp ha f).ObjLiftDomain
 
 /-- Given a diagram
@@ -288,9 +288,11 @@ lemma PullbackObjLiftDomain {𝒳 : BasedFunctor 𝒮} (hp : IsFibered 𝒳)
 T --g--> R --f--> S
 ```
 we have an isomorphism T ×_S a ≅ T ×_R (R ×_S a) -/
-noncomputable def PullbackCompIsoPullbackPullback {𝒳 : BasedFunctor 𝒮} (hp : IsFibered 𝒳)
+noncomputable def PullbackCompIsoPullbackPullback {𝒳 : BasedCategory 𝒮} (hp : IsFibered 𝒳)
   {R S T : 𝒮} {a : 𝒳.1} (ha : 𝒳.p.obj a = S) (f : R ⟶ S) (g : T ⟶ R) :
   PullbackObj hp ha (g ≫ f) ≅ PullbackObj hp (PullbackObjLiftDomain hp ha f) g :=
   IsPullbackIso (IsPullback_comp (PullbackMapIsPullback hp (PullbackObjLiftDomain hp ha f) g)
     (PullbackMapIsPullback hp ha f))
       (PullbackMapIsPullback hp ha (g ≫ f))
+
+end Fibered

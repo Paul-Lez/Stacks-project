@@ -34,13 +34,13 @@ def Morphism.comp {𝒳 𝒴 𝒵 : BasedFunctor 𝒮} (F : Morphism 𝒳 𝒴)
 
 @[simp]
 lemma Morphism.assoc {𝒳 𝒴 𝒵 𝒯 : BasedFunctor 𝒮} (F : Morphism 𝒳 𝒴) (G : Morphism 𝒴 𝒵)
-    (H : Morphism 𝒵 𝒯) : Morphism.comp (Morphism.comp F G) H = Morphism.comp F (Morphism.comp G H) := by aesop_cat
+    (H : Morphism 𝒵 𝒯) : Morphism.comp (Morphism.comp F G) H = Morphism.comp F (Morphism.comp G H) := rfl
 
 @[simp]
-lemma Morphism.comp_id {𝒳 𝒴 : BasedFunctor 𝒮} (F : Morphism 𝒳 𝒴) : Morphism.comp (Morphism.id 𝒳) F = F := by aesop_cat
+lemma Morphism.comp_id {𝒳 𝒴 : BasedFunctor 𝒮} (F : Morphism 𝒳 𝒴) : Morphism.comp (Morphism.id 𝒳) F = F := rfl
 
 @[simp]
-lemma Morphism.id_comp {𝒳 𝒴 : BasedFunctor 𝒮} (F : Morphism 𝒳 𝒴) : Morphism.comp F (Morphism.id 𝒴) = F := by aesop_cat
+lemma Morphism.id_comp {𝒳 𝒴 : BasedFunctor 𝒮} (F : Morphism 𝒳 𝒴) : Morphism.comp F (Morphism.id 𝒴) = F := rfl
 
 @[simp]
 lemma Morphism.obj_proj {𝒳 𝒴 : BasedFunctor 𝒮} (F : Morphism 𝒳 𝒴) (a : 𝒳.1) :
@@ -324,6 +324,7 @@ instance : Bicategory.Strict (BasedFunctor 𝒮) where
   id_comp := Morphism.id_comp
   comp_id := Morphism.comp_id
   assoc := Morphism.assoc
+
 
 end Fibered
 
