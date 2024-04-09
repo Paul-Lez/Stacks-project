@@ -228,6 +228,22 @@ noncomputable def TwoIsomorphism.Fibered_Morphism_of_fiber_obj {p : 𝒳 ⥤ �
       rw [←Category.assoc, ←comp_eqToHom_iff]
       apply (IsPullbackInducedMap_IsHomLift _ _ _).HomLift.w
 
+lemma Fiber.map_IsPullback_id {p : 𝒳 ⥤ 𝒮} {S : 𝒮} {a b : Fiber p S} (f : a ⟶ b) : IsPullback p (𝟙 S) f.val := sorry
+
+noncomputable instance {p : 𝒳 ⥤ 𝒮} [IsFiberedInGroupoids p] {S : 𝒮} : Groupoid (Fiber p S) where
+  inv {a b} f :=
+    Fiber.mk_map b.prop a.prop (IsPullbackInducedMap (p := p) (f := 𝟙 S) (g := 𝟙 S) (f' := 𝟙 S) (hf' := by simp only [comp_id]) (Fiber.map_IsPullback_id f) (φ' := 𝟙 b.val) (IsHomLift_id b.prop)) (IsPullbackInducedMap_IsHomLift _ _ _)
+  inv_comp {a b} f:= by
+    ext
+    simp only [FiberCategory_comp_coe, FiberCategory_id_coe]
+    simp_rw [Fiber.mk_map]
+    apply IsPullbackInducedMap_Diagram
+  comp_inv {a b} f := by
+    ext
+    simp only [FiberCategory_comp_coe, FiberCategory_id_coe]
+    simp_rw [Fiber.mk_map]
+    sorry
+
 /- lemma TwoIsomorphism.Fibered_Morphism_of_fiber_obj_apply_obj {p : 𝒳 ⥤ 𝒮} {S : 𝒮} (hp : IsFiberedInGroupoids p) (a : Fiber p S) {b : Over S} : (TwoIsomorphism.Fibered_Morphism_of_fiber_obj hp a).obj a =  -/
 
 -- Any morphism f : a ⟶ b in the fiber above S (i.e. a morphism a ⟶ b above S) gives rise to a 2-isomorphism between the fibered
