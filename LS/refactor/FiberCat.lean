@@ -45,6 +45,11 @@ structure FiberMorphism (𝒳 𝒴 : BasedCategory 𝒮) [hp : HasFibers 𝒳] [
   (onFib (S : 𝒮) : hp.Fib S ⥤ hq.Fib S)
   (fib_w : ∀ (S : 𝒮), (onFib S) ⋙ (hq.ι S) = (hp.ι S) ⋙ toFunctor) -- Maybe try aesop_cat by default here.
 
+lemma FiberMorphism.fib_w_obj {𝒳 𝒴 : BasedCategory 𝒮} [hp : HasFibers 𝒳] [hq : HasFibers 𝒴]
+    (F : FiberMorphism 𝒳 𝒴) {S : 𝒮} (a : hp.Fib S) :
+    (hq.ι S).obj ((F.onFib S).obj a) = (F.toFunctor).obj ((hp.ι S).obj a) := by
+  apply congr_obj (F.fib_w S)
+
 @[simps!]
 def FiberMorphism.comp {𝒳 𝒴 𝒵 : BasedCategory 𝒮} [h𝒳 : HasFibers 𝒳] [h𝒴 : HasFibers 𝒴]
     [h𝒵 : HasFibers 𝒵] (F : FiberMorphism 𝒳 𝒴) (G : FiberMorphism 𝒴 𝒵) : FiberMorphism 𝒳 𝒵 :=
@@ -122,6 +127,7 @@ structure FiberTwoMorphism {𝒳 𝒴 : BasedCategory 𝒮} [hp : HasFibers 𝒳
   (fib_w (S : 𝒮) : whiskerLeft (hp.ι S) toNatTrans =
     eqToHom (F.fib_w S).symm ≫ whiskerRight (onFib S) (hq.ι S) ≫ eqToHom (G.fib_w S))
 
+@[simps!?]
 def FiberTwoMorphism.comp {𝒳 𝒴 : BasedCategory 𝒮} [hp : HasFibers 𝒳] [hq : HasFibers 𝒴]
     {F G H : FiberMorphism 𝒳 𝒴} (α : FiberTwoMorphism F G) (β : FiberTwoMorphism G H) :
     FiberTwoMorphism F H :=
@@ -142,6 +148,13 @@ def FiberTwoMorphism.id {𝒳 𝒴 : BasedCategory 𝒮} [hp : HasFibers 𝒳] [
     fib_w := fun S => by simp; rfl }
 
 -- need FiberTwoMorphism.comp_app
+-- By lemmas like this, I actually dont need this structure?
+-- Just need to have a good API
+lemma FiberTwoMorphism.fib_w_app {𝒳 𝒴 : BasedCategory 𝒮} [hp : HasFibers 𝒳] [hq : HasFibers 𝒴]
+    {F G: FiberMorphism 𝒳 𝒴} {α : FiberTwoMorphism F G} (S : 𝒮) (a : hp.Fib S) :
+    α.app ((hp.ι S).obj a) = eqToHom (F.fib_w_obj a).symm ≫
+      (hq.ι S).map ((α.onFib S).app a) ≫ eqToHom (G.fib_w_obj a) := by
+  simpa using congr_app (α.fib_w S) a
 
 @[ext]
 lemma FiberTwoMorphism.ext {𝒳 𝒴 : BasedCategory 𝒮} [hp : HasFibers 𝒳] [hq : HasFibers 𝒴]
@@ -155,27 +168,111 @@ lemma FiberTwoMorphism.ext {𝒳 𝒴 : BasedCategory 𝒮} [hp : HasFibers 𝒳
     ext S a
     sorry -- NEED API FOR THIS
 
+@[simps!]
+instance FiberHomCategory (𝒳 𝒴 : FiberCat 𝒮) :
+    Category (FiberMorphism 𝒳.1 𝒴.1) where
+  Hom F G := F.toMorphism ⟶ G.toMorphism
+  id F := 𝟙 F.toMorphism
+  comp α β := TwoMorphism.comp α β
+
+
+@[ext]
+lemma FiberHomCategory.ext {𝒳 𝒴 : FiberCat 𝒮} {F G : FiberMorphism 𝒳.1 𝒴.1} (α β : F ⟶ G)
+    (h : α.toNatTrans = β.toNatTrans) : α = β := TwoMorphism.ext α β h
+
+@[simps]
+def FiberMorphism.associator {𝒳 𝒴 𝒵 𝒱 : FiberCat 𝒮} (F : FiberMorphism 𝒳.1 𝒴.1)
+    (G : FiberMorphism 𝒴.1 𝒵.1) (H : FiberMorphism 𝒵.1 𝒱.1) :
+  FiberMorphism.comp (FiberMorphism.comp F G) H ≅ FiberMorphism.comp F (FiberMorphism.comp G H) where
+    hom := {
+      app := fun _ => 𝟙 _
+      aboveId := by
+        intro a S ha
+        apply IsHomLift_id
+        simp only [Morphism.obj_proj, ha]
+    }
+    inv := {
+      app := fun _ => 𝟙 _
+      aboveId := by
+        intro a S ha
+        apply IsHomLift_id
+        simp only [Morphism.obj_proj, ha]
+    }
+
+@[simps]
+def FiberMorphism.leftUnitor {𝒳 𝒴 : FiberCat 𝒮} (F : FiberMorphism 𝒳.1 𝒴.1) :
+  FiberMorphism.comp (FiberMorphism.id 𝒳.1) F ≅ F where
+    hom :=
+    {
+      app := fun a => 𝟙 (F.obj a)
+      naturality := by
+        intros
+        simp
+      aboveId := by
+        intro a S ha
+        apply IsHomLift_id
+        simp only [Morphism.obj_proj, ha]
+    }
+    inv := {
+      app := fun a => 𝟙 (F.obj a)
+      aboveId := by
+        intro a S ha
+        apply IsHomLift_id
+        simp only [Morphism.obj_proj, ha]
+    }
+
+@[simps]
+def FiberMorphism.rightUnitor {𝒳 𝒴 : FiberCat 𝒮} (F : FiberMorphism 𝒳.1 𝒴.1) :
+  FiberMorphism.comp F (FiberMorphism.id 𝒴.1) ≅ F where
+    hom :=
+    {
+      app := fun a => 𝟙 (F.obj a)
+      naturality := by
+        intros
+        simp
+      aboveId := by
+        intro a S ha
+        apply IsHomLift_id
+        simp only [Morphism.obj_proj, ha]
+    }
+    inv := {
+      app := fun a => 𝟙 (F.obj a)
+      aboveId := by
+        intro a S ha
+        apply IsHomLift_id
+        simp only [Morphism.obj_proj, ha]
+    }
 
 
 
--- instance IsFiberTwoMorphism.default {𝒳 𝒴 : BasedCategory 𝒮} [hp : HasFibers 𝒳] [hq : HasFibers 𝒴]
---     {F G : 𝒳 ⟶ 𝒴} [hF : IsFiberMorphism F] [hG : IsFiberMorphism G] :
+instance : Bicategory (FiberCat 𝒮) where
+  Hom 𝒳 𝒴 := FiberMorphism 𝒳.1 𝒴.1
+  id 𝒳 := FiberMorphism.id 𝒳.1
+  comp := FiberMorphism.comp
+  homCategory 𝒳 𝒴 := FiberHomCategory 𝒳 𝒴
+  whiskerLeft {𝒳 𝒴 𝒵} F {G H} α := {
+      whiskerLeft F.toFunctor α.toNatTrans with
+      aboveId := by
+        intro a S ha
+        apply α.aboveId
+        simp only [Morphism.obj_proj, ha]
+    }
 
-/- TODO:
-1. define id, comp & show assoc, id_comp, comp_id of IsFiberTwoMorphism
--- id should be obtained from default instance
+  -- TODO: weird that this has non-implicit arguments and above doesnt
+  whiskerRight {𝒳 𝒴 𝒵} F G α H := {
+    whiskerRight α.toNatTrans H.toFunctor with
+    aboveId := by
+      intro a S ha
+      apply Morphism.pres_IsHomLift
+      apply α.aboveId ha
+  }
+  associator := FiberMorphism.associator
+  leftUnitor {𝒳 𝒴} F := FiberMorphism.leftUnitor F -- term mode doesn't work?!?
+  rightUnitor {𝒳 𝒴} F := FiberMorphism.rightUnitor F
 
-
-2. define IsFiberBiCategory (should I even?)
-3. define default instance for IsFiberTwoMorphism
-
-Can I do this using bundled? If so, is there bundled API for bicategories?
--/
-
-
-
--- instance
-
-
+instance : Bicategory.Strict (FiberCat 𝒮) where
+  id_comp := FiberMorphism.id_comp
+  comp_id := FiberMorphism.comp_id
+  assoc := FiberMorphism.assoc
 
 end Fibered
