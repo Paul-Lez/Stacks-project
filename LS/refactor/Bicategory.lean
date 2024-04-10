@@ -47,6 +47,12 @@ lemma Morphism.obj_proj {𝒳 𝒴 : BasedCategory 𝒮} (F : Morphism 𝒳 𝒴
     𝒴.p.obj (F.obj a) = 𝒳.p.obj a := by
   rw [←Functor.comp_obj, F.w]
 
+lemma Morphism.IsHomLift_map{𝒳 𝒴 : BasedCategory 𝒮} (F : Morphism 𝒳 𝒴)
+    {a b : 𝒳.1} (φ : a ⟶ b) : IsHomLift 𝒴 (𝒳.p.map φ) (F.map φ) where
+  ObjLiftDomain := Morphism.obj_proj F a
+  ObjLiftCodomain := Morphism.obj_proj F b
+  HomLift := ⟨by simp [congr_hom F.w.symm]⟩
+
 lemma Morphism.pres_IsHomLift {𝒳 𝒴 : BasedCategory 𝒮} (F : Morphism 𝒳 𝒴)
     {R S : 𝒮} {a b : 𝒳.1} {φ : a ⟶ b} {f : R ⟶ S} (hφ : IsHomLift 𝒳 f φ) : IsHomLift 𝒴 f (F.map φ) where
   ObjLiftDomain := Eq.trans (Morphism.obj_proj F a) hφ.ObjLiftDomain
@@ -55,6 +61,14 @@ lemma Morphism.pres_IsHomLift {𝒳 𝒴 : BasedCategory 𝒮} (F : Morphism �
     rw [←Functor.comp_map, congr_hom F.w]
     simp [hφ.3.1] ⟩
 
+lemma Morphism.HomLift_ofImage {𝒳 𝒴 : BasedCategory 𝒮} (F : Morphism 𝒳 𝒴) {S R : 𝒮} {a b : 𝒳.1}
+    {φ : a ⟶ b} {f : R ⟶ S} (hφ : IsHomLift 𝒴 f (F.map φ)) : IsHomLift 𝒳 f φ where
+  ObjLiftDomain := F.obj_proj a ▸ hφ.ObjLiftDomain
+  ObjLiftCodomain := F.obj_proj b ▸ hφ.ObjLiftCodomain
+  HomLift := ⟨by
+    rw [congr_hom F.w.symm]
+    simp only [Functor.comp_map, Category.assoc, eqToHom_trans, hφ.HomLift.1,
+      eqToHom_trans_assoc]⟩
 
 
 /-- TWOMORPHISMS -/
