@@ -1,9 +1,9 @@
-import LS.refactor.Bicategory
+import LS.refactor.BasedCategory
 import LS.refactor.HasFibers
 import Mathlib.CategoryTheory.ConcreteCategory.Bundled
 
 /-!
-In this file we construct the bicategory of fibered categories
+In this file we construct the bicategory of "fiber categories"
 
 -/
 
@@ -107,7 +107,7 @@ def Morphism.toFiberMorphism {𝒳 𝒴 : BasedCategory 𝒮} (F : 𝒳 ⟶ 𝒴
   }
   fib_w := by aesop_cat
 }
-/- TWO MORPHISMS FOR HASFIBERS CLASS -/
+/- /- TWO MORPHISMS FOR HASFIBERS CLASS -/
 structure FiberTwoMorphism {𝒳 𝒴 : BasedCategory 𝒮} [hp : HasFibers 𝒳] [hq : HasFibers 𝒴]
     (F G : FiberMorphism 𝒳 𝒴) extends TwoMorphism F.toMorphism G.toMorphism where
   /- A family of natural transformations between the functors for each fiber  -/
@@ -127,7 +127,7 @@ structure FiberTwoMorphism {𝒳 𝒴 : BasedCategory 𝒮} [hp : HasFibers 𝒳
   (fib_w (S : 𝒮) : whiskerLeft (hp.ι S) toNatTrans =
     eqToHom (F.fib_w S).symm ≫ whiskerRight (onFib S) (hq.ι S) ≫ eqToHom (G.fib_w S))
 
-@[simps!?]
+@[simps!]
 def FiberTwoMorphism.comp {𝒳 𝒴 : BasedCategory 𝒮} [hp : HasFibers 𝒳] [hq : HasFibers 𝒴]
     {F G H : FiberMorphism 𝒳 𝒴} (α : FiberTwoMorphism F G) (β : FiberTwoMorphism G H) :
     FiberTwoMorphism F H :=
@@ -166,7 +166,7 @@ lemma FiberTwoMorphism.ext {𝒳 𝒴 : BasedCategory 𝒮} [hp : HasFibers 𝒳
     simp only [mk.injEq]
     refine ⟨h, ?_⟩
     ext S a
-    sorry -- NEED API FOR THIS
+    sorry -- NEED API FOR THIS -/
 
 @[simps!]
 instance FiberHomCategory (𝒳 𝒴 : FiberCat 𝒮) :
