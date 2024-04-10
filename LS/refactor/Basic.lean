@@ -14,6 +14,10 @@ namespace Fibered
 
 variable {𝒮 : Type u₁} [Category.{v₁} 𝒮]
 
+class BasedCategory' (𝒮 : Type u₁) [Category.{v₁} 𝒮] (𝒳 : Type u₂) where
+  [isCat : Category.{v₂} 𝒳]
+  (p : 𝒳 ⥤ 𝒮)
+
 structure BasedCategory (𝒮 : Type u₁) [Category.{v₁} 𝒮] where
   (carrier : Type u₂) -- TODO: other types also OK?
   [isCat : Category.{v₂} carrier]

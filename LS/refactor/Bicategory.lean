@@ -2,6 +2,7 @@ import LS.refactor.Basic
 
 import Mathlib.CategoryTheory.Bicategory.Strict
 import Mathlib.CategoryTheory.Functor.Category
+import Mathlib.CategoryTheory.ConcreteCategory.Bundled
 
 /-!
 In this file give the type `BasedCategory 𝒮` the structure of a (strict) bicategory.
