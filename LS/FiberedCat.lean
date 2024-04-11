@@ -4,7 +4,7 @@ import LS.HasFibers
 /-!
 # The bicategory of fibered categories
 
-In this file we construct the bicategory of "fiber categories"
+In this file we construct the (strict) bicategory of "fiber categories"
 
 -/
 
@@ -27,6 +27,9 @@ instance FiberCat.hasCoeToSort : CoeSort (FiberCat 𝒮) (Type u₂) where
   coe := fun 𝒳 => 𝒳.carrier
 
 instance (𝒳 : FiberCat 𝒮) : HasFibers 𝒳.p := 𝒳.hasFib
+
+/-- The `FiberCat` associated to a `BasedCategory` by taking the canonical fiber structure. -/
+def BasedCategory.toFiberCat (𝒳 : BasedCategory 𝒮) : FiberCat 𝒮 := { 𝒳 with }
 
 /-- A notion of functor between `FiberCat`s. It is given by a `BasedFunctor`, `F : 𝒳 ⥤ 𝒴`,
     and a collection of functors `F.onFib S : 𝒳.hasFib.Fib S ⥤ 𝒴.hasFib.Fib S` for each `S : 𝒮`
@@ -91,11 +94,9 @@ lemma BasedFunctor.fiber_proj {𝒳 𝒴 : FiberCat 𝒮} (F : 𝒳.toBasedCateg
     {S : 𝒮} (a : 𝒳.hasFib.Fib S) : 𝒴.p.obj (F.obj ((𝒳.hasFib.ι S).obj a)) = S := by
   rw [BasedFunctor.obj_proj F ((𝒳.hasFib.ι S).obj a), HasFibersObjLift a]
 
-/- A `BasedFunctor` can be given the structure of a `FiberFunctor` -/
--- TODO: give canonical constructor from `BasedCategory` to `FiberCat`
-/- def BasedFunctor.toFiberFunctor {𝒳 𝒴 : BasedCategory 𝒮}
-    (F : 𝒳.toBasedCategory ⟶ 𝒴.toBasedCategory) :
-  FiberFunctor 𝒳 𝒴 :=
+/-- The `FiberFunctor` induced by a `BasedFunctor` by using the canonical fiber structure -/
+def BasedFunctor.toFiberFunctor {𝒳 𝒴 : BasedCategory 𝒮}
+    (F : 𝒳 ⟶ 𝒴) : FiberFunctor 𝒳.toFiberCat 𝒴.toFiberCat :=
 { F with
   onFib := fun S => {
     obj := fun a => ⟨F.obj a.1, by rw [F.obj_proj, a.2]⟩
@@ -103,16 +104,16 @@ lemma BasedFunctor.fiber_proj {𝒳 𝒴 : FiberCat 𝒮} (F : 𝒳.toBasedCateg
     map_id := by
       intro a
       -- TODO THIS SHOULD ALL BE SIMP SOMEHOW..
-      simp [FiberCategory_id_coe 𝒳 S a]
-      rw [←Subtype.val_inj, FiberCategory_id_coe 𝒴 S _]
+      simp [FiberCategory_id_coe 𝒳.p S a]
+      rw [←Subtype.val_inj, FiberCategory_id_coe 𝒴.p S _]
     map_comp := by
       intro x y z φ ψ
       -- THIS SHOULD ALSO ALL BE SIMP SOMEHOW...
-      simp [FiberCategory_comp_coe 𝒳 S φ ψ]
-      rw [←Subtype.val_inj, FiberCategory_comp_coe 𝒴 S _ _]
+      simp [FiberCategory_comp_coe 𝒳.p S φ ψ]
+      rw [←Subtype.val_inj, FiberCategory_comp_coe 𝒴.p S _ _]
   }
   fib_w := by aesop_cat
-} -/
+}
 
 /-- Category structure on `FiberFunctor` -/
 @[simps!]
@@ -122,6 +123,7 @@ instance FiberFunctorCategory (𝒳 𝒴 : FiberCat 𝒮) :
   id F := 𝟙 F.toBasedFunctor
   comp α β := BasedNatTrans.comp α β
 
+-- Maybe this can be solved if I start using full subcat?
 @[ext]
 lemma FiberFunctorCategory.ext {𝒳 𝒴 : FiberCat 𝒮} {F G : FiberFunctor 𝒳 𝒴} (α β : F ⟶ G)
     (h : α.toNatTrans = β.toNatTrans) : α = β := BasedNatTrans.ext α β h
@@ -222,7 +224,7 @@ instance : Bicategory.Strict (FiberCat 𝒮) where
 /-- A `FiberedCat` is a .... -/
 -- TODO: restructure FiberCategories file first
 structure FiberedCat (𝒮 : Type u₁) [Category.{v₁} 𝒮] extends FiberCat 𝒮 where
-  [isFibered : IsFibered p]
+  isFibered : IsFibered p := by infer_instance
 
 instance FiberedCat.hasCoeToSort : CoeSort (FiberedCat 𝒮) (Type u₂) where
   coe := fun 𝒳 => 𝒳.carrier
