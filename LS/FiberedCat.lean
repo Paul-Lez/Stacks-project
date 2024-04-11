@@ -31,6 +31,7 @@ structure FiberFunctor (𝒳 𝒴 : FiberCat 𝒮) extends BasedFunctor 𝒳.toB
   (onFib (S : 𝒮) : 𝒳.hasFib.Fib S ⥤ 𝒴.hasFib.Fib S)
   (fib_w : ∀ (S : 𝒮), (onFib S) ⋙ (𝒴.hasFib.ι S) = (𝒳.hasFib.ι S) ⋙ toFunctor) -- Maybe try aesop_cat by default here.
 
+@[simp]
 lemma FiberFunctor.fib_w_obj {𝒳 𝒴 : FiberCat 𝒮} (F : FiberFunctor 𝒳 𝒴) {S : 𝒮}  (a : 𝒳.hasFib.Fib S) :
     (𝒴.hasFib.ι S).obj ((F.onFib S).obj a) = (F.toFunctor).obj ((𝒳.hasFib.ι S).obj a) := by
   apply congr_obj (F.fib_w S)
@@ -102,7 +103,6 @@ instance FiberHomCategory (𝒳 𝒴 : FiberCat 𝒮) :
   Hom F G := F.toBasedFunctor ⟶ G.toBasedFunctor
   id F := 𝟙 F.toBasedFunctor
   comp α β := BasedNatTrans.comp α β
-
 
 @[ext]
 lemma FiberHomCategory.ext {𝒳 𝒴 : FiberCat 𝒮} {F G : FiberFunctor 𝒳 𝒴} (α β : F ⟶ G)
@@ -206,7 +206,147 @@ instance : Bicategory.Strict (FiberCat 𝒮) where
 structure FiberedCat (𝒮 : Type u₁) [Category.{v₁} 𝒮] extends FiberCat 𝒮 where
   [isFibered : IsFibered p]
 
--- TODO: define bicategory structure
+instance FiberedCat.hasCoeToSort : CoeSort (FiberedCat 𝒮) (Type u₂) where
+  coe := fun 𝒳 => 𝒳.carrier
+
+instance (𝒳 : FiberedCat 𝒮) : IsFibered 𝒳.p := 𝒳.isFibered
+
+structure FiberedFunctor (𝒳 𝒴 : FiberedCat 𝒮) extends FiberFunctor 𝒳.toFiberCat 𝒴.toFiberCat where
+  (pullback {R S : 𝒮} {f : R ⟶ S} {φ : a ⟶ b} (_ : IsPullback 𝒳.p f φ) : IsPullback 𝒴.p f (toFunctor.map φ))
+
+@[simps!]
+def FiberedFunctor.comp {𝒳 𝒴 𝒵 : FiberedCat 𝒮} (F : FiberedFunctor 𝒳 𝒴)
+    (G : FiberedFunctor 𝒴 𝒵) : FiberedFunctor 𝒳 𝒵 :=
+  { FiberFunctor.comp F.toFiberFunctor G.toFiberFunctor with
+    pullback := fun hφ => G.pullback (F.pullback hφ) }
+
+@[simps!]
+def FiberedFunctor.id (𝒳 : FiberedCat 𝒮) : FiberedFunctor 𝒳 𝒳 :=
+  { FiberFunctor.id 𝒳.toFiberCat with
+    pullback := fun hφ => by simp only [FiberFunctor.id_obj, FiberFunctor.id_map, hφ]}
+
+@[simp]
+lemma FiberedFunctor.assoc {𝒳 𝒴 𝒵 𝒯 : FiberedCat 𝒮}
+    (F : FiberedFunctor 𝒳 𝒴) (G : FiberedFunctor 𝒴 𝒵)
+    (H : FiberedFunctor 𝒵 𝒯) : FiberedFunctor.comp (FiberedFunctor.comp F G) H =
+      FiberedFunctor.comp F (FiberedFunctor.comp G H) := rfl
+
+@[simp]
+lemma FiberedFunctor.comp_id {𝒳 𝒴 : FiberedCat 𝒮}
+    (F : FiberedFunctor 𝒳 𝒴) : FiberedFunctor.comp (FiberedFunctor.id 𝒳) F = F := rfl
+
+@[simp]
+lemma FiberedFunctor.id_comp {𝒳 𝒴 : FiberedCat 𝒮}
+    (F : FiberedFunctor 𝒳 𝒴) : FiberedFunctor.comp F (FiberedFunctor.id 𝒴) = F := rfl
+
+-- TODO: same as FiberHomCategory, is it possible to recycle that somehow?
+-- Need full subcategory of a bicategory!! (or would be nice)
+@[simps!]
+instance FiberedHomCategory (𝒳 𝒴 : FiberedCat 𝒮) :
+    Category (FiberedFunctor 𝒳 𝒴) where
+  Hom F G := F.toFiberFunctor ⟶ G.toFiberFunctor
+  id F := 𝟙 F.toFiberFunctor
+  comp α β := BasedNatTrans.comp α β
+
+@[ext]
+lemma FiberedHomCategory.ext {𝒳 𝒴 : FiberedCat 𝒮} {F G : FiberedFunctor 𝒳 𝒴} (α β : F ⟶ G)
+    (h : α.toNatTrans = β.toNatTrans) : α = β := BasedNatTrans.ext α β h
+
+
+-- TODO: with some API this should all follow from the above
+
+@[simps]
+def FiberedFunctor.associator {𝒳 𝒴 𝒵 𝒱 : FiberedCat 𝒮} (F : FiberedFunctor 𝒳 𝒴)
+    (G : FiberedFunctor 𝒴 𝒵) (H : FiberedFunctor 𝒵 𝒱) :
+  FiberedFunctor.comp (FiberedFunctor.comp F G) H ≅ FiberedFunctor.comp F (FiberedFunctor.comp G H) where
+    hom := {
+      app := fun _ => 𝟙 _
+      aboveId := by
+        intro a S ha
+        apply IsHomLift_id
+        simp only [BasedFunctor.obj_proj, ha]
+    }
+    inv := {
+      app := fun _ => 𝟙 _
+      aboveId := by
+        intro a S ha
+        apply IsHomLift_id
+        simp only [BasedFunctor.obj_proj, ha]
+    }
+
+@[simps]
+def FiberedFunctor.leftUnitor {𝒳 𝒴 : FiberedCat 𝒮} (F : FiberedFunctor 𝒳 𝒴) :
+  FiberedFunctor.comp (FiberedFunctor.id 𝒳) F ≅ F where
+    hom :=
+    {
+      app := fun a => 𝟙 (F.obj a)
+      naturality := by
+        intros
+        simp
+      aboveId := by
+        intro a S ha
+        apply IsHomLift_id
+        simp only [BasedFunctor.obj_proj, ha]
+    }
+    inv := {
+      app := fun a => 𝟙 (F.obj a)
+      aboveId := by
+        intro a S ha
+        apply IsHomLift_id
+        simp only [BasedFunctor.obj_proj, ha]
+    }
+
+@[simps]
+def FiberedFunctor.rightUnitor {𝒳 𝒴 : FiberedCat 𝒮} (F : FiberedFunctor 𝒳 𝒴) :
+  FiberedFunctor.comp F (FiberedFunctor.id 𝒴) ≅ F where
+    hom :=
+    {
+      app := fun a => 𝟙 (F.obj a)
+      naturality := by
+        intros
+        simp
+      aboveId := by
+        intro a S ha
+        apply IsHomLift_id
+        simp only [BasedFunctor.obj_proj, ha]
+    }
+    inv := {
+      app := fun a => 𝟙 (F.obj a)
+      aboveId := by
+        intro a S ha
+        apply IsHomLift_id
+        simp only [BasedFunctor.obj_proj, ha]
+    }
+
+instance : Bicategory (FiberedCat 𝒮) where
+  Hom 𝒳 𝒴 := FiberedFunctor 𝒳 𝒴
+  id 𝒳 := FiberedFunctor.id 𝒳
+  comp := FiberedFunctor.comp
+  homCategory 𝒳 𝒴 := FiberedHomCategory 𝒳 𝒴
+  whiskerLeft {𝒳 𝒴 𝒵} F {G H} α := {
+      whiskerLeft F.toFunctor α.toNatTrans with
+      aboveId := by
+        intro a S ha
+        apply α.aboveId
+        simp only [BasedFunctor.obj_proj, ha]
+    }
+
+  -- TODO: weird that this has non-implicit arguments and above doesnt
+  whiskerRight {𝒳 𝒴 𝒵} F G α H := {
+    whiskerRight α.toNatTrans H.toFunctor with
+    aboveId := by
+      intro a S ha
+      apply BasedFunctor.pres_IsHomLift
+      apply α.aboveId ha
+  }
+  associator := FiberedFunctor.associator
+  leftUnitor {𝒳 𝒴} F := FiberedFunctor.leftUnitor F -- term mode doesn't work?!?
+  rightUnitor {𝒳 𝒴} F := FiberedFunctor.rightUnitor F
+
+instance : Bicategory.Strict (FiberedCat 𝒮) where
+  id_comp := FiberedFunctor.id_comp
+  comp_id := FiberedFunctor.comp_id
+  assoc := FiberedFunctor.assoc
 
 end Fibered
 

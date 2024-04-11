@@ -19,6 +19,12 @@ such that `α.app a` lifts `𝟙 S` whenever `𝒳.p.obj a = S`.
 
 -/
 
+/-
+TODO:
+- Rely less on `aesop_cat` in definition of the bicategory
+
+-/
+
 universe u₁ v₁ u₂ v₂
 
 open CategoryTheory Functor Category NatTrans
