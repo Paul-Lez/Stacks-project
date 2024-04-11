@@ -18,6 +18,12 @@ This file defines fibered categories.
 ## Implementation
 -/
 
+/-
+TODO:
+- Split into two files, HomLift.lean and Pullback.lean
+- Make HomLift into a structure, not a class.
+-/
+
 universe u₁ v₁ u₂ v₂ u₃ w
 
 open CategoryTheory Functor Category
@@ -225,8 +231,8 @@ lemma IsPullbackInducedMap_unique {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} 
 
 @[simp]
 lemma IsPullbackInducedMap_self_eq_id {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} {f : R ⟶ S} {φ : a ⟶ b}
-  (hφ : IsPullback p f φ) : IsPullbackInducedMap hφ (show f = 𝟙 R ≫ f by simp) hφ.toIsHomLift = 𝟙 a:=
-  (IsPullbackInducedMap_unique hφ (show f = 𝟙 R ≫ f by simp) hφ.toIsHomLift (IsHomLift_id hφ.ObjLiftDomain) (id_comp _)).symm
+  (hφ : IsPullback p f φ) : IsPullbackInducedMap hφ (id_comp f).symm hφ.toIsHomLift = 𝟙 a:=
+  (IsPullbackInducedMap_unique hφ (id_comp f).symm hφ.toIsHomLift (IsHomLift_id hφ.ObjLiftDomain) (id_comp _)).symm
 
 /-- TODO IS THIS PARTICULAR STATEMENT OPTIMAL? Assumes "big" squares are commutative...
 ```
