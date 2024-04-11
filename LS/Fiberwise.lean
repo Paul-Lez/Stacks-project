@@ -1,7 +1,7 @@
 import LS.FiberedCat
 
 /-!
-# Full and faithful functors between fibered categories
+# Fiberwise criteria for functors between fibered categories
 In this file we prove fiberwise criteria for a functor between fibered categories to be full or
 faithful.
 
@@ -76,7 +76,7 @@ lemma FaithfulofFiberwiseFaithful {𝒳 𝒴 : FiberedCat 𝒮} {F : FiberedFunc
 
 lemma PreimageIsHomLift {𝒳 𝒴 : FiberCat 𝒮} (F : 𝒳 ⟶ 𝒴) [hF₁ : Full F.toFunctor]
     {a b : 𝒳} {φ : F.obj a ⟶ F.obj b} {R S : 𝒮} {f : R ⟶ S} (hφ : IsHomLift 𝒴.p f φ) :
-    IsHomLift 𝒳.p f (hF₁.preimage φ) := (hF₁.witness φ ▸ BasedFunctor.HomLift_ofImage F.toBasedFunctor) hφ
+    IsHomLift 𝒳.p f (hF₁.preimage φ) := (hF₁.witness φ ▸ F.HomLift_ofImage) hφ
 
 /- We now show that a morphism F is full if and only if its full fiberwise -/
 lemma FiberwiseFullofFull  { 𝒳 𝒴 : FiberCat 𝒮} (F : 𝒳 ⟶ 𝒴) [hF₁ : Full F.toFunctor] :
@@ -126,7 +126,7 @@ lemma FullofFullFiberwise  { 𝒳 𝒴 : FiberedCat 𝒮} {F : 𝒳 ⟶ 𝒴} (h
 
   have hφ₁ : IsHomLift 𝒴.p h φ₁ := by
     simp [φ₁, h]
-    apply IsHomLift_of_IsHomLiftId_comp (IsHomLift_self 𝒴.p φ) (F.pres_IsHomLift F.toBasedFunctor hΦ)
+    apply IsHomLift_of_IsHomLiftId_comp (IsHomLift_self 𝒴.p φ) (F.pres_IsHomLift hΦ)
 
   -- The following could be some hF.preservesPullbacks (wrt HasFibers) API
   have hc : (𝒴.hasFib.ι R).obj ((F.onFib R).obj c) = F.obj ((𝒳.hasFib.ι R).obj c) := by
@@ -149,3 +149,7 @@ lemma FullofFullFiberwise  { 𝒳 𝒴 : FiberedCat 𝒮} {F : 𝒳 ⟶ 𝒴} (h
   simp [φ₁]
   rw [←Category.assoc, ←Functor.mapIso_inv, ←Functor.mapIso_hom]
   rw [Iso.inv_hom_id, id_comp]
+
+
+
+end Fibered
