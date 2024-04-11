@@ -16,26 +16,42 @@ variable {𝒮 : Type u₁} [Category 𝒮]
 
 namespace Fibered
 
+/-- A `FiberCat` `𝒳` is a `BasedCategory` such that the functor `p : 𝒳 ⥤ 𝒮`
+    is equipped with a `HasFibers` instance. -/
 structure FiberCat (𝒮 : Type u₁) [Category 𝒮] extends BasedCategory 𝒮 where
-  [hasFib : HasFibers p]
+  /- `HasFibers` instance for `p : 𝒳 ⥤ 𝒮`. Note that if none is provided,
+      the default instance is used. -/
+  hasFib : HasFibers p := inferInstance
 
 instance FiberCat.hasCoeToSort : CoeSort (FiberCat 𝒮) (Type u₂) where
   coe := fun 𝒳 => 𝒳.carrier
 
 instance (𝒳 : FiberCat 𝒮) : HasFibers 𝒳.p := 𝒳.hasFib
 
-/-- A notion of functor between HasFibers. It is given by a functor F : 𝒳 ⥤ 𝒴 such that F ⋙ q = p,
-  and a collection of functors fiber_functor S between the fibers of p and q over S in 𝒮 such that
-  .... -/
+/-- A notion of functor between `FiberCat`s. It is given by a `BasedFunctor`, `F : 𝒳 ⥤ 𝒴`,
+    and a collection of functors `F.onFib S : 𝒳.hasFib.Fib S ⥤ 𝒴.hasFib.Fib S` for each `S : 𝒮`
+    such that the following diagram commutes for any `a : 𝒳.hasFib.Fib S`:
+    ```
+    𝒳.hasFib.Fib S -- F.onFib a --> 𝒴.hasFib.ι S(F(a))
+      |                                       |
+      |                                       |
+      v                                       v
+     𝒳 ---------------- F -----------------> 𝒴
+
+    ```
+ -/
 structure FiberFunctor (𝒳 𝒴 : FiberCat 𝒮) extends BasedFunctor 𝒳.toBasedCategory 𝒴.toBasedCategory where
-  (onFib (S : 𝒮) : 𝒳.hasFib.Fib S ⥤ 𝒴.hasFib.Fib S)
-  (fib_w : ∀ (S : 𝒮), (onFib S) ⋙ (𝒴.hasFib.ι S) = (𝒳.hasFib.ι S) ⋙ toFunctor) -- Maybe try aesop_cat by default here.
+  /- A family of functors between the fibers -/
+  onFib (S : 𝒮) : 𝒳.hasFib.Fib S ⥤ 𝒴.hasFib.Fib S
+  /- The functors on the fibers are compatible with the underlying functor -/
+  fib_w : ∀ (S : 𝒮), (onFib S) ⋙ (𝒴.hasFib.ι S) = (𝒳.hasFib.ι S) ⋙ toFunctor := by aesop_cat
 
 @[simp]
 lemma FiberFunctor.fib_w_obj {𝒳 𝒴 : FiberCat 𝒮} (F : FiberFunctor 𝒳 𝒴) {S : 𝒮}  (a : 𝒳.hasFib.Fib S) :
     (𝒴.hasFib.ι S).obj ((F.onFib S).obj a) = (F.toFunctor).obj ((𝒳.hasFib.ι S).obj a) := by
   apply congr_obj (F.fib_w S)
 
+/-- Composition of `FiberFunctor`s, given by composition of the underlying functors. -/
 @[simps!]
 def FiberFunctor.comp {𝒳 𝒴 𝒵 : FiberCat 𝒮} (F : FiberFunctor 𝒳 𝒴)
     (G : FiberFunctor 𝒴 𝒵) : FiberFunctor 𝒳 𝒵 :=
@@ -47,6 +63,7 @@ def FiberFunctor.comp {𝒳 𝒴 𝒵 : FiberCat 𝒮} (F : FiberFunctor 𝒳 �
       rfl
   }
 
+/-- The identity functor as a `FiberFunctor` -/
 @[simps!]
 def FiberFunctor.id (𝒳 : FiberCat 𝒮) : FiberFunctor 𝒳 𝒳 :=
   { BasedFunctor.id 𝒳.toBasedCategory with
@@ -74,7 +91,7 @@ lemma BasedFunctor.fiber_proj {𝒳 𝒴 : FiberCat 𝒮} (F : 𝒳.toBasedCateg
     {S : 𝒮} (a : 𝒳.hasFib.Fib S) : 𝒴.p.obj (F.obj ((𝒳.hasFib.ι S).obj a)) = S := by
   rw [BasedFunctor.obj_proj F ((𝒳.hasFib.ι S).obj a), HasFibersObjLift a]
 
-/-- A `BasedFunctor` can be given the structure of a `FiberFunctor` -/
+/- A `BasedFunctor` can be given the structure of a `FiberFunctor` -/
 -- TODO: give canonical constructor from `BasedCategory` to `FiberCat`
 /- def BasedFunctor.toFiberFunctor {𝒳 𝒴 : BasedCategory 𝒮}
     (F : 𝒳.toBasedCategory ⟶ 𝒴.toBasedCategory) :
@@ -97,15 +114,16 @@ lemma BasedFunctor.fiber_proj {𝒳 𝒴 : FiberCat 𝒮} (F : 𝒳.toBasedCateg
   fib_w := by aesop_cat
 } -/
 
+/-- Category structure on `FiberFunctor` -/
 @[simps!]
-instance FiberHomCategory (𝒳 𝒴 : FiberCat 𝒮) :
+instance FiberFunctorCategory (𝒳 𝒴 : FiberCat 𝒮) :
     Category (FiberFunctor 𝒳 𝒴) where
   Hom F G := F.toBasedFunctor ⟶ G.toBasedFunctor
   id F := 𝟙 F.toBasedFunctor
   comp α β := BasedNatTrans.comp α β
 
 @[ext]
-lemma FiberHomCategory.ext {𝒳 𝒴 : FiberCat 𝒮} {F G : FiberFunctor 𝒳 𝒴} (α β : F ⟶ G)
+lemma FiberFunctorCategory.ext {𝒳 𝒴 : FiberCat 𝒮} {F G : FiberFunctor 𝒳 𝒴} (α β : F ⟶ G)
     (h : α.toNatTrans = β.toNatTrans) : α = β := BasedNatTrans.ext α β h
 
 @[simps]
@@ -175,7 +193,7 @@ instance : Bicategory (FiberCat 𝒮) where
   Hom 𝒳 𝒴 := FiberFunctor 𝒳 𝒴
   id 𝒳 := FiberFunctor.id 𝒳
   comp := FiberFunctor.comp
-  homCategory 𝒳 𝒴 := FiberHomCategory 𝒳 𝒴
+  homCategory 𝒳 𝒴 := FiberFunctorCategory 𝒳 𝒴
   whiskerLeft {𝒳 𝒴 𝒵} F {G H} α := {
       whiskerLeft F.toFunctor α.toNatTrans with
       aboveId := by
@@ -239,7 +257,7 @@ lemma FiberedFunctor.comp_id {𝒳 𝒴 : FiberedCat 𝒮}
 lemma FiberedFunctor.id_comp {𝒳 𝒴 : FiberedCat 𝒮}
     (F : FiberedFunctor 𝒳 𝒴) : FiberedFunctor.comp F (FiberedFunctor.id 𝒴) = F := rfl
 
--- TODO: same as FiberHomCategory, is it possible to recycle that somehow?
+-- TODO: same as FiberFunctorCategory, is it possible to recycle that somehow?
 -- Need full subcategory of a bicategory!! (or would be nice)
 @[simps!]
 instance FiberedHomCategory (𝒳 𝒴 : FiberedCat 𝒮) :
