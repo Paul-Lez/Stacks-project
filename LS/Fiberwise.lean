@@ -1,4 +1,5 @@
 import LS.FiberedCat
+import Mathlib.CategoryTheory.Bicategory.Adjunction
 
 /-!
 # Fiberwise criteria for functors between fibered categories
@@ -9,12 +10,13 @@ faithful.
 
 universe u₁ v₁ u₂ v₂
 
-open CategoryTheory Functor Category
+open CategoryTheory Functor Category Bicategory
+
+open scoped Bicategory
 
 namespace Fibered
 
 variable {𝒮 : Type u₁} [Category.{v₂} 𝒮]
-
 
 /-- If a morphism F is faithFul, then it is also faithful fiberwise -/
 lemma FiberwiseFaithfulofFaithful {𝒳 𝒴 : FiberCat 𝒮} (F : 𝒳 ⟶ 𝒴) [Faithful F.toFunctor] :
@@ -150,6 +152,9 @@ lemma FullofFullFiberwise  { 𝒳 𝒴 : FiberedCat 𝒮} {F : 𝒳 ⟶ 𝒴} (h
   rw [←Category.assoc, ←Functor.mapIso_inv, ←Functor.mapIso_hom]
   rw [Iso.inv_hom_id, id_comp]
 
+lemma FiberwiseIsEquivalenceOfEquivalence {𝒳 𝒴 : FiberedCat 𝒮} (F : 𝒳 ≌ 𝒴) :
+    ∀ S : 𝒮, IsEquivalence (F.hom.onFib S) := by
+  sorry
 
 
 end Fibered

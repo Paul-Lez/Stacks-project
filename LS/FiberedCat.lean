@@ -10,26 +10,24 @@ In this file we construct the (strict) bicategory of "fiber categories"
 
 universe u₁ v₁ u₂ v₂
 
-open CategoryTheory Functor Category
+open CategoryTheory Functor Category Bicategory
 
-variable {𝒮 : Type u₁} [Category 𝒮]
+variable {𝒮 : Type u₁} [Category.{v₁} 𝒮]
 
 namespace Fibered
 
 /-- A `FiberCat` `𝒳` is a `BasedCategory` such that the functor `p : 𝒳 ⥤ 𝒮`
     is equipped with a `HasFibers` instance. -/
-structure FiberCat (𝒮 : Type u₁) [Category 𝒮] extends BasedCategory 𝒮 where
+structure FiberCat (𝒮 : Type u₁) [Category.{v₁} 𝒮] extends BasedCategory 𝒮 where
   /- `HasFibers` instance for `p : 𝒳 ⥤ 𝒮`. Note that if none is provided,
       the default instance is used. -/
-  hasFib : HasFibers p := inferInstance
-
-instance FiberCat.hasCoeToSort : CoeSort (FiberCat 𝒮) (Type u₂) where
-  coe := fun 𝒳 => 𝒳.carrier
+  hasFib : HasFibers p := by infer_instance
 
 instance (𝒳 : FiberCat 𝒮) : HasFibers 𝒳.p := 𝒳.hasFib
 
 /-- The `FiberCat` associated to a `BasedCategory` by taking the canonical fiber structure. -/
-def BasedCategory.toFiberCat (𝒳 : BasedCategory 𝒮) : FiberCat 𝒮 := { 𝒳 with }
+def BasedCategory.toFiberCat (𝒳 : BasedCategory 𝒮) : FiberCat 𝒮 :=
+  { 𝒳 with }
 
 /-- A notion of functor between `FiberCat`s. It is given by a `BasedFunctor`, `F : 𝒳 ⥤ 𝒴`,
     and a collection of functors `F.onFib S : 𝒳.hasFib.Fib S ⥤ 𝒴.hasFib.Fib S` for each `S : 𝒮`
@@ -225,9 +223,6 @@ instance : Bicategory.Strict (FiberCat 𝒮) where
 -- TODO: restructure FiberCategories file first
 structure FiberedCat (𝒮 : Type u₁) [Category.{v₁} 𝒮] extends FiberCat 𝒮 where
   isFibered : IsFibered p := by infer_instance
-
-instance FiberedCat.hasCoeToSort : CoeSort (FiberedCat 𝒮) (Type u₂) where
-  coe := fun 𝒳 => 𝒳.carrier
 
 instance (𝒳 : FiberedCat 𝒮) : IsFibered 𝒳.p := 𝒳.isFibered
 

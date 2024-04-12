@@ -35,23 +35,21 @@ variable {𝒮 : Type u₁} [Category.{v₁} 𝒮]
 
 /-- A based category over `𝒮` is a category `𝒳` together with a functor `p : 𝒳 ⥤ 𝒮` -/
 structure BasedCategory (𝒮 : Type u₁) [Category.{v₁} 𝒮] where
-  (carrier : Type u₂) -- TODO: other types also OK?
-  [isCat : Category.{v₂} carrier]
-  (p : carrier ⥤ 𝒮)
-
-instance BasedCategory.hasCoeToSort : CoeSort (BasedCategory 𝒮) (Type u₂) := ⟨BasedCategory.carrier⟩
+  (cat : Type u₂) -- TODO: other types also OK?
+  [isCat : Category.{v₂} cat]
+  (p : cat ⥤ 𝒮)
 
 -- TODO: can this be done automatically?
-instance (𝒳 : BasedCategory 𝒮) : Category 𝒳 := 𝒳.isCat
+instance (𝒳 : BasedCategory 𝒮) : Category 𝒳.cat := 𝒳.isCat
 
 /-- A functor between based categories is a functor between the underlying categories that commutes with the projections. -/
-structure BasedFunctor (𝒳 𝒴 : BasedCategory 𝒮) extends CategoryTheory.Functor 𝒳 𝒴.1 where
+structure BasedFunctor (𝒳 𝒴 : BasedCategory 𝒮) extends CategoryTheory.Functor 𝒳.cat 𝒴.cat where
   (w : toFunctor ⋙ 𝒴.p = 𝒳.p)
 
 /-- The identity functor is also a `BasedFunctor` -/
 @[simps!]
 protected def BasedFunctor.id (𝒳 : BasedCategory 𝒮) : BasedFunctor 𝒳 𝒳 :=
-  { 𝟭 𝒳 with w := CategoryTheory.Functor.id_comp _ }
+  { 𝟭 𝒳.cat with w := CategoryTheory.Functor.id_comp _ }
 
 /-- Composition of `BasedFunctor`s is defined as the composition of the underlying functors -/
 @[simps!]
@@ -72,25 +70,25 @@ lemma BasedFunctor.id_comp {𝒳 𝒴 : BasedCategory 𝒮} (F : BasedFunctor �
 -- TODO: possibly think about renaming these
 
 @[simp]
-lemma BasedFunctor.obj_proj {𝒳 𝒴 : BasedCategory 𝒮} (F : BasedFunctor 𝒳 𝒴) (a : 𝒳) :
+lemma BasedFunctor.obj_proj {𝒳 𝒴 : BasedCategory 𝒮} (F : BasedFunctor 𝒳 𝒴) (a : 𝒳.cat) :
     𝒴.p.obj (F.obj a) = 𝒳.p.obj a := by
   rw [←Functor.comp_obj, F.w]
 
 lemma BasedFunctor.IsHomLift_map{𝒳 𝒴 : BasedCategory 𝒮} (F : BasedFunctor 𝒳 𝒴)
-    {a b : 𝒳} (φ : a ⟶ b) : IsHomLift 𝒴.p (𝒳.p.map φ) (F.map φ) where
+    {a b : 𝒳.cat} (φ : a ⟶ b) : IsHomLift 𝒴.p (𝒳.p.map φ) (F.map φ) where
   ObjLiftDomain := BasedFunctor.obj_proj F a
   ObjLiftCodomain := BasedFunctor.obj_proj F b
   HomLift := ⟨by simp [congr_hom F.w.symm]⟩
 
 lemma BasedFunctor.pres_IsHomLift {𝒳 𝒴 : BasedCategory 𝒮} (F : BasedFunctor 𝒳 𝒴)
-    {R S : 𝒮} {a b : 𝒳} {φ : a ⟶ b} {f : R ⟶ S} (hφ : IsHomLift 𝒳.p f φ) : IsHomLift 𝒴.p f (F.map φ) where
+    {R S : 𝒮} {a b : 𝒳.cat} {φ : a ⟶ b} {f : R ⟶ S} (hφ : IsHomLift 𝒳.p f φ) : IsHomLift 𝒴.p f (F.map φ) where
   ObjLiftDomain := Eq.trans (BasedFunctor.obj_proj F a) hφ.ObjLiftDomain
   ObjLiftCodomain := Eq.trans (BasedFunctor.obj_proj F b) hφ.ObjLiftCodomain
   HomLift := ⟨by
     rw [←Functor.comp_map, congr_hom F.w]
     simp [hφ.3.1] ⟩
 
-lemma BasedFunctor.HomLift_ofImage {𝒳 𝒴 : BasedCategory 𝒮} (F : BasedFunctor 𝒳 𝒴) {S R : 𝒮} {a b : 𝒳}
+lemma BasedFunctor.HomLift_ofImage {𝒳 𝒴 : BasedCategory 𝒮} (F : BasedFunctor 𝒳 𝒴) {S R : 𝒮} {a b : 𝒳.cat}
     {φ : a ⟶ b} {f : R ⟶ S} (hφ : IsHomLift 𝒴.p f (F.map φ)) : IsHomLift 𝒳.p f φ where
   ObjLiftDomain := F.obj_proj a ▸ hφ.ObjLiftDomain
   ObjLiftCodomain := F.obj_proj b ▸ hφ.ObjLiftCodomain
@@ -106,7 +104,7 @@ lemma BasedFunctor.HomLift_ofImage {𝒳 𝒴 : BasedCategory 𝒮} (F : BasedFu
     such that for all `a : 𝒳`, `α.app a` lifts `𝟙 S` whenever `𝒳.p.obj a = S`. -/
 structure BasedNatTrans {𝒳 𝒴 : BasedCategory 𝒮} (F G : BasedFunctor 𝒳 𝒴) extends
   CategoryTheory.NatTrans F.toFunctor G.toFunctor where
-  (aboveId : ∀ {a : 𝒳} {S : 𝒮} (_ : 𝒳.p.obj a = S), IsHomLift 𝒴.p (𝟙 S) (toNatTrans.app a))
+  (aboveId : ∀ {a : 𝒳.cat} {S : 𝒮} (_ : 𝒳.p.obj a = S), IsHomLift 𝒴.p (𝟙 S) (toNatTrans.app a))
 
 @[ext]
 lemma BasedNatTrans.ext {𝒳 𝒴 : BasedCategory 𝒮} {F G : BasedFunctor 𝒳 𝒴} (α β : BasedNatTrans F G)
@@ -143,7 +141,7 @@ def BasedNatTrans.comp {𝒳 𝒴 : BasedCategory 𝒮} {F G H : BasedFunctor �
 
 @[simp]
 lemma BasedNatTrans.comp_app {𝒳 𝒴 : BasedCategory 𝒮} {F G H : BasedFunctor 𝒳 𝒴} (α : BasedNatTrans F G)
-    (β : BasedNatTrans G H) (x : 𝒳) : (comp α β).app x = (α.app x) ≫ β.app x:= rfl
+    (β : BasedNatTrans G H) (x : 𝒳.cat) : (comp α β).app x = (α.app x) ≫ β.app x:= rfl
 
 @[simp]
 lemma CategoryTheory.NatTrans.id_vcomp {C D : Type _} [Category C] [Category D] {F G : C ⥤ D}
