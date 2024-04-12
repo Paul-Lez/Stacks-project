@@ -131,90 +131,49 @@ lemma FiberFunctorCategory.ext {𝒳 𝒴 : FiberCat 𝒮} {F G : FiberFunctor �
 @[simps]
 def FiberFunctor.associator {𝒳 𝒴 𝒵 𝒱 : FiberCat 𝒮} (F : FiberFunctor 𝒳 𝒴)
     (G : FiberFunctor 𝒴 𝒵) (H : FiberFunctor 𝒵 𝒱) :
-  FiberFunctor.comp (FiberFunctor.comp F G) H ≅ FiberFunctor.comp F (FiberFunctor.comp G H) where
-    hom := {
-      app := fun _ => 𝟙 _
-      aboveId := by
-        intro a S ha
-        apply IsHomLift_id
-        simp only [BasedFunctor.obj_proj, ha]
-    }
-    inv := {
-      app := fun _ => 𝟙 _
-      aboveId := by
-        intro a S ha
-        apply IsHomLift_id
-        simp only [BasedFunctor.obj_proj, ha]
-    }
+  FiberFunctor.comp (FiberFunctor.comp F G) H ≅ FiberFunctor.comp F (FiberFunctor.comp G H) :=
+{ BasedFunctor.associator F.toBasedFunctor G.toBasedFunctor H.toBasedFunctor with }
 
 @[simps]
 def FiberFunctor.leftUnitor {𝒳 𝒴 : FiberCat 𝒮} (F : FiberFunctor 𝒳 𝒴) :
-  FiberFunctor.comp (FiberFunctor.id 𝒳) F ≅ F where
-    hom :=
-    {
-      app := fun a => 𝟙 (F.obj a)
-      naturality := by
-        intros
-        simp
-      aboveId := by
-        intro a S ha
-        apply IsHomLift_id
-        simp only [BasedFunctor.obj_proj, ha]
-    }
-    inv := {
-      app := fun a => 𝟙 (F.obj a)
-      aboveId := by
-        intro a S ha
-        apply IsHomLift_id
-        simp only [BasedFunctor.obj_proj, ha]
-    }
+  FiberFunctor.comp (FiberFunctor.id 𝒳) F ≅ F :=
+{ BasedFunctor.leftUnitor F.toBasedFunctor with }
 
 @[simps]
 def FiberFunctor.rightUnitor {𝒳 𝒴 : FiberCat 𝒮} (F : FiberFunctor 𝒳 𝒴) :
-  FiberFunctor.comp F (FiberFunctor.id 𝒴) ≅ F where
-    hom :=
-    {
-      app := fun a => 𝟙 (F.obj a)
-      naturality := by
-        intros
-        simp
-      aboveId := by
-        intro a S ha
-        apply IsHomLift_id
-        simp only [BasedFunctor.obj_proj, ha]
-    }
-    inv := {
-      app := fun a => 𝟙 (F.obj a)
-      aboveId := by
-        intro a S ha
-        apply IsHomLift_id
-        simp only [BasedFunctor.obj_proj, ha]
-    }
+  FiberFunctor.comp F (FiberFunctor.id 𝒴) ≅ F :=
+{ BasedFunctor.rightUnitor F.toBasedFunctor with }
 
-instance : Bicategory (FiberCat 𝒮) where
+@[simps!]
+def FiberFunctor.whiskerLeft {𝒳 𝒴 𝒵 : FiberCat 𝒮} (F : FiberFunctor 𝒳 𝒴)
+    {G H : FiberFunctor 𝒴 𝒵} (α : G ⟶ H) :=
+  BasedCategory.whiskerLeft F.toBasedFunctor α
+
+@[simps!]
+def FiberFunctor.whiskerRight {𝒳 𝒴 𝒵 : FiberCat 𝒮} {F G : FiberFunctor 𝒳 𝒴}
+    (α : F ⟶ G) (H : FiberFunctor 𝒴 𝒵) :=
+  BasedCategory.whiskerRight α H.toBasedFunctor
+
+instance FiberCat.bicategory : Bicategory (FiberCat 𝒮) where
   Hom 𝒳 𝒴 := FiberFunctor 𝒳 𝒴
   id 𝒳 := FiberFunctor.id 𝒳
   comp := FiberFunctor.comp
   homCategory 𝒳 𝒴 := FiberFunctorCategory 𝒳 𝒴
-  whiskerLeft {𝒳 𝒴 𝒵} F {G H} α := {
-      whiskerLeft F.toFunctor α.toNatTrans with
-      aboveId := by
-        intro a S ha
-        apply α.aboveId
-        simp only [BasedFunctor.obj_proj, ha]
-    }
-
+  whiskerLeft {𝒳 𝒴 𝒵} F {G H} α := FiberFunctor.whiskerLeft F α
   -- TODO: weird that this has non-implicit arguments and above doesnt
-  whiskerRight {𝒳 𝒴 𝒵} F G α H := {
-    whiskerRight α.toNatTrans H.toFunctor with
-    aboveId := by
-      intro a S ha
-      apply BasedFunctor.pres_IsHomLift
-      apply α.aboveId ha
-  }
+  whiskerRight {𝒳 𝒴 𝒵} F G α H := FiberFunctor.whiskerRight α H
   associator := FiberFunctor.associator
   leftUnitor {𝒳 𝒴} F := FiberFunctor.leftUnitor F -- term mode doesn't work?!?
   rightUnitor {𝒳 𝒴} F := FiberFunctor.rightUnitor F
+  -- TODO...
+  comp_whiskerLeft := by
+    intros
+    simp
+    apply BasedCategory.bicategory.comp_whiskerLeft
+  id_whiskerRight := sorry
+  comp_whiskerRight := sorry
+  whiskerRight_comp := sorry
+  whisker_assoc := sorry
 
 instance : Bicategory.Strict (FiberCat 𝒮) where
   id_comp := FiberFunctor.id_comp
@@ -222,7 +181,6 @@ instance : Bicategory.Strict (FiberCat 𝒮) where
   assoc := FiberFunctor.assoc
 
 /-- A `FiberedCat` is a .... -/
--- TODO: restructure FiberCategories file first
 structure FiberedCat (𝒮 : Type u₁) [Category.{v₁} 𝒮] extends FiberCat 𝒮 where
   isFibered : IsFibered p := by infer_instance
 
@@ -275,67 +233,20 @@ lemma FiberedHomCategory.ext {𝒳 𝒴 : FiberedCat 𝒮} {F G : FiberedFunctor
 @[simps]
 def FiberedFunctor.associator {𝒳 𝒴 𝒵 𝒱 : FiberedCat 𝒮} (F : FiberedFunctor 𝒳 𝒴)
     (G : FiberedFunctor 𝒴 𝒵) (H : FiberedFunctor 𝒵 𝒱) :
-  FiberedFunctor.comp (FiberedFunctor.comp F G) H ≅ FiberedFunctor.comp F (FiberedFunctor.comp G H) where
-    hom := {
-      app := fun _ => 𝟙 _
-      aboveId := by
-        intro a S ha
-        apply IsHomLift_id
-        simp only [BasedFunctor.obj_proj, ha]
-    }
-    inv := {
-      app := fun _ => 𝟙 _
-      aboveId := by
-        intro a S ha
-        apply IsHomLift_id
-        simp only [BasedFunctor.obj_proj, ha]
-    }
+  FiberedFunctor.comp (FiberedFunctor.comp F G) H ≅ FiberedFunctor.comp F (FiberedFunctor.comp G H) :=
+{ FiberFunctor.associator F.toFiberFunctor G.toFiberFunctor H.toFiberFunctor with }
 
 @[simps]
 def FiberedFunctor.leftUnitor {𝒳 𝒴 : FiberedCat 𝒮} (F : FiberedFunctor 𝒳 𝒴) :
-  FiberedFunctor.comp (FiberedFunctor.id 𝒳) F ≅ F where
-    hom :=
-    {
-      app := fun a => 𝟙 (F.obj a)
-      naturality := by
-        intros
-        simp
-      aboveId := by
-        intro a S ha
-        apply IsHomLift_id
-        simp only [BasedFunctor.obj_proj, ha]
-    }
-    inv := {
-      app := fun a => 𝟙 (F.obj a)
-      aboveId := by
-        intro a S ha
-        apply IsHomLift_id
-        simp only [BasedFunctor.obj_proj, ha]
-    }
+  FiberedFunctor.comp (FiberedFunctor.id 𝒳) F ≅ F :=
+{ FiberFunctor.leftUnitor F.toFiberFunctor with }
 
 @[simps]
 def FiberedFunctor.rightUnitor {𝒳 𝒴 : FiberedCat 𝒮} (F : FiberedFunctor 𝒳 𝒴) :
-  FiberedFunctor.comp F (FiberedFunctor.id 𝒴) ≅ F where
-    hom :=
-    {
-      app := fun a => 𝟙 (F.obj a)
-      naturality := by
-        intros
-        simp
-      aboveId := by
-        intro a S ha
-        apply IsHomLift_id
-        simp only [BasedFunctor.obj_proj, ha]
-    }
-    inv := {
-      app := fun a => 𝟙 (F.obj a)
-      aboveId := by
-        intro a S ha
-        apply IsHomLift_id
-        simp only [BasedFunctor.obj_proj, ha]
-    }
+  FiberedFunctor.comp F (FiberedFunctor.id 𝒴) ≅ F :=
+{ FiberFunctor.rightUnitor F.toFiberFunctor with }
 
-instance : Bicategory (FiberedCat 𝒮) where
+instance FiberedCat.bicategory : Bicategory (FiberedCat 𝒮) where
   Hom 𝒳 𝒴 := FiberedFunctor 𝒳 𝒴
   id 𝒳 := FiberedFunctor.id 𝒳
   comp := FiberedFunctor.comp

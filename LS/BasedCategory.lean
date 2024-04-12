@@ -257,27 +257,32 @@ def BasedFunctor.rightUnitor {𝒳 𝒴 : BasedCategory 𝒮} (F : BasedFunctor 
         simp only [obj_proj, ha]
     }
 
-instance : Bicategory (BasedCategory 𝒮) where
+@[simps!]
+def BasedCategory.whiskerLeft {𝒳 𝒴 𝒵 : BasedCategory 𝒮} (F : BasedFunctor 𝒳 𝒴)
+    {G H : BasedFunctor 𝒴 𝒵} (α : G ⟶ H) : BasedFunctor.comp F G ⟶ BasedFunctor.comp F H := {
+  CategoryTheory.whiskerLeft F.toFunctor α.toNatTrans with
+  aboveId := by
+    intro a S ha
+    apply α.aboveId
+    simp only [BasedFunctor.obj_proj, ha] }
+
+@[simps!]
+def BasedCategory.whiskerRight {𝒳 𝒴 𝒵 : BasedCategory 𝒮} {F G : BasedFunctor 𝒳 𝒴} (α : F ⟶ G)
+    (H : BasedFunctor 𝒴 𝒵) : BasedFunctor.comp F H ⟶ BasedFunctor.comp G H := {
+  CategoryTheory.whiskerRight α.toNatTrans H.toFunctor with
+  aboveId := by
+    intro a S ha
+    apply BasedFunctor.pres_IsHomLift
+    apply α.aboveId ha }
+
+instance BasedCategory.bicategory : Bicategory (BasedCategory 𝒮) where
   Hom := BasedFunctor
   id := BasedFunctor.id
   comp := BasedFunctor.comp
   homCategory 𝒳 𝒴 := homCategory 𝒳 𝒴
-  whiskerLeft {𝒳 𝒴 𝒵} F {G H} α := {
-      whiskerLeft F.toFunctor α.toNatTrans with
-      aboveId := by
-        intro a S ha
-        apply α.aboveId
-        simp only [BasedFunctor.obj_proj, ha]
-    }
-
+  whiskerLeft := BasedCategory.whiskerLeft
   -- TODO: weird that this has non-implicit arguments and above doesnt
-  whiskerRight {𝒳 𝒴 𝒵} F G α H := {
-    whiskerRight α.toNatTrans H.toFunctor with
-    aboveId := by
-      intro a S ha
-      apply BasedFunctor.pres_IsHomLift
-      apply α.aboveId ha
-  }
+  whiskerRight {𝒳 𝒴 𝒵} F G α H := BasedCategory.whiskerRight α H
   associator := BasedFunctor.associator
   leftUnitor {𝒳 𝒴} F := BasedFunctor.leftUnitor F
   rightUnitor {𝒳 𝒴} F := BasedFunctor.rightUnitor F
