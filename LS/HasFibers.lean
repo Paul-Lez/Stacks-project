@@ -23,8 +23,9 @@ one often already has a collection of categories `Fib S` for every `S` that are 
 `Fiber p S`. One would then like to use these categories `Fib S` directly, instead of working through this
 equivalence of categories. By developing an API for the `HasFibers` typeclass, this will be possible.
 For example, we develop the following lemmas:
-- `HasFibersPullback` allows one to take pullbacks such that the codomain lies in one of the fiber categories.
-- `HasFibersFactorization`
+- `HasFibersEssSurj` any object `a : 𝒳` lying over some `S : 𝒮` is isomorphic to the image of some `a' : Fib S`
+- `HasFibersPullback` allows one to take pullbacks such that the codomain lies in one of the fibers `Fib S`.
+- `HasFibersFactorization` (TODO: maybe call it `HasFibersInducedMap`, and the next `HasFibersFactorization`)
 - `fiber_factorization` any morphism in `𝒳` can be factored as a morphism in some fiber `Fib S` followed by
   a pullback. (TODO: rename this lemma)
 
