@@ -165,15 +165,11 @@ instance FiberCat.bicategory : Bicategory (FiberCat 𝒮) where
   associator := FiberFunctor.associator
   leftUnitor {𝒳 𝒴} F := FiberFunctor.leftUnitor F -- term mode doesn't work?!?
   rightUnitor {𝒳 𝒴} F := FiberFunctor.rightUnitor F
-  -- TODO...
-  comp_whiskerLeft := by
-    intros
-    simp
-    apply BasedCategory.bicategory.comp_whiskerLeft
-  id_whiskerRight := sorry
-  comp_whiskerRight := sorry
-  whiskerRight_comp := sorry
-  whisker_assoc := sorry
+  comp_whiskerLeft f g η h' η₁ := by apply BasedCategory.bicategory.comp_whiskerLeft
+  id_whiskerRight f g := by apply BasedCategory.bicategory.id_whiskerRight
+  comp_whiskerRight η θ i := by apply BasedCategory.bicategory.comp_whiskerRight
+  whiskerRight_comp η f i := by apply BasedCategory.bicategory.whiskerRight_comp
+  whisker_assoc f η h η₁ h₁ := by apply BasedCategory.bicategory.whisker_assoc
 
 instance : Bicategory.Strict (FiberCat 𝒮) where
   id_comp := FiberFunctor.id_comp
@@ -227,9 +223,6 @@ instance FiberedHomCategory (𝒳 𝒴 : FiberedCat 𝒮) :
 lemma FiberedHomCategory.ext {𝒳 𝒴 : FiberedCat 𝒮} {F G : FiberedFunctor 𝒳 𝒴} (α β : F ⟶ G)
     (h : α.toNatTrans = β.toNatTrans) : α = β := BasedNatTrans.ext α β h
 
-
--- TODO: with some API this should all follow from the above
-
 @[simps]
 def FiberedFunctor.associator {𝒳 𝒴 𝒵 𝒱 : FiberedCat 𝒮} (F : FiberedFunctor 𝒳 𝒴)
     (G : FiberedFunctor 𝒴 𝒵) (H : FiberedFunctor 𝒵 𝒱) :
@@ -270,6 +263,11 @@ instance FiberedCat.bicategory : Bicategory (FiberedCat 𝒮) where
   associator := FiberedFunctor.associator
   leftUnitor {𝒳 𝒴} F := FiberedFunctor.leftUnitor F -- term mode doesn't work?!?
   rightUnitor {𝒳 𝒴} F := FiberedFunctor.rightUnitor F
+  comp_whiskerLeft f g η h' η₁ := by apply BasedCategory.bicategory.comp_whiskerLeft
+  id_whiskerRight f g := by apply BasedCategory.bicategory.id_whiskerRight
+  comp_whiskerRight η θ i := by apply BasedCategory.bicategory.comp_whiskerRight
+  whiskerRight_comp η f i := by apply BasedCategory.bicategory.whiskerRight_comp
+  whisker_assoc f η h η₁ h₁ := by apply BasedCategory.bicategory.whisker_assoc
 
 instance : Bicategory.Strict (FiberedCat 𝒮) where
   id_comp := FiberedFunctor.id_comp
