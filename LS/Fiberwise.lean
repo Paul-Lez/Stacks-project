@@ -171,6 +171,14 @@ lemma FiberwiseIsEquivalenceOfEquivalence {𝒳 𝒴 : FiberedCat 𝒮} (F : �
   -- 5. Use factorization lemma to show this!
   sorry
 
+def EquivalenceOfFiberwiseIsEquivalence {𝒳 𝒴 : FiberedCat 𝒮} (F : 𝒳 ⟶ 𝒴)
+    (hF : ∀ S : 𝒮, IsEquivalence (F.onFib S)) : 𝒳 ≌ 𝒴 where
+  hom := F
+  inv := sorry
+  unit := sorry
+  counit := sorry
+  left_triangle := sorry
+
 
 
 

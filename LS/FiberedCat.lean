@@ -160,16 +160,18 @@ instance FiberCat.bicategory : Bicategory (FiberCat 𝒮) where
   comp := FiberFunctor.comp
   homCategory 𝒳 𝒴 := FiberFunctorCategory 𝒳 𝒴
   whiskerLeft {𝒳 𝒴 𝒵} F {G H} α := FiberFunctor.whiskerLeft F α
-  -- TODO: weird that this has non-implicit arguments and above doesnt
-  whiskerRight {𝒳 𝒴 𝒵} F G α H := FiberFunctor.whiskerRight α H
+  whiskerRight {𝒳 𝒴 𝒵} {F G} α H := FiberFunctor.whiskerRight α H
   associator := FiberFunctor.associator
-  leftUnitor {𝒳 𝒴} F := FiberFunctor.leftUnitor F -- term mode doesn't work?!?
+  leftUnitor {𝒳 𝒴} F := FiberFunctor.leftUnitor F
   rightUnitor {𝒳 𝒴} F := FiberFunctor.rightUnitor F
   comp_whiskerLeft f g η h' η₁ := by apply BasedCategory.bicategory.comp_whiskerLeft
   id_whiskerRight f g := by apply BasedCategory.bicategory.id_whiskerRight
   comp_whiskerRight η θ i := by apply BasedCategory.bicategory.comp_whiskerRight
   whiskerRight_comp η f i := by apply BasedCategory.bicategory.whiskerRight_comp
   whisker_assoc f η h η₁ h₁ := by apply BasedCategory.bicategory.whisker_assoc
+  whisker_exchange η θ := BasedCategory.bicategory.whisker_exchange η θ
+  pentagon f g h i := by apply BasedCategory.bicategory.pentagon
+  triangle f g := by apply BasedCategory.bicategory.triangle
 
 instance : Bicategory.Strict (FiberCat 𝒮) where
   id_comp := FiberFunctor.id_comp
@@ -239,58 +241,53 @@ def FiberedFunctor.rightUnitor {𝒳 𝒴 : FiberedCat 𝒮} (F : FiberedFunctor
   FiberedFunctor.comp F (FiberedFunctor.id 𝒴) ≅ F :=
 { FiberFunctor.rightUnitor F.toFiberFunctor with }
 
+@[simps!]
+def FiberedFunctor.whiskerLeft {𝒳 𝒴 𝒵 : FiberedCat 𝒮} (F : FiberedFunctor 𝒳 𝒴)
+    {G H : FiberedFunctor 𝒴 𝒵} (α : G ⟶ H) :=
+  BasedCategory.whiskerLeft F.toBasedFunctor α
+
+@[simps!]
+def FiberedFunctor.whiskerRight {𝒳 𝒴 𝒵 : FiberedCat 𝒮} {F G : FiberedFunctor 𝒳 𝒴}
+    (α : F ⟶ G) (H : FiberedFunctor 𝒴 𝒵) :=
+  BasedCategory.whiskerRight α H.toBasedFunctor
+
 instance FiberedCat.bicategory : Bicategory (FiberedCat 𝒮) where
   Hom 𝒳 𝒴 := FiberedFunctor 𝒳 𝒴
   id 𝒳 := FiberedFunctor.id 𝒳
   comp := FiberedFunctor.comp
   homCategory 𝒳 𝒴 := FiberedHomCategory 𝒳 𝒴
-  whiskerLeft {𝒳 𝒴 𝒵} F {G H} α := {
-      whiskerLeft F.toFunctor α.toNatTrans with
-      aboveId := by
-        intro a S ha
-        apply α.aboveId
-        simp only [BasedFunctor.obj_proj, ha]
-    }
-
-  -- TODO: weird that this has non-implicit arguments and above doesnt
-  whiskerRight {𝒳 𝒴 𝒵} F G α H := {
-    whiskerRight α.toNatTrans H.toFunctor with
-    aboveId := by
-      intro a S ha
-      apply BasedFunctor.pres_IsHomLift
-      apply α.aboveId ha
-  }
+  whiskerLeft {𝒳 𝒴 𝒵} F {G H} α := FiberedFunctor.whiskerLeft F α
+  whiskerRight {𝒳 𝒴 𝒵} {F G} α H := FiberedFunctor.whiskerRight α H
   associator := FiberedFunctor.associator
-  leftUnitor {𝒳 𝒴} F := FiberedFunctor.leftUnitor F -- term mode doesn't work?!?
+  leftUnitor {𝒳 𝒴} F := FiberedFunctor.leftUnitor F
   rightUnitor {𝒳 𝒴} F := FiberedFunctor.rightUnitor F
   comp_whiskerLeft f g η h' η₁ := by apply BasedCategory.bicategory.comp_whiskerLeft
   id_whiskerRight f g := by apply BasedCategory.bicategory.id_whiskerRight
   comp_whiskerRight η θ i := by apply BasedCategory.bicategory.comp_whiskerRight
   whiskerRight_comp η f i := by apply BasedCategory.bicategory.whiskerRight_comp
   whisker_assoc f η h η₁ h₁ := by apply BasedCategory.bicategory.whisker_assoc
+  whisker_exchange η θ := BasedCategory.bicategory.whisker_exchange η θ
+  pentagon f g h i := by apply BasedCategory.bicategory.pentagon
+  triangle f g := by apply BasedCategory.bicategory.triangle
 
 instance : Bicategory.Strict (FiberedCat 𝒮) where
   id_comp := FiberedFunctor.id_comp
   comp_id := FiberedFunctor.comp_id
   assoc := FiberedFunctor.assoc
 
-def EquivOfFiberFunctorEquiv {𝒳 𝒴 : FiberedCat 𝒮} (F : 𝒳 ≌ 𝒴) : 𝒳.cat ≌ 𝒴.cat where
-  functor := F.hom.toFunctor
-  inverse := F.inv.toFunctor
-  -- TODO: api for this
-  unitIso := {
-    hom := F.unit.hom.toNatTrans
-    inv := F.unit.inv.toNatTrans
-    -- TODO: more api
-    hom_inv_id := congrArg (·.toNatTrans) F.unit.hom_inv_id -- TODO: simplify also
-    inv_hom_id := congrArg (·.toNatTrans) F.unit.inv_hom_id
-  }
-  counitIso := sorry
-  functor_unitIso_comp := sorry
+-- TODO: state this for BasedCategory only?
+def IsoOfBasedIso {𝒳 𝒴 : FiberedCat 𝒮} {F G : 𝒳 ⟶ 𝒴} (α : F ≅ G) : F.toFunctor ≅ G.toFunctor where
+  hom := α.hom.toNatTrans
+  inv := α.inv.toNatTrans
+  hom_inv_id := congrArg (·.toNatTrans) α.hom_inv_id
+  inv_hom_id := congrArg (·.toNatTrans) α.inv_hom_id
 
--- TODO: API of going from this bicategory structure to underlying properties of the functor
+def EquivOfFiberFunctorEquiv {𝒳 𝒴 : FiberedCat 𝒮} (F : 𝒳 ≌ 𝒴) : 𝒳.cat ≌ 𝒴.cat :=
+  CategoryTheory.Equivalence.mk F.hom.toFunctor F.inv.toFunctor (IsoOfBasedIso F.unit)
+    (IsoOfBasedIso F.counit)
+
 instance IsEquivOfFiberFunctorEquiv {𝒳 𝒴 : FiberedCat 𝒮} (F : 𝒳 ≌ 𝒴) : IsEquivalence F.hom.toFunctor := by
-  rw [show F.hom.toFunctor = (EquivOfFiberFunctorEquiv F).functor by rfl]
+  change IsEquivalence (EquivOfFiberFunctorEquiv F).functor
   apply IsEquivalence.ofEquivalence
 
 end Fibered
