@@ -125,13 +125,27 @@ class HasFibers (p : 𝒳 ⥤ 𝒮) where
 
 instance {p : 𝒳 ⥤ 𝒮} [hp : HasFibers p] {S : 𝒮} : Category (hp.Fib S) := hp.isCategory S
 
-instance {p : 𝒳 ⥤ 𝒮} [hp : HasFibers p] {S : 𝒮} : IsEquivalence (FiberInducedFunctor (hp.comp_const S)) := hp.equiv S
+@[simps!]
+def HasFibers.InducedFunctor (p : 𝒳 ⥤ 𝒮) [hp : HasFibers p] (S : 𝒮) : hp.Fib S ⥤ Fiber p S :=
+  FiberInducedFunctor (hp.comp_const S)
 
-instance {p : 𝒳 ⥤ 𝒮} [hp : HasFibers p] {S : 𝒮} : EssSurj (FiberInducedFunctor (hp.comp_const S)) :=
-  Equivalence.essSurj_of_equivalence (FiberInducedFunctor (hp.comp_const S))
+def HasFibers.InducedFunctorNat {p : 𝒳 ⥤ 𝒮} [hp : HasFibers p] (S : 𝒮) :
+    hp.ι S ≅ (hp.InducedFunctor S) ⋙ (FiberInclusion p S) :=
+  FiberInducedFunctorNat (hp.comp_const S)
+
+lemma HasFibers.InducedFunctorComp {p : 𝒳 ⥤ 𝒮} [hp : HasFibers p] (S : 𝒮) :
+    hp.ι S = (hp.InducedFunctor S) ⋙ (FiberInclusion p S) :=
+  FiberInducedFunctorComp (hp.comp_const S)
+
+-- TODO: state these in terms of InducedFunctor
+instance {p : 𝒳 ⥤ 𝒮} [HasFibers p] {S : 𝒮} : IsEquivalence (HasFibers.InducedFunctor p S) :=
+  HasFibers.equiv S
+
+instance {p : 𝒳 ⥤ 𝒮} [HasFibers p] {S : 𝒮} : EssSurj (HasFibers.InducedFunctor p S) :=
+  Equivalence.essSurj_of_equivalence (HasFibers.InducedFunctor p S)
 
 instance {p : 𝒳 ⥤ 𝒮} [hp : HasFibers p] {S : 𝒮} : Faithful (hp.ι S) :=
-  Faithful.of_iso (FiberInducedFunctorNat (hp.comp_const S)).symm
+  Faithful.of_iso (hp.InducedFunctorNat S).symm
 
 -- BASIC API CONSTRUCTIONS
 def HasFibersProj {p : 𝒳 ⥤ 𝒮} [hp : HasFibers p] {S R : 𝒮} {a : hp.Fib S} {b : hp.Fib R}
@@ -161,8 +175,7 @@ def Fiber.comp_const_nat (p : 𝒳 ⥤ 𝒮) (S : 𝒮) : (FiberInclusion p S) �
     naturality := fun x y φ => by
       -- TODO OPTIMIZE PROOF (could be solved by simp!!). probably need extra api to simplify
       simp only [const_obj_obj, comp_obj, FiberInclusion_obj, const_obj_map, id_comp, Functor.comp_map, FiberInclusion_map]
-      rw [←eqToHom_comp_iff, comp_eqToHom_iff, φ.2.3.1, comp_id]
-      }
+      rw [←eqToHom_comp_iff, comp_eqToHom_iff, φ.2.3.1, comp_id] }
 
 lemma Fiber.comp_const (p : 𝒳 ⥤ 𝒮) (S : 𝒮) : (FiberInclusion p S) ⋙ p = (const (Fiber p S)).obj S := by
   -- TODO OPTIMIZE PROOF
@@ -177,50 +190,56 @@ instance HasFibers.canonical (p : 𝒳 ⥤ 𝒮) : HasFibers p where
   Fib := Fiber p
   ι := FiberInclusion p
   comp_const := Fiber.comp_const p
-  equiv := fun S =>
-  {
+  equiv := fun S => {
     inverse :=  𝟭 (Fiber p S)
     unitIso := {
       hom := { app := fun x => ⟨𝟙 x.1, IsHomLift_id x.2⟩ }
       inv := { app := fun x => ⟨𝟙 x.1, IsHomLift_id x.2⟩ } }
     counitIso := {
       hom := { app := fun x => ⟨𝟙 x.1, IsHomLift_id x.2⟩}
-      inv := { app := fun x => ⟨𝟙 x.1, IsHomLift_id x.2⟩} }
-  }
+      inv := { app := fun x => ⟨𝟙 x.1, IsHomLift_id x.2⟩} } }
 
-/-- A version of fullness of the functor Fib S ⥤ Fiber p S that can be used inside the category 𝒳 -/
+/-- A version of fullness of the functor `Fib S ⥤ Fiber p S` that can be used inside the category `𝒳` -/
 lemma HasFibersFull {p : 𝒳 ⥤ 𝒮} [hp : HasFibers p] {S : 𝒮} {a b : hp.Fib S} {φ : (hp.ι S).obj a ⟶ (hp.ι S).obj b}
   (hφ : IsHomLift p (𝟙 S) φ) : ∃ (ψ : a ⟶ b), (hp.ι S).map ψ = φ := by
-  -- TODO IMPROVE PROOF... Only 5 last lines should be necessary
-  let a' : Fiber p S := ⟨(hp.ι S).obj a, HasFibersObjLift a⟩
-  let b' : Fiber p S := ⟨(hp.ι S).obj b, HasFibersObjLift b⟩
-  let φ' : a' ⟶ b' := ⟨φ, hφ⟩ -- TODO TURN INTO API ABOVE
 
-  let c : Fiber p S := (FiberInducedFunctor (hp.comp_const S)).obj a
-  let d : Fiber p S := (FiberInducedFunctor (hp.comp_const S)).obj b
-  let ψ : c ⟶ d := φ'
-
+  let a' : Fiber p S := (HasFibers.InducedFunctor p S).obj a
+  let b' : Fiber p S := (HasFibers.InducedFunctor p S).obj b
+  let ψ : a' ⟶ b' := ⟨φ, hφ⟩
   use (Full.preimage ψ)
 
   rw [←NatIso.naturality_2 (FiberInducedFunctorNat (hp.comp_const S))]
+  -- TODO: this should all be simp after appropriate `@[simp]s`
   unfold FiberInducedFunctorNat
   simp only [comp_obj, Functor.comp_map, Full.witness, comp_id, id_comp]
   rfl
 
-/-- A version of essential surjectivity of the functor Fib S ⥤ Fiber p S that can be used inside the category 𝒳 -/
+/-- Any isomorphism `Φ : (hp.ι S).obj a ≅ (hp.ι S).obj b` lying over `𝟙 S` can be lifted to an isomorphism in `Fib S` -/
+def HasFibersPreimageIso {p : 𝒳 ⥤ 𝒮} [hp : HasFibers p] {S : 𝒮} {a b : hp.Fib S}
+    (Φ : (hp.ι S).obj a ≅ (hp.ι S).obj b) (hΦ : IsHomLift p (𝟙 S) Φ.hom) : a ≅ b := by
+  let a' : Fiber p S := (HasFibers.InducedFunctor p S).obj a
+  let b' : Fiber p S := (HasFibers.InducedFunctor p S).obj b
+  let Φ' : a' ≅ b' := {
+    hom := ⟨Φ.hom, hΦ⟩
+    inv := ⟨Φ.inv, by simpa using IsHomLift_inv_id hΦ⟩ -- TODO: this could be improved..
+  }
+  exact ((hp.InducedFunctor S).preimageIso Φ')
+
+
+/-- A version of essential surjectivity of the functor `Fib S ⥤ Fiber p S` that can be used inside the category `𝒳` -/
 lemma HasFibersEssSurj {p : 𝒳 ⥤ 𝒮} [hp : HasFibers p] {S : 𝒮} {a : 𝒳} (ha : p.obj a = S) :
   ∃ (b : hp.Fib S) (φ : (hp.ι S).obj b ⟶ a), IsIso φ ∧ IsHomLift p (𝟙 S) φ := by
   -- This will be easy to inline
-  use Functor.objPreimage (FiberInducedFunctor (hp.comp_const S)) (Fiber.mk_obj ha)
-  let Φ := Functor.objObjPreimageIso (FiberInducedFunctor (hp.comp_const S)) (Fiber.mk_obj ha)
+  use Functor.objPreimage (HasFibers.InducedFunctor p S) (Fiber.mk_obj ha)
+  let Φ := Functor.objObjPreimageIso (HasFibers.InducedFunctor p S) (Fiber.mk_obj ha)
   use (FiberInclusion p S).map Φ.hom
   refine ⟨inferInstance, Φ.hom.2⟩
 
 lemma HasFibersEssSurj' {p : 𝒳 ⥤ 𝒮} [hp : HasFibers p] {S : 𝒮} {a : 𝒳} (ha : p.obj a = S) :
     ∃ (b : hp.Fib S) (φ : (hp.ι S).obj b ≅ a), IsHomLift p (𝟙 S) φ.hom := by
   -- This will be easy to inline
-  use Functor.objPreimage (FiberInducedFunctor (hp.comp_const S)) (Fiber.mk_obj ha)
-  let Φ := Functor.objObjPreimageIso (FiberInducedFunctor (hp.comp_const S)) (Fiber.mk_obj ha)
+  use Functor.objPreimage (HasFibers.InducedFunctor p S) (Fiber.mk_obj ha)
+  let Φ := Functor.objObjPreimageIso (HasFibers.InducedFunctor p S) (Fiber.mk_obj ha)
   refine ⟨(FiberInclusion p S).mapIso Φ, Φ.hom.2⟩
 
 -- MIGHT NOT NEED....
@@ -228,7 +247,7 @@ def HasFibersMap {p : 𝒳 ⥤ 𝒮} [hp : HasFibers p] {R S : 𝒮} {a : hp.Fib
     {b : hp.Fib R} (φ : (hp.ι R).obj b ⟶ (hp.ι S).obj a) : R ⟶ S :=
   eqToHom (HasFibersObjLift b).symm ≫ (p.map φ) ≫ eqToHom (HasFibersObjLift a)
 
-/-- Given a HasFibers and a diagram
+/-- Given a `HasFibers` instance and a diagram
 ```
            a
            -
@@ -240,20 +259,20 @@ with a in Fib S, we can take a pullback b = `R ×_S a` in Fib R -/
 lemma HasFibersPullback {p : 𝒳 ⥤ 𝒮} [hp : HasFibers p] [IsFibered p] {R S : 𝒮} (a : hp.Fib S)
     (f : R ⟶ S) : ∃ (b : hp.Fib R) (φ : (hp.ι R).obj b ⟶ (hp.ι S).obj a), IsPullback p f φ := by
   rcases IsFibered.has_pullbacks (HasFibersObjLift a) f with ⟨b, φ, hφ⟩
-  rcases HasFibersEssSurj hφ.ObjLiftDomain with ⟨b', ψ, hψ⟩
+  rcases HasFibersEssSurj hφ.ObjLiftDomain with ⟨b', ψ, ⟨_, hψ⟩⟩
   use b', ψ ≫ φ
   rw [←id_comp f]
-  exact IsPullback_comp (IsPullbackofIso hψ.2 hψ.1) hφ
+  exact IsPullback_comp (IsPullbackofIso hψ) hφ
 
 -- TODO MAYBE REPLACE THE ABOVE WITH THIS LEMMA
 lemma HasFibersPullback' {p : 𝒳 ⥤ 𝒮} [hp : HasFibers p] [IsFibered p] {R S : 𝒮} {a : 𝒳}
     (ha : p.obj a = S) (f : R ⟶ S) : ∃ (b : hp.Fib R) (φ : (hp.ι R).obj b ⟶ a),
       IsPullback p f φ := by
   rcases IsFibered.has_pullbacks ha f with ⟨b, φ, hφ⟩
-  rcases HasFibersEssSurj hφ.ObjLiftDomain with ⟨b', ψ, hψ⟩
+  rcases HasFibersEssSurj hφ.ObjLiftDomain with ⟨b', ψ, ⟨_, hψ⟩⟩
   use b', ψ ≫ φ
   rw [←id_comp f]
-  exact IsPullback_comp (IsPullbackofIso hψ.2 hψ.1) hφ
+  exact IsPullback_comp (IsPullbackofIso hψ) hφ
 
 /-- Given a fibered category p, b' b in Fib R, an a pullback ψ : b ⟶ a in 𝒳, i.e.
 ```

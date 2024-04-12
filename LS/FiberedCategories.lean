@@ -74,20 +74,24 @@ lemma IsHomLift_congr' {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} {f : R ⟶ 
 
 /-- If a --φ--> b lifts R --f--> S, then if φ is an isomorphism, so is f. -/
 lemma IsIsoofIsHomliftisIso {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} {f : R ⟶ S} {φ : a ⟶ b}
-  (hlift : IsHomLift p f φ) (hφ : IsIso φ) : IsIso f := by
+  (hlift : IsHomLift p f φ) [IsIso φ] : IsIso f := by
   rcases hlift with ⟨domain, _, ⟨homlift⟩⟩
   rw [←eqToHom_comp_iff domain.symm] at homlift
   rw [←homlift]
   exact IsIso.comp_isIso
 
 lemma IsHomLift_inv {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} {f : R ⟶ S} {φ : a ⟶ b}
-  (hlift : IsHomLift p f φ) (hφ : IsIso φ) (hf : IsIso f) : IsHomLift p (inv f) (inv φ) where
-    ObjLiftDomain := hlift.2
-    ObjLiftCodomain := hlift.1
-    HomLift := by
-      constructor
-      simp only [map_inv, IsIso.eq_comp_inv, assoc, IsIso.inv_comp_eq]
-      exact hlift.3.1.symm
+    (hlift : IsHomLift p f φ) [IsIso φ] [IsIso f] : IsHomLift p (inv f) (inv φ) where
+  ObjLiftDomain := hlift.2
+  ObjLiftCodomain := hlift.1
+  HomLift := by
+    constructor
+    simp only [map_inv, IsIso.eq_comp_inv, assoc, IsIso.inv_comp_eq]
+    exact hlift.3.1.symm
+
+lemma IsHomLift_inv_id {p : 𝒳 ⥤ 𝒮} {S : 𝒮} {a b : 𝒳} {φ : a ⟶ b} [IsIso φ]
+    (hlift : IsHomLift p (𝟙 S) φ) : IsHomLift p (𝟙 S) (inv φ) :=
+  (IsIso.inv_id (X:=S)) ▸ IsHomLift_inv hlift
 
 lemma IsHomLift_comp {p : 𝒳 ⥤ 𝒮} {R S T : 𝒮} {a b c : 𝒳} {f : R ⟶ S}
   {g : S ⟶ T} {φ : a ⟶ b} {ψ : b ⟶ c} (hφ : IsHomLift p f φ)
@@ -306,14 +310,17 @@ lemma IsPullback_of_comp {p : 𝒳 ⥤ 𝒮} {R S T : 𝒮} {a b c: 𝒳} {f : R
       apply IsPullbackInducedMap_unique _ _ _ hπ'.1 (by rw [←hπ'.2, assoc])
 
 lemma IsPullbackofIso {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳}
-  {f : R ⟶ S} {φ : a ⟶ b} (hlift : IsHomLift p f φ) (hφ : IsIso φ) : IsPullback p f φ where
+  {f : R ⟶ S} {φ : a ⟶ b} (hlift : IsHomLift p f φ) [IsIso φ] : IsPullback p f φ where
     toIsHomLift := hlift
     UniversalProperty := by
       intros R' a' g f' hf' φ' hφ'
       existsi φ' ≫ inv φ
       constructor
       · simp only [assoc, IsIso.inv_hom_id, comp_id, and_true]
-        have h₁ := IsHomLift_comp hφ' (IsHomLift_inv hlift hφ (IsIsoofIsHomliftisIso hlift hφ))
+        -- TODO: make these two lines into a lemma somehow?
+        haveI := IsIsoofIsHomliftisIso hlift
+        have h₁ := IsHomLift_comp hφ' (IsHomLift_inv hlift)
+
         simp only [hf', assoc, IsIso.hom_inv_id, comp_id] at h₁
         exact h₁
       intro ψ hψ
@@ -322,11 +329,11 @@ lemma IsPullbackofIso {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳}
 /- eqToHom interactions -/
 lemma IsPullback_eqToHom {p : 𝒳 ⥤ 𝒮} {a b : 𝒳} (hba : b = a) {S : 𝒮} (hS : p.obj a = S) :
     IsPullback p (𝟙 S) (eqToHom hba) :=
-  IsPullbackofIso (IsHomLift_id_eqToHom hba hS) inferInstance
+  IsPullbackofIso (IsHomLift_id_eqToHom hba hS)
 
 lemma IsPullback_eqToHom' {p : 𝒳 ⥤ 𝒮} {a b : 𝒳} (hba : b = a) {S : 𝒮} (hS : p.obj b = S) :
     IsPullback p (𝟙 S) (eqToHom hba) :=
-  IsPullbackofIso (IsHomLift_id_eqToHom' hba hS) inferInstance
+  IsPullbackofIso (IsHomLift_id_eqToHom' hba hS)
 
 lemma IsPullback_eqToHom_comp {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b c : 𝒳} {f : R ⟶ S}
     {φ : b ⟶ a} (hφ : IsPullback p f φ) (hc : c = b) : IsPullback p f (eqToHom hc ≫ φ) :=

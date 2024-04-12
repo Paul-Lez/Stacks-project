@@ -151,6 +151,7 @@ lemma FullofFullFiberwise  { 𝒳 𝒴 : FiberedCat 𝒮} {F : 𝒳 ⟶ 𝒴} (h
   rw [←Category.assoc, ←Functor.mapIso_inv, ←Functor.mapIso_hom]
   rw [Iso.inv_hom_id, id_comp]
 
+
 lemma FiberwiseIsEquivalenceOfEquivalence {𝒳 𝒴 : FiberedCat 𝒮} (F : 𝒳 ≌ 𝒴) :
     ∀ S : 𝒮, IsEquivalence (F.hom.onFib S) := by
   intro S
@@ -159,30 +160,36 @@ lemma FiberwiseIsEquivalenceOfEquivalence {𝒳 𝒴 : FiberedCat 𝒮} (F : �
   { exact FiberwiseFaithfulofFaithful F.hom.toFiberFunctor S}
   -- TODO: create this instance (+ API?)
   -- TODO: create separate lemma "FiberwiseIsEssSurjOfEssSurj"
-  haveI h : EssSurj F.hom.toFunctor := sorry
   constructor
   intro a
-  -- F.inv.obj Y, ⟨F.asEquivalence.counitIso.app Y⟩
-
   -- let `b` be the image of `a` under `F.inv`
   let b := F.inv.obj ((𝒴.hasFib.ι S).obj a)
   -- since `F.inv` is a functor of fibered categories, `b` is in the fiber of `S`
   have hb : 𝒳.p.obj b = S := by rw [F.inv.obj_proj, HasFibersObjLift]
   -- let `b'` be an object of `𝒳.HasFib.Fib S` such that there is an isomorphism `Φ : b' ≅ b`
   let b' := Classical.choose (HasFibersEssSurj' hb)
-  let φ := Classical.choose (Classical.choose_spec (HasFibersEssSurj' hb))
-  have hφ := Classical.choose_spec (Classical.choose_spec (HasFibersEssSurj' hb))
+  let Φ : (𝒳.hasFib.ι S).obj b' ≅ b := Classical.choose (Classical.choose_spec (HasFibersEssSurj' hb))
+  have hΦ := Classical.choose_spec (Classical.choose_spec (HasFibersEssSurj' hb))
 
   -- We have that `(F.onFib R).obj b' ≅ F.obj b` in `𝒴.cat`
-  let Φ' : (𝒴.hasFib.ι S).obj ((F.hom.onFib S).obj b') ≅ F.hom.obj b := by
-    sorry -- defined as image of φ + eqToHoms
+  let Φ' : (𝒴.hasFib.ι S).obj ((F.hom.onFib S).obj b') ≅ F.hom.obj b :=
+    eqToIso (FiberFunctor.fib_w_obj _ _) ≪≫ (F.hom.toFunctor.mapIso Φ)
 
-  let Φ : (𝒴.hasFib.ι S).obj ((F.hom.onFib S).obj b') ≅ (𝒴.hasFib.ι S).obj a := sorry
-    --Φ' ≪≫ (F.counit ((𝒴.hasFib.ι S).obj a)).functor
-  have hΦ : IsHomLift 𝒴.p (𝟙 S) Φ.hom := sorry
-  -- TODO LIFT TO FIBER "lift" & lift iso lemma
+  let Ψ : (𝒴.hasFib.ι S).obj ((F.hom.onFib S).obj b') ≅ (𝒴.hasFib.ι S).obj a :=
+    -- TODO: create API for BasedNatIso to avoid IsoOfBasedIso
+    Φ' ≪≫ (IsoOfBasedIso (F.counit)).app ((𝒴.hasFib.ι S).obj a)
+
+  have hΨ : IsHomLift 𝒴.p (𝟙 S) Ψ.hom := by
+    simp only [Iso.trans_hom, Iso.app_hom, Ψ, Φ']
+    apply IsHomLift_id_comp _ (F.counit.hom.aboveId (HasFibersObjLift _))
+    apply IsHomLift_id_comp _ (F.hom.pres_IsHomLift hΦ)
+    simp only [eqToIso.hom]
+    apply IsHomLift_id_eqToHom
+    simp only [BasedFunctor.obj_proj, HasFibersObjLift]
+
   use b'
-  sorry
+  constructor
+  exact HasFibersPreimageIso Ψ hΨ
 
 def EquivalenceOfFiberwiseIsEquivalence {𝒳 𝒴 : FiberedCat 𝒮} (F : 𝒳 ⟶ 𝒴)
     (hF : ∀ S : 𝒮, IsEquivalence (F.onFib S)) : 𝒳 ≌ 𝒴 where

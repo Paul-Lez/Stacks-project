@@ -251,6 +251,7 @@ def FiberedFunctor.whiskerRight {𝒳 𝒴 𝒵 : FiberedCat 𝒮} {F G : Fibere
     (α : F ⟶ G) (H : FiberedFunctor 𝒴 𝒵) :=
   BasedCategory.whiskerRight α H.toBasedFunctor
 
+@[simps!]
 instance FiberedCat.bicategory : Bicategory (FiberedCat 𝒮) where
   Hom 𝒳 𝒴 := FiberedFunctor 𝒳 𝒴
   id 𝒳 := FiberedFunctor.id 𝒳
@@ -275,7 +276,10 @@ instance : Bicategory.Strict (FiberedCat 𝒮) where
   comp_id := FiberedFunctor.comp_id
   assoc := FiberedFunctor.assoc
 
--- TODO: state this for BasedCategory only?
+
+
+-- TODO: This should be deduced using mapIso...!
+@[simps]
 def IsoOfBasedIso {𝒳 𝒴 : FiberedCat 𝒮} {F G : 𝒳 ⟶ 𝒴} (α : F ≅ G) : F.toFunctor ≅ G.toFunctor where
   hom := α.hom.toNatTrans
   inv := α.inv.toNatTrans

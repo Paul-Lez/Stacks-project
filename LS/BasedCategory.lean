@@ -19,12 +19,6 @@ such that `α.app a` lifts `𝟙 S` whenever `𝒳.p.obj a = S`.
 
 -/
 
-/-
-TODO:
-- Rely less on `aesop_cat` in definition of the bicategory
-
--/
-
 universe u₁ v₁ u₂ v₂
 
 open CategoryTheory Functor Category NatTrans
@@ -96,9 +90,6 @@ lemma BasedFunctor.HomLift_ofImage {𝒳 𝒴 : BasedCategory 𝒮} (F : BasedFu
     rw [congr_hom F.w.symm]
     simp only [Functor.comp_map, Category.assoc, eqToHom_trans, hφ.HomLift.1,
       eqToHom_trans_assoc]⟩
-
-
-
 
 /-- A `BasedNatTrans` between two `BasedFunctor`s is a natural transformation `α` between the underlying functors,
     such that for all `a : 𝒳`, `α.app a` lifts `𝟙 S` whenever `𝒳.p.obj a = S`. -/
@@ -203,21 +194,18 @@ def BasedFunctor.associator {𝒳 𝒴 𝒵 𝒱 : BasedCategory 𝒮} (F : Base
       aboveId := by
         intro a S ha
         apply IsHomLift_id
-        simp only [obj_proj, ha]
-    }
+        simp only [obj_proj, ha] }
     inv := {
       app := fun _ => 𝟙 _
       aboveId := by
         intro a S ha
         apply IsHomLift_id
-        simp only [obj_proj, ha]
-    }
+        simp only [obj_proj, ha] }
 
 @[simps]
 def BasedFunctor.leftUnitor {𝒳 𝒴 : BasedCategory 𝒮} (F : BasedFunctor 𝒳 𝒴) :
   BasedFunctor.comp (BasedFunctor.id 𝒳) F ≅ F where
-    hom :=
-    {
+    hom := {
       app := fun a => 𝟙 (F.obj a)
       naturality := by
         intros
@@ -225,21 +213,18 @@ def BasedFunctor.leftUnitor {𝒳 𝒴 : BasedCategory 𝒮} (F : BasedFunctor �
       aboveId := by
         intro a S ha
         apply IsHomLift_id
-        simp only [obj_proj, ha]
-    }
+        simp only [obj_proj, ha] }
     inv := {
       app := fun a => 𝟙 (F.obj a)
       aboveId := by
         intro a S ha
         apply IsHomLift_id
-        simp only [obj_proj, ha]
-    }
+        simp only [obj_proj, ha] }
 
 @[simps]
 def BasedFunctor.rightUnitor {𝒳 𝒴 : BasedCategory 𝒮} (F : BasedFunctor 𝒳 𝒴) :
   BasedFunctor.comp F (BasedFunctor.id 𝒴) ≅ F where
-    hom :=
-    {
+    hom := {
       app := fun a => 𝟙 (F.obj a)
       naturality := by
         intros
@@ -247,15 +232,13 @@ def BasedFunctor.rightUnitor {𝒳 𝒴 : BasedCategory 𝒮} (F : BasedFunctor 
       aboveId := by
         intro a S ha
         apply IsHomLift_id
-        simp only [obj_proj, ha]
-    }
+        simp only [obj_proj, ha] }
     inv := {
       app := fun a => 𝟙 (F.obj a)
       aboveId := by
         intro a S ha
         apply IsHomLift_id
-        simp only [obj_proj, ha]
-    }
+        simp only [obj_proj, ha] }
 
 @[simps!]
 def BasedCategory.whiskerLeft {𝒳 𝒴 𝒵 : BasedCategory 𝒮} (F : BasedFunctor 𝒳 𝒴)
@@ -281,7 +264,6 @@ instance BasedCategory.bicategory : Bicategory (BasedCategory 𝒮) where
   comp := BasedFunctor.comp
   homCategory 𝒳 𝒴 := homCategory 𝒳 𝒴
   whiskerLeft := BasedCategory.whiskerLeft
-  -- TODO: weird that this has non-implicit arguments and above doesnt
   whiskerRight {𝒳 𝒴 𝒵} F G α H := BasedCategory.whiskerRight α H
   associator := BasedFunctor.associator
   leftUnitor {𝒳 𝒴} F := BasedFunctor.leftUnitor F
