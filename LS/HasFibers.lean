@@ -1,10 +1,42 @@
-/-
+ /-
 Copyright (c) 2023 Calle Sönne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Calle Sönne, Paul Lezeau
 -/
 
 import LS.FiberedCategories
+
+/-!
+# Fibers of functors
+In this file we develop the theory of fibers of functors. Given a functor `p : 𝒳 ⥤ 𝒮`, we define
+the fiber categories `Fiber p S` for every `S : 𝒮` as follows:
+- An object in `Fiber p S` is a pair `(a, ha)` where `a : 𝒳` and `ha : p.obj a = S`.
+- A morphism in `Fiber p S` is a morphism `φ : a ⟶ b` in 𝒳 such that `p.map φ = 𝟙 S`.
+
+We also introduce a typeclass `HasFibers` for a functor `p : 𝒳 ⥤ 𝒮`, consisting of:
+- A collection of categories `Fib S` for every `S` in `𝒮` (the fiber categories)
+- Functors `ι : Fib S ⥤ 𝒳` such that `ι ⋙ p = const (Fib S) S
+- The induced functor `Fib S ⥤ Fiber p S` is an equivalence.
+
+The reason for introducing this typeclass is that in practice, when working with fibered categories
+one often already has a collection of categories `Fib S` for every `S` that are equivalent to the fibers
+`Fiber p S`. One would then like to use these categories `Fib S` directly, instead of working through this
+equivalence of categories. By developing an API for the `HasFibers` typeclass, this will be possible.
+For example, we develop the following lemmas:
+- `HasFibersPullback` allows one to take pullbacks such that the codomain lies in one of the fiber categories.
+- `HasFibersFactorization`
+- `fiber_factorization` any morphism in `𝒳` can be factored as a morphism in some fiber `Fib S` followed by
+  a pullback. (TODO: rename this lemma)
+
+Here is an example of when this typeclass is useful. Suppose we have a presheaf of types `F : 𝒮ᵒᵖ ⥤ Type _`.
+The associated fibered category then has objects `(S, a)` where `S : 𝒮` and `a` is an element of `F(S)`.
+The fiber category `Fiber p S` is then equivalent to the discrete category `Fib S` with objects `a` in `F(S)`.
+In this case, the `HasFibers` instance is given by the categories `F(S)` and the functor `ι` sends
+`a : F(S)` to `(S, a)` in the fibered category. See `Presheaf.lean` for more details.
+-/
+
+-- TODO: port this to use `BasedCategory` later.
+-- FiberCat should then be defined in this file, move out any `IsFibered` propoerties to `FiberedCat.lean`
 
 universe u₁ v₁ u₂ v₂ u₃ w
 
