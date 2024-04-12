@@ -1,5 +1,4 @@
 import LS.FiberedCat
-import Mathlib.CategoryTheory.Bicategory.Adjunction
 
 /-!
 # Fiberwise criteria for functors between fibered categories
@@ -154,7 +153,25 @@ lemma FullofFullFiberwise  { 𝒳 𝒴 : FiberedCat 𝒮} {F : 𝒳 ⟶ 𝒴} (h
 
 lemma FiberwiseIsEquivalenceOfEquivalence {𝒳 𝒴 : FiberedCat 𝒮} (F : 𝒳 ≌ 𝒴) :
     ∀ S : 𝒮, IsEquivalence (F.hom.onFib S) := by
+  intro S
+  refine @Equivalence.ofFullyFaithfullyEssSurj _ _ _ _ _ ?_ ?_ ?_
+  { exact FiberwiseFullofFull F.hom.toFiberFunctor S }
+  { sorry }
+  haveI h : EssSurj F.hom.toFunctor := sorry
+  constructor
+  intro a
+  let b := F.hom.toFunctor.objPreimage ((𝒴.hasFib.ι S).obj a)
+  let R := 𝒳.p.obj b
+  -- have hb : 𝒳.p.obj b = S := by
+  --   rw [←F.hom.obj_proj]
+  -- 1. take iso to b lying in this fiber
+  -- 2. take image of this through onFib
+  -- 3. this is isomorphic to F.obj b in whole category, hence iso to a in whole category
+  -- 4. Need to show that this iso lifts to fiber
+  -- 5. Use factorization lemma to show this!
   sorry
+
+
 
 
 end Fibered

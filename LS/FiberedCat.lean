@@ -1,6 +1,8 @@
 import LS.BasedCategory
 import LS.HasFibers
 
+import Mathlib.CategoryTheory.Bicategory.Adjunction
+
 /-!
 # The bicategory of fibered categories
 
@@ -362,6 +364,25 @@ instance : Bicategory.Strict (FiberedCat 𝒮) where
   id_comp := FiberedFunctor.id_comp
   comp_id := FiberedFunctor.comp_id
   assoc := FiberedFunctor.assoc
+
+def EquivOfFiberFunctorEquiv {𝒳 𝒴 : FiberedCat 𝒮} (F : 𝒳 ≌ 𝒴) : 𝒳.cat ≌ 𝒴.cat where
+  functor := F.hom.toFunctor
+  inverse := F.inv.toFunctor
+  -- TODO: api for this
+  unitIso := {
+    hom := F.unit.hom.toNatTrans
+    inv := F.unit.inv.toNatTrans
+    -- TODO: more api
+    hom_inv_id := congrArg (·.toNatTrans) F.unit.hom_inv_id -- TODO: simplify also
+    inv_hom_id := congrArg (·.toNatTrans) F.unit.inv_hom_id
+  }
+  counitIso := sorry
+  functor_unitIso_comp := sorry
+
+-- TODO: API of going from this bicategory structure to underlying properties of the functor
+instance IsEquivOfFiberFunctorEquiv {𝒳 𝒴 : FiberedCat 𝒮} (F : 𝒳 ≌ 𝒴) : IsEquivalence F.hom.toFunctor := by
+  rw [show F.hom.toFunctor = (EquivOfFiberFunctorEquiv F).functor by rfl]
+  apply IsEquivalence.ofEquivalence
 
 end Fibered
 
