@@ -156,19 +156,32 @@ lemma FiberwiseIsEquivalenceOfEquivalence {𝒳 𝒴 : FiberedCat 𝒮} (F : �
   intro S
   refine @Equivalence.ofFullyFaithfullyEssSurj _ _ _ _ _ ?_ ?_ ?_
   { exact FiberwiseFullofFull F.hom.toFiberFunctor S }
-  { sorry }
+  { exact FiberwiseFaithfulofFaithful F.hom.toFiberFunctor S}
+  -- TODO: create this instance (+ API?)
+  -- TODO: create separate lemma "FiberwiseIsEssSurjOfEssSurj"
   haveI h : EssSurj F.hom.toFunctor := sorry
   constructor
   intro a
-  let b := F.hom.toFunctor.objPreimage ((𝒴.hasFib.ι S).obj a)
-  let R := 𝒳.p.obj b
-  -- have hb : 𝒳.p.obj b = S := by
-  --   rw [←F.hom.obj_proj]
-  -- 1. take iso to b lying in this fiber
-  -- 2. take image of this through onFib
-  -- 3. this is isomorphic to F.obj b in whole category, hence iso to a in whole category
-  -- 4. Need to show that this iso lifts to fiber
-  -- 5. Use factorization lemma to show this!
+  -- F.inv.obj Y, ⟨F.asEquivalence.counitIso.app Y⟩
+
+  -- let `b` be the image of `a` under `F.inv`
+  let b := F.inv.obj ((𝒴.hasFib.ι S).obj a)
+  -- since `F.inv` is a functor of fibered categories, `b` is in the fiber of `S`
+  have hb : 𝒳.p.obj b = S := by rw [F.inv.obj_proj, HasFibersObjLift]
+  -- let `b'` be an object of `𝒳.HasFib.Fib S` such that there is an isomorphism `Φ : b' ≅ b`
+  let b' := Classical.choose (HasFibersEssSurj' hb)
+  let φ := Classical.choose (Classical.choose_spec (HasFibersEssSurj' hb))
+  have hφ := Classical.choose_spec (Classical.choose_spec (HasFibersEssSurj' hb))
+
+  -- We have that `(F.onFib R).obj b' ≅ F.obj b` in `𝒴.cat`
+  let Φ' : (𝒴.hasFib.ι S).obj ((F.hom.onFib S).obj b') ≅ F.hom.obj b := by
+    sorry -- defined as image of φ + eqToHoms
+
+  let Φ : (𝒴.hasFib.ι S).obj ((F.hom.onFib S).obj b') ≅ (𝒴.hasFib.ι S).obj a := sorry
+    --Φ' ≪≫ (F.counit ((𝒴.hasFib.ι S).obj a)).functor
+  have hΦ : IsHomLift 𝒴.p (𝟙 S) Φ.hom := sorry
+  -- TODO LIFT TO FIBER "lift" & lift iso lemma
+  use b'
   sorry
 
 def EquivalenceOfFiberwiseIsEquivalence {𝒳 𝒴 : FiberedCat 𝒮} (F : 𝒳 ⟶ 𝒴)
