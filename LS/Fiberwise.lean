@@ -2,8 +2,8 @@ import LS.FiberedCat
 
 /-!
 # Fiberwise criteria for functors between fibered categories
-In this file we prove fiberwise criteria for a functor between fibered categories to be full or
-faithful.
+In this file we prove fiberwise criteria for a functor between fibered categories to be
+either full, faithful or an equivalence.
 
 -/
 
@@ -166,7 +166,7 @@ lemma FiberwiseIsEquivalenceOfEquivalence {𝒳 𝒴 : FiberedCat 𝒮} (F : �
   let b := F.inv.obj ((𝒴.hasFib.ι S).obj a)
   -- since `F.inv` is a functor of fibered categories, `b` is in the fiber of `S`
   have hb : 𝒳.p.obj b = S := by rw [F.inv.obj_proj, HasFibersObjLift]
-  -- let `b'` be an object of `𝒳.HasFib.Fib S` such that there is an isomorphism `Φ : b' ≅ b`
+  -- let `b'` be an object of `𝒳.HasFib.Fib S` with an isomorphism `Φ : b' ≅ b`
   let b' := Classical.choose (HasFibersEssSurj' hb)
   let Φ : (𝒳.hasFib.ι S).obj b' ≅ b := Classical.choose (Classical.choose_spec (HasFibersEssSurj' hb))
   have hΦ := Classical.choose_spec (Classical.choose_spec (HasFibersEssSurj' hb))
@@ -191,12 +191,119 @@ lemma FiberwiseIsEquivalenceOfEquivalence {𝒳 𝒴 : FiberedCat 𝒮} (F : �
   constructor
   exact HasFibersPreimageIso Ψ hΨ
 
-def EquivalenceOfFiberwiseIsEquivalence {𝒳 𝒴 : FiberedCat 𝒮} (F : 𝒳 ⟶ 𝒴)
+noncomputable def InvOfFiberWiseIsEquivalence.Obj {𝒳 𝒴 : FiberedCat 𝒮} {F : 𝒳 ⟶ 𝒴}
+    (hF : ∀ S : 𝒮, IsEquivalence (F.onFib S)) (y : 𝒴.cat) : 𝒳.cat := by
+  let S := 𝒴.p.obj y
+  -- let `y'` be an object of `𝒴.hasFib.Fib S` with an isomorphism `Φ : y' ≅ y`
+  -- NOTE: THIS MIGHT NOT BE VERY WELL DEFINED...
+  let y' := Classical.choose (HasFibersEssSurj' (rfl (a:=S)))
+  let Φ : (𝒴.hasFib.ι S).obj y' ≅ y := Classical.choose (Classical.choose_spec (HasFibersEssSurj' (rfl (a:=S))))
+  have hΦ := Classical.choose_spec (Classical.choose_spec (HasFibersEssSurj' (rfl (a:=S))))
+
+  -- let `x` be a preimage of `y'` under `F.onFib S`
+  haveI := Equivalence.essSurj_of_equivalence (F.onFib S)
+  let x := (F.onFib S).objPreimage y'
+  -- TODO: could instead use `F.onFib.inv y'`...
+  use (𝒳.hasFib.ι S).obj x
+
+noncomputable def InvOfFiberwiseIsEquivalence.ObjIso {𝒳 𝒴 : FiberedCat 𝒮} {F : 𝒳 ⟶ 𝒴}
+    (hF : ∀ S : 𝒮, IsEquivalence (F.onFib S)) (y : 𝒴.cat) :
+      F.obj (InvOfFiberWiseIsEquivalence.Obj hF y) ≅ y := by
+  let S := 𝒴.p.obj y
+  haveI := Equivalence.essSurj_of_equivalence (F.onFib S)
+  -- iso F.onFib.obj .. ≅ y'
+  let Φ := (F.onFib S).objObjPreimageIso (Classical.choose (HasFibersEssSurj' (rfl (a:=S))))
+  let Φ' : F.obj (InvOfFiberWiseIsEquivalence.Obj hF y) ≅ y := by
+    apply eqToIso _ ≪≫ (𝒴.hasFib.ι S).mapIso Φ ≪≫
+      Classical.choose (Classical.choose_spec (HasFibersEssSurj' (rfl (a:=S))))
+    -- first lemma define it manually
+    simp only [InvOfFiberWiseIsEquivalence.Obj, FiberFunctor.fib_w_obj]
+
+  exact Φ'
+
+@[simps]
+noncomputable def OfFiberwiseEquivalence.InvFunctor {𝒳 𝒴 : FiberedCat 𝒮} {F : 𝒳 ⟶ 𝒴}
+    (hF : ∀ S : 𝒮, IsEquivalence (F.onFib S)) : 𝒴.cat ⥤ 𝒳.cat where
+      obj y := InvOfFiberWiseIsEquivalence.Obj hF y
+      map {y y'} φ := by
+        -- define `φ' : .. ≅ y ⟶ y' ≅ ..`
+        let φ' := (InvOfFiberwiseIsEquivalence.ObjIso hF y).hom ≫ φ ≫
+          (InvOfFiberwiseIsEquivalence.ObjIso hF y').inv
+        -- Q: how does it determine typeclass here!
+        haveI : Full F.toFunctor := FullofFullFiberwise inferInstance
+
+        exact F.preimage φ'
+
+      map_id y := by
+        haveI : Full F.toFunctor := FullofFullFiberwise inferInstance
+        haveI : Faithful F.toFunctor := FaithfulofFiberwiseFaithful inferInstance
+
+        simp only [id_comp, Iso.hom_inv_id, preimage_id]
+
+      map_comp {x y z} φ ψ := by
+        haveI : Full F.toFunctor := FullofFullFiberwise inferInstance
+        haveI : Faithful F.toFunctor := FaithfulofFiberwiseFaithful inferInstance
+        simp only [assoc, ← preimage_comp, Iso.inv_hom_id_assoc]
+
+@[simps]
+noncomputable def OfFiberwiseEquivalence.InvFunctor_w {𝒳 𝒴 : FiberedCat 𝒮} {F : 𝒳 ⟶ 𝒴}
+    (hF : ∀ S : 𝒮, IsEquivalence (F.onFib S)) :
+      (OfFiberwiseEquivalence.InvFunctor hF) ⋙ 𝒳.p ≅ 𝒴.p where
+        hom := {
+          app := fun y => eqToHom (HasFibersObjLift _)
+          naturality := by
+            intros y y' φ
+            simp
+            sorry -- This one is hard/annoying!
+            --have := HasFibersHomLift
+        }
+        inv := {
+          app := fun y => eqToHom (HasFibersObjLift _).symm
+          naturality := sorry
+        }
+
+
+@[simps?]
+noncomputable def InvOfFiberwiseIsEquivalence {𝒳 𝒴 : FiberedCat 𝒮} (F : 𝒳 ⟶ 𝒴)
+    (hF : ∀ S : 𝒮, IsEquivalence (F.onFib S)) : 𝒴 ⟶ 𝒳 :=
+{ OfFiberwiseEquivalence.InvFunctor hF with
+  w := by
+    apply Functor.ext_of_iso (OfFiberwiseEquivalence.InvFunctor_w hF)
+    { exact fun y => OfFiberwiseEquivalence.InvFunctor_w_hom_app hF y }
+
+  onFib := fun S => (hF S).inverse -- maybe use more complicated defn to make it easier
+  fib_w := by
+    intro S
+    simp
+    sorry -- this one will also be annoying (as not very well def)
+
+  pullback := by
+    intro a b R S f φ hφ
+    simp
+    sorry
+}
+
+
+
+noncomputable def EquivalenceOfFiberwiseIsEquivalence {𝒳 𝒴 : FiberedCat 𝒮} (F : 𝒳 ⟶ 𝒴)
     (hF : ∀ S : 𝒮, IsEquivalence (F.onFib S)) : 𝒳 ≌ 𝒴 where
   hom := F
-  inv := sorry
+  inv := InvOfFiberwiseIsEquivalence F hF
+  -- unit is from last part of Olssons proof
   unit := sorry
-  counit := sorry
+  counit := {
+    hom := {
+      app := fun y => (InvOfFiberwiseIsEquivalence.ObjIso hF y).hom
+      aboveId := by
+        intro y S hy
+        simp
+        sorry -- THIS IS OK
+    }
+    inv := {
+      app := fun y => (InvOfFiberwiseIsEquivalence.ObjIso hF y).inv
+      aboveId := sorry -- Again OK
+    }
+  }
   left_triangle := sorry
 
 
