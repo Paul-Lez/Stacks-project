@@ -204,8 +204,10 @@ noncomputable def InvOfFiberWiseIsEquivalence.Obj {𝒳 𝒴 : FiberedCat 𝒮} 
   haveI := Equivalence.essSurj_of_equivalence (F.onFib S)
   let x := (F.onFib S).objPreimage y'
   -- TODO: could instead use `F.onFib.inv y'`...
-  use (𝒳.hasFib.ι S).obj x
+  exact (𝒳.hasFib.ι S).obj x
 
+-- todo remove this possibly
+@[simps!]
 noncomputable def InvOfFiberwiseIsEquivalence.ObjIso {𝒳 𝒴 : FiberedCat 𝒮} {F : 𝒳 ⟶ 𝒴}
     (hF : ∀ S : 𝒮, IsEquivalence (F.onFib S)) (y : 𝒴.cat) :
       F.obj (InvOfFiberWiseIsEquivalence.Obj hF y) ≅ y := by
@@ -220,6 +222,18 @@ noncomputable def InvOfFiberwiseIsEquivalence.ObjIso {𝒳 𝒴 : FiberedCat �
     simp only [InvOfFiberWiseIsEquivalence.Obj, FiberFunctor.fib_w_obj]
 
   exact Φ'
+
+lemma InvOfFiberwiseIsEquivalence.ObjIso_IsHomLift {𝒳 𝒴 : FiberedCat 𝒮} {F : 𝒳 ⟶ 𝒴}
+      (hF : ∀ S : 𝒮, IsEquivalence (F.onFib S)) (y : 𝒴.cat) :
+    IsHomLift 𝒴.p (𝟙 (𝒴.p.obj y)) (InvOfFiberwiseIsEquivalence.ObjIso hF y).hom where
+      ObjLiftDomain := by rw [F.obj_proj]; apply HasFibersObjLift
+      ObjLiftCodomain := rfl
+      HomLift := ⟨by
+        simp only [ObjIso_hom, map_comp, eqToHom_refl, comp_id]
+        rw [←IsHomLift_congr' (HasFibersHomLift _)]
+        rw [←IsHomLift_congr' (Classical.choose_spec (Classical.choose_spec (HasFibersEssSurj' (rfl (a:=𝒴.p.obj y)))))]
+        simp only [eqToHom_map, HasFibersObjLift, eqToHom_naturality, comp_id, eqToHom_trans,
+          eqToHom_refl]⟩
 
 @[simps]
 noncomputable def OfFiberwiseEquivalence.InvFunctor {𝒳 𝒴 : FiberedCat 𝒮} {F : 𝒳 ⟶ 𝒴}
@@ -253,17 +267,50 @@ noncomputable def OfFiberwiseEquivalence.InvFunctor_w {𝒳 𝒴 : FiberedCat �
           app := fun y => eqToHom (HasFibersObjLift _)
           naturality := by
             intros y y' φ
-            simp
-            sorry -- This one is hard/annoying!
-            --have := HasFibersHomLift
+            simp only [Functor.comp_map]
+            rw [←IsHomLift_congr (F.IsHomLift_map ((InvFunctor hF).map φ))]
+            -- This all should be factored out
+            simp only [comp_obj, InvFunctor_obj, InvFunctor_map, assoc,
+              image_preimage, map_comp, eqToHom_trans]
+            rw [←IsHomLift_congr' (InvOfFiberwiseIsEquivalence.ObjIso_IsHomLift hF y)]
+            -- TODO: maybe I should restate this lemma better
+            have := (IsHomLift_inv_id (InvOfFiberwiseIsEquivalence.ObjIso_IsHomLift hF y'))
+            simp only [IsIso.Iso.inv_hom] at this
+
+            rw [←IsHomLift_congr' this]
+            simp only [InvFunctor_obj, eqToHom_refl, comp_id, id_comp, eqToHom_trans,
+              eqToHom_trans_assoc, comp_obj]
         }
         inv := {
           app := fun y => eqToHom (HasFibersObjLift _).symm
-          naturality := sorry
+          naturality := sorry -- same as above
         }
 
+lemma PreimageIsPullback {𝒳 𝒴 : FiberCat 𝒮} (F : 𝒳 ⟶ 𝒴) [Full F.toFunctor]
+    [Faithful F.toFunctor] {a b : 𝒳.cat} {φ : F.obj a ⟶ F.obj b} {R S : 𝒮} {f : R ⟶ S}
+    (hφ : IsPullback 𝒴.p f φ) : IsPullback 𝒳.p f (F.preimage φ) :=
+    { PreimageIsHomLift F hφ.toIsHomLift with
+      UniversalProperty := by
+        intro R' a' g f' hgf φ' hφ'
+        have hFφ' := F.pres_IsHomLift hφ'
+        let ψ := IsPullbackInducedMap hφ hgf hFφ'
+        use F.preimage ψ
 
-@[simps?]
+        simp
+        refine ⟨⟨?_, ?_⟩, ?_⟩
+        { apply PreimageIsHomLift
+          apply (IsPullbackInducedMap_IsHomLift hφ hgf hFφ') }
+        { apply F.map_injective
+          simp
+          apply IsPullbackInducedMap_Diagram hφ hgf hFφ'}
+        intro χ hχ hχ_comp
+
+        apply F.map_injective
+        rw [F.image_preimage]
+        apply IsPullbackInducedMap_unique hφ hgf hFφ'
+        apply F.pres_IsHomLift hχ
+        simpa using congrArg F.map hχ_comp }
+
 noncomputable def InvOfFiberwiseIsEquivalence {𝒳 𝒴 : FiberedCat 𝒮} (F : 𝒳 ⟶ 𝒴)
     (hF : ∀ S : 𝒮, IsEquivalence (F.onFib S)) : 𝒴 ⟶ 𝒳 :=
 { OfFiberwiseEquivalence.InvFunctor hF with
@@ -279,8 +326,24 @@ noncomputable def InvOfFiberwiseIsEquivalence {𝒳 𝒴 : FiberedCat 𝒮} (F :
 
   pullback := by
     intro a b R S f φ hφ
-    simp
-    sorry
+    haveI : Full F.toFunctor := FullofFullFiberwise inferInstance
+    haveI : Faithful F.toFunctor := FaithfulofFiberwiseFaithful inferInstance
+    simp only
+    -- TODO: ????
+    apply PreimageIsPullback _
+    rw [show f = 𝟙 R ≫ f ≫ 𝟙 S by simp]
+    apply IsPullback_comp
+    apply IsPullbackofIso
+    rw [←hφ.ObjLiftDomain]
+    apply InvOfFiberwiseIsEquivalence.ObjIso_IsHomLift
+    apply IsPullback_comp hφ
+    apply IsPullbackofIso
+    -- TODO: maybe I should restate this lemma better
+    have := (IsHomLift_inv_id (InvOfFiberwiseIsEquivalence.ObjIso_IsHomLift hF b))
+    simp only [IsIso.Iso.inv_hom] at this
+    rw [←hφ.ObjLiftCodomain]
+    apply this
+  }
 }
 
 
