@@ -259,7 +259,7 @@ noncomputable def OfFiberwiseEquivalence.InvFunctor {𝒳 𝒴 : FiberedCat 𝒮
         haveI : Faithful F.toFunctor := FaithfulofFiberwiseFaithful inferInstance
         simp only [assoc, ← preimage_comp, Iso.inv_hom_id_assoc]
 
-@[simps]
+@[simps!]
 noncomputable def OfFiberwiseEquivalence.InvFunctor_w {𝒳 𝒴 : FiberedCat 𝒮} {F : 𝒳 ⟶ 𝒴}
     (hF : ∀ S : 𝒮, IsEquivalence (F.onFib S)) :
       (OfFiberwiseEquivalence.InvFunctor hF) ⋙ 𝒳.p ≅ 𝒴.p where
@@ -311,6 +311,7 @@ lemma PreimageIsPullback {𝒳 𝒴 : FiberCat 𝒮} (F : 𝒳 ⟶ 𝒴) [Full F
         apply F.pres_IsHomLift hχ
         simpa using congrArg F.map hχ_comp }
 
+@[simps!]
 noncomputable def InvOfFiberwiseIsEquivalence {𝒳 𝒴 : FiberedCat 𝒮} (F : 𝒳 ⟶ 𝒴)
     (hF : ∀ S : 𝒮, IsEquivalence (F.onFib S)) : 𝒴 ⟶ 𝒳 :=
 { OfFiberwiseEquivalence.InvFunctor hF with
@@ -322,15 +323,19 @@ noncomputable def InvOfFiberwiseIsEquivalence {𝒳 𝒴 : FiberedCat 𝒮} (F :
   fib_w := by
     intro S
     simp
-    sorry -- this one will also be annoying (as not very well def)
+    sorry -- this one will also be annoying
 
   pullback := by
     intro a b R S f φ hφ
-    haveI : Full F.toFunctor := FullofFullFiberwise inferInstance
-    haveI : Faithful F.toFunctor := FaithfulofFiberwiseFaithful inferInstance
-    simp only
+    haveI h₁ : Full F.toFunctor := sorry --FullofFullFiberwise inferInstance
+    haveI h₂ : Faithful F.toFunctor := sorry --FaithfulofFiberwiseFaithful inferInstance
+    change IsPullback 𝒳.toFiberCat.p f _
+
+    simp only [OfFiberwiseEquivalence.InvFunctor_map]
     -- TODO: ????
-    apply PreimageIsPullback _
+    apply @PreimageIsPullback 𝒮 _ _ _ F.toFiberFunctor h₁ h₂ _ _
+      ((InvOfFiberwiseIsEquivalence.ObjIso hF a).hom ≫ φ ≫ (InvOfFiberwiseIsEquivalence.ObjIso hF b).inv) R S f
+    -- apply PreimageIsPullback _
     rw [show f = 𝟙 R ≫ f ≫ 𝟙 S by simp]
     apply IsPullback_comp
     apply IsPullbackofIso
@@ -357,6 +362,7 @@ noncomputable def EquivalenceOfFiberwiseIsEquivalence {𝒳 𝒴 : FiberedCat �
   counit := {
     hom := {
       app := fun y => (InvOfFiberwiseIsEquivalence.ObjIso hF y).hom
+      naturality := sorry
       aboveId := by
         intro y S hy
         simp
@@ -364,8 +370,11 @@ noncomputable def EquivalenceOfFiberwiseIsEquivalence {𝒳 𝒴 : FiberedCat �
     }
     inv := {
       app := fun y => (InvOfFiberwiseIsEquivalence.ObjIso hF y).inv
+      naturality := sorry
       aboveId := sorry -- Again OK
     }
+    hom_inv_id := sorry
+    inv_hom_id := sorry
   }
   left_triangle := sorry
 
