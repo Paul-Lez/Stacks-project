@@ -327,14 +327,15 @@ noncomputable def InvOfFiberwiseIsEquivalence {𝒳 𝒴 : FiberedCat 𝒮} (F :
 
   pullback := by
     intro a b R S f φ hφ
-    haveI h₁ : Full F.toFunctor := sorry --FullofFullFiberwise inferInstance
-    haveI h₂ : Faithful F.toFunctor := sorry --FaithfulofFiberwiseFaithful inferInstance
+    let h₁ : Full F.toFunctor := FullofFullFiberwise inferInstance
+    let h₂ : Faithful F.toFunctor := sorry --FaithfulofFiberwiseFaithful inferInstance
     change IsPullback 𝒳.toFiberCat.p f _
 
     simp only [OfFiberwiseEquivalence.InvFunctor_map]
     -- TODO: ????
-    apply @PreimageIsPullback 𝒮 _ _ _ F.toFiberFunctor h₁ h₂ _ _
-      ((InvOfFiberwiseIsEquivalence.ObjIso hF a).hom ≫ φ ≫ (InvOfFiberwiseIsEquivalence.ObjIso hF b).inv) R S f
+    apply PreimageIsPullback _
+    -- apply @PreimageIsPullback 𝒮 _ _ _ F.toFiberFunctor h₁ h₂ _ _
+    --   ((InvOfFiberwiseIsEquivalence.ObjIso hF a).hom ≫ φ ≫ (InvOfFiberwiseIsEquivalence.ObjIso hF b).inv) R S f
     -- apply PreimageIsPullback _
     rw [show f = 𝟙 R ≫ f ≫ 𝟙 S by simp]
     apply IsPullback_comp
