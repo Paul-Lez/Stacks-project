@@ -3,8 +3,15 @@ Copyright (c) 2024 Paul Lezeau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Paul Lezeau, Calle Sönne
 -/
-
 import LS.Stacks
+
+/-!
+
+# THe empty stack
+
+This file defines a category structure on the empty type and shows that it is a stack over itself
+
+-/
 
 open CategoryTheory Functor Category
 
@@ -32,7 +39,7 @@ lemma IsFiberedInGroupoid.EmptyCat.id : IsFiberedInGroupoids (Functor.id Empty) 
 
 lemma EmptyCat_morphisms_glue : morphisms_glue J (IsFiberedInGroupoid.EmptyCat.id) := fun S => by cases S
 
-lemma EmptyCat_objects_glue : objects_glue J (IsFiberedInGroupoid.EmptyCat.id) := fun S => by cases S
+lemma EmptyCat_objects_glue : objects_glue J (IsFiberedInGroupoid.EmptyCat.id) := fun S => by cases S.toPreDescentData.S
 
 instance emptyStack : Stack J IsFiberedInGroupoid.EmptyCat.id where
   GlueMorphism := EmptyCat_morphisms_glue J

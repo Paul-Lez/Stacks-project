@@ -102,7 +102,7 @@ noncomputable def dpbi {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
 noncomputable def res_int [Limits.HasPullbacks 𝒮] {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p)
   {R S T : 𝒮} {a b : 𝒳} {φ : a ⟶ b} (f : R ⟶ S) (g : T ⟶ S) (hφ : IsHomLift p (𝟙 R) φ) :
   PullbackObj hp.1 hφ.1 (pb1 f g) ⟶ PullbackObj hp.1 hφ.2 (pb1 f g) :=
-IsPullbackNaturalityHom (PullbackMapIsPullback hp.1 hφ.1 (pb1 f g)) (PullbackMapIsPullback hp.1 hφ.2 (pb1 f g)) φ hφ
+IsPullbackNaturalityHom (PullbackMapIsPullback hp.1 hφ.1 (pb1 f g)) (PullbackMapIsPullback hp.1 hφ.2 (pb1 f g)) hφ
 
 -- NOTE (From Calle): Might not need assunmptions ha anymore now that we are working with the IsHomLift class?
 -- (Not sure though, havnt really thought about it, just did the minimum so that code compiles w new definitions)
@@ -162,8 +162,7 @@ def DescentData.effective {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p) [Lim
     (show PullbackObj hp.1 (PullbackObjLiftDomain hp.1 hb f) (pb1 f f') ⟶
       PullbackObj hp.1 (D.ha hf) (Limits.pullback.fst) from
         IsPullbackNaturalityHom (PullbackMapIsPullback hp.1 (PullbackObjLiftDomain hp.1 hb f)
-    (pb1 f f'))  (PullbackMapIsPullback hp.1 (D.ha hf) Limits.pullback.fst)
-       (show PullbackObj hp.1 hb f ⟶ D.a hf from (φ hf).hom) (hφ hf))
+    (pb1 f f'))  (PullbackMapIsPullback hp.1 (D.ha hf) Limits.pullback.fst) (hφ hf))
     (show PullbackObj hp.1 (PullbackObjLiftDomain hp.1 hb f) (pb1 f f') ⟶ PullbackObj hp.1 (PullbackObjLiftDomain hp.1 hb f')
       (pb1 f' f) from
         (PullbackCompIsoPullbackPullback hp.1 hb f (pb1 f f')).symm.hom ≫ (PullbackPullbackIso'' hp.1 hb f f').hom ≫ (PullbackCompIsoPullbackPullback hp.1 _ _ _).hom)
@@ -172,8 +171,7 @@ def DescentData.effective {p : 𝒳 ⥤ 𝒮} (hp : IsFiberedInGroupoids p) [Lim
         (PullbackPullbackIso''' hp.1 (D.ha hf') f' f ).symm.hom)))
       (show PullbackObj hp.1 (PullbackObjLiftDomain hp.1 hb f') (pb1 f' f) ⟶ PullbackObj hp.1 (D.ha hf') (pb1 f' f)
     from IsPullbackNaturalityHom (PullbackMapIsPullback hp.1 (PullbackObjLiftDomain hp.1 hb f')
-    (pb1 f' f))  (PullbackMapIsPullback hp.1 (D.ha hf') Limits.pullback.fst)
-    (show PullbackObj hp.1 hb f' ⟶ D.a hf' from (φ hf').hom) (hφ hf'))
+    (pb1 f' f))  (PullbackMapIsPullback hp.1 (D.ha hf') Limits.pullback.fst) (hφ hf'))
 
 /-TODO: the following should be defined in terms of a `descent datum` data type (containing
   all the information about the `a_i` and the `α_i`), which should have a predicate saying
