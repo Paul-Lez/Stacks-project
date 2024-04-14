@@ -1,7 +1,25 @@
+/-
+Copyright (c) 2024 Paul Lezeau. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Paul Lezeau, Calle Sönne
+-/
+
 import LS.FiberedCategories
 import Mathlib.CategoryTheory.Sites.Grothendieck
 import Mathlib.CategoryTheory.Comma.Over
 import Mathlib.CategoryTheory.NatIso
+
+/-!
+
+# Stacks
+
+This files defines descent data and stacks
+
+## TODO
+  - Redefine descent data using clivages
+  - Construct products of stacks, etc
+
+-/
 
 open CategoryTheory Functor Category Fibered
 
