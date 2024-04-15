@@ -249,7 +249,6 @@ noncomputable def OfFiberwiseEquivalence.InvFunctor {𝒳 𝒴 : FiberedCat 𝒮
         exact F.preimage φ'
 
       map_id y := by
-        haveI : Full F.toFunctor := FullofFullFiberwise inferInstance
         haveI : Faithful F.toFunctor := FaithfulofFiberwiseFaithful inferInstance
 
         simp only [id_comp, Iso.hom_inv_id, preimage_id]
@@ -295,16 +294,15 @@ lemma PreimageIsPullback {𝒳 𝒴 : FiberCat 𝒮} (F : 𝒳 ⟶ 𝒴) [Full F
         have hFφ' := F.pres_IsHomLift hφ'
         let ψ := IsPullbackInducedMap hφ hgf hFφ'
         use F.preimage ψ
-
-        simp
         refine ⟨⟨?_, ?_⟩, ?_⟩
         { apply PreimageIsHomLift
           apply (IsPullbackInducedMap_IsHomLift hφ hgf hFφ') }
         { apply F.map_injective
           simp
           apply IsPullbackInducedMap_Diagram hφ hgf hFφ'}
-        intro χ hχ hχ_comp
 
+        simp only [and_imp]
+        intro χ hχ hχ_comp
         apply F.map_injective
         rw [F.image_preimage]
         apply IsPullbackInducedMap_unique hφ hgf hFφ'
@@ -328,15 +326,9 @@ noncomputable def InvOfFiberwiseIsEquivalence {𝒳 𝒴 : FiberedCat 𝒮} (F :
   pullback := by
     intro a b R S f φ hφ
     let h₁ : Full F.toFunctor := FullofFullFiberwise inferInstance
-    let h₂ : Faithful F.toFunctor := sorry --FaithfulofFiberwiseFaithful inferInstance
-    change IsPullback 𝒳.toFiberCat.p f _
-
+    let h₂ : Faithful F.toFunctor := FaithfulofFiberwiseFaithful inferInstance
     simp only [OfFiberwiseEquivalence.InvFunctor_map]
-    -- TODO: ????
     apply PreimageIsPullback _
-    -- apply @PreimageIsPullback 𝒮 _ _ _ F.toFiberFunctor h₁ h₂ _ _
-    --   ((InvOfFiberwiseIsEquivalence.ObjIso hF a).hom ≫ φ ≫ (InvOfFiberwiseIsEquivalence.ObjIso hF b).inv) R S f
-    -- apply PreimageIsPullback _
     rw [show f = 𝟙 R ≫ f ≫ 𝟙 S by simp]
     apply IsPullback_comp
     apply IsPullbackofIso
@@ -350,7 +342,6 @@ noncomputable def InvOfFiberwiseIsEquivalence {𝒳 𝒴 : FiberedCat 𝒮} (F :
     rw [←hφ.ObjLiftCodomain]
     apply this
   }
-}
 
 
 
@@ -363,18 +354,37 @@ noncomputable def EquivalenceOfFiberwiseIsEquivalence {𝒳 𝒴 : FiberedCat �
   counit := {
     hom := {
       app := fun y => (InvOfFiberwiseIsEquivalence.ObjIso hF y).hom
-      naturality := sorry
+      naturality := by
+        intros
+        simp only [FiberedCat.bicategory_comp_map, FiberedCat.bicategory_id_map]
+        simp only [InvOfFiberwiseIsEquivalence_map]
+        simp only [image_preimage]
+        simp only [←InvOfFiberwiseIsEquivalence.ObjIso_inv]
+        sorry
+
+
+
       aboveId := by
         intro y S hy
-        simp
-        sorry -- THIS IS OK
+        rw [←hy]
+        apply InvOfFiberwiseIsEquivalence.ObjIso_IsHomLift hF y
     }
     inv := {
       app := fun y => (InvOfFiberwiseIsEquivalence.ObjIso hF y).inv
       naturality := sorry
-      aboveId := sorry -- Again OK
+      aboveId := by
+        intro y S hy
+        -- TODO: restate lemma giving this
+        have := (IsHomLift_inv_id (InvOfFiberwiseIsEquivalence.ObjIso_IsHomLift hF y))
+        simp only [IsIso.Iso.inv_hom] at this
+        rw [←hy]
+        apply this
     }
     hom_inv_id := sorry
+      -- simp
+      -- ext
+      -- simp
+      -- This should be easy here....
     inv_hom_id := sorry
   }
   left_triangle := sorry

@@ -6,8 +6,18 @@ import Mathlib.CategoryTheory.Bicategory.Adjunction
 /-!
 # The bicategory of fibered categories
 
-In this file we construct the (strict) bicategory of "fiber categories"
+In this file we define the types `FiberCat 𝒮` and `FiberedCat 𝒮` and give them the structure
+of (strict) bicategories.
 
+`FiberCat 𝒮` extends `BasedCategory 𝒮` by additionally requiring a `HasFibers` instance.
+The bicategory structure is then given by:
+- Morphisms are functors of based categories that preserve the fiber structure.
+- 2-morphisms are based natural transformations, the same as in `BasedCategory 𝒮`
+
+The type `FiberedCat 𝒮` extends `FiberCat 𝒮` by additionally requiring that the objects are fibered categories.
+The bicategory structure is given by:
+- Morphisms are as in `FiberCat 𝒮`, but are additionally required to preserve pullbacks (in the sense of fibered categories)
+- 2-morphisms are the same as in `FiberCat 𝒮` and `BasedCategory 𝒮`
 -/
 
 universe u₁ v₁ u₂ v₂
