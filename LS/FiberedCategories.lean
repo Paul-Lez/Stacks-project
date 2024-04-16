@@ -13,14 +13,26 @@ import Mathlib.CategoryTheory.Limits.Shapes.Pullbacks
 
 # Fibered categories
 
-This file defines fibered categories.
+This file defines what it means for a functor `p : 𝒳 ⥤ 𝒮` to be fibered`.
+
+## Main definitions
+
+- `IsHomLift p f φ` expresses that a morphism `φ` in `𝒳` is a lift of a morphism `f` in `𝒮`
+along the functor `p`. This class is introduced to deal with the issues related to equalities of
+morphisms in a category.
+- `IsPullback p f φ` expresses that `φ` is a pullback of `f` along `p`.
+- `IsFibered p` expresses that `p` gives `𝒳` the structure of a fibered category over `𝒮`,
+i.e. that for every morphism `f` in `𝒮` and every object `a` in `𝒳` there is a pullback of `f`
+with domain `a`.
 
 ## Implementation
+
 -/
 
 /-
 TODO:
 - Split into two files, HomLift.lean and Pullback.lean
+- TODO: rename pullback to cartesian
 - Make HomLift into a structure, not a class.
 -/
 
