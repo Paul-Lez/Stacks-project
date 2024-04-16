@@ -306,7 +306,7 @@ lemma PreimageIsPullback {𝒳 𝒴 : FiberCat 𝒮} (F : 𝒳 ⟶ 𝒴) [Full F
         apply F.pres_IsHomLift hχ
         simpa using congrArg F.map hχ_comp }
 
-@[simps? (config := {rhsMd := .default})]
+@[simps!]
 noncomputable def InvOfFiberwiseIsEquivalence {𝒳 𝒴 : FiberedCat 𝒮} (F : 𝒳 ⟶ 𝒴)
     (hF : ∀ S : 𝒮, IsEquivalence (F.onFib S)) : 𝒴 ⟶ 𝒳 :=
 { OfFiberwiseEquivalence.InvFunctor hF with
@@ -345,7 +345,53 @@ noncomputable def EquivalenceOfFiberwiseIsEquivalence {𝒳 𝒴 : FiberedCat �
   hom := F
   inv := InvOfFiberwiseIsEquivalence F hF
   -- unit is from last part of Olssons proof
-  unit := sorry
+  unit := {
+    hom := {
+      app := by
+        intro x
+        let hF₁ : Full F.toFunctor := FullofFullFiberwise inferInstance
+        apply F.preimage
+        -- TODO: 𝟙 notation doesnt work here for some reason...
+        let h := (FiberedFunctor.id 𝒳).obj
+        exact (InvOfFiberwiseIsEquivalence.ObjIso hF (F.obj ((FiberedFunctor.id 𝒳).obj x))).inv
+
+      naturality := by
+        intros
+        have : Faithful F.toFunctor := FaithfulofFiberwiseFaithful inferInstance
+        apply F.map_injective
+        simp
+      aboveId := by
+        intro x S hx
+        let h₁ : Full F.toFunctor := FullofFullFiberwise inferInstance
+        simp only
+        apply PreimageIsHomLift
+        -- TODO: I should restate this lemma better
+        have := (IsHomLift_inv_id (InvOfFiberwiseIsEquivalence.ObjIso_IsHomLift hF (F.obj ((FiberedFunctor.id 𝒳).obj x))))
+        simp only [IsIso.Iso.inv_hom] at this
+        rw [←hx, ←F.obj_proj x]
+        exact this
+    }
+    inv := {
+      app := by
+        intro x
+        let hF₁ : Full F.toFunctor := FullofFullFiberwise inferInstance
+        apply F.preimage
+        -- TODO: 𝟙 notation doesnt work here for some reason...
+        let h := (FiberedFunctor.id 𝒳).obj
+        exact (InvOfFiberwiseIsEquivalence.ObjIso hF (F.obj ((FiberedFunctor.id 𝒳).obj x))).hom
+      naturality := sorry -- same as above
+      aboveId := sorry -- same as above
+    }
+    hom_inv_id := by
+      simp
+      ext x
+      -- TODO: should make these two lines into some sort of simp lemma,
+      -- then some proofs will get automated
+      have : Faithful F.toFunctor := FaithfulofFiberwiseFaithful inferInstance
+      apply F.map_injective
+      simp
+    inv_hom_id := sorry -- same as above
+  }
   counit := {
     hom := {
       app := fun y => (InvOfFiberwiseIsEquivalence.ObjIso hF y).hom
