@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Paul Lezeau, Calle Sönne
 -/
 
-import LS.FiberedCategories
+import LS.FiberedCategories.Basic
 import Mathlib.CategoryTheory.Sites.Grothendieck
 import Mathlib.CategoryTheory.Comma.Over
 import Mathlib.CategoryTheory.NatIso

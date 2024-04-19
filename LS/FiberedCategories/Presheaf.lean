@@ -1,4 +1,4 @@
-import LS.HasFibers
+import LS.FiberedCategories.HasFibers
 import Mathlib.CategoryTheory.Category.Cat
 import Mathlib.CategoryTheory.DiscreteCategory
 

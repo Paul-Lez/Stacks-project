@@ -1,5 +1,5 @@
-import LS.BasedCategory
-import LS.HasFibers
+import LS.FiberedCategories.BasedCategory
+import LS.FiberedCategories.HasFibers
 
 import Mathlib.CategoryTheory.Bicategory.Adjunction
 

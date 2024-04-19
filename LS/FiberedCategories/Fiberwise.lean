@@ -1,4 +1,4 @@
-import LS.FiberedCat
+import LS.FiberedCategories.FiberedCat
 
 /-!
 # Fiberwise criteria for functors between fibered categories
