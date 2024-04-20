@@ -1,5 +1,12 @@
-import LS.BasedCategory
-import LS.HasFibers
+/-
+Copyright (c) 2024 Calle Sönne. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Paul Lezeau, Calle Sönne
+-/
+
+
+import LS.FiberedCategories.BasedCategory
+import LS.FiberedCategories.HasFibers
 
 import Mathlib.CategoryTheory.Bicategory.Adjunction
 

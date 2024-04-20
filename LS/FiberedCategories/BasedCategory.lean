@@ -1,5 +1,10 @@
-import LS.FiberedCategories
+/-
+Copyright (c) 2024 Calle Sönne. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Paul Lezeau, Calle Sönne
+-/
 
+import LS.FiberedCategories.Basic
 import Mathlib.CategoryTheory.Bicategory.Strict
 import Mathlib.CategoryTheory.Functor.Category
 -- import Mathlib.CategoryTheory.ConcreteCategory.Bundled
@@ -274,5 +279,8 @@ instance : Bicategory.Strict (BasedCategory 𝒮) where
   comp_id := BasedFunctor.comp_id
   assoc := BasedFunctor.assoc
 
+/-
+def BasedCategory.prod (𝒳 𝒴 : BasedCategory 𝒮) : BasedCategory 𝒮 where
 
+ -/
 end Fibered
