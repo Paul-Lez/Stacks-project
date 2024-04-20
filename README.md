@@ -5,6 +5,6 @@ This repository contains the code necessary to define stacks in Lean. More speci
 We are currently reworking some parts of the code to get better and cleaner definitions (we aim to get this stuff in mathlib eventually). Current WIP includes: 
 - 2-Yoneda
 - Implementing descent data structure 
-- More general theory of fibers of functors  
+- More general theory of fibers of functors (e.g. clivages, etc)
 
 
