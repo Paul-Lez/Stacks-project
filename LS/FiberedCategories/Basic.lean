@@ -279,19 +279,19 @@ R --f--> S --g--> T
 Then also the composite φ ≫ ψ is a pullback square. -/
 lemma IsPullback_comp {p : 𝒳 ⥤ 𝒮} {R S T : 𝒮} {a b c: 𝒳} {f : R ⟶ S} {g : S ⟶ T} {φ : a ⟶ b}
   {ψ : b ⟶ c} (hφ : IsPullback p f φ) (hψ : IsPullback p g ψ) : IsPullback p (f ≫ g) (φ ≫ ψ) where
-    toIsHomLift := IsHomLift_comp hφ.toIsHomLift hψ.toIsHomLift
-    UniversalProperty := by
-      intro U d h i hi_comp τ hi
-      rw [←assoc] at hi_comp
-      let π := IsPullbackInducedMap hφ rfl (IsPullbackInducedMap_IsHomLift hψ hi_comp hi)
-      existsi π
-      refine ⟨⟨IsPullbackInducedMap_IsHomLift hφ rfl (IsPullbackInducedMap_IsHomLift hψ hi_comp hi), ?_⟩, ?_⟩
-      · rw [←(IsPullbackInducedMap_Diagram hψ hi_comp hi)]
-        rw [←(IsPullbackInducedMap_Diagram hφ rfl (IsPullbackInducedMap_IsHomLift hψ hi_comp hi)), assoc]
-      intro π' hπ'
-      apply IsPullbackInducedMap_unique hφ _ _ hπ'.1
-      apply IsPullbackInducedMap_unique hψ _ _ (IsHomLift_comp hπ'.1 hφ.toIsHomLift)
-      simpa only [assoc] using hπ'.2
+  toIsHomLift := IsHomLift_comp hφ.toIsHomLift hψ.toIsHomLift
+  UniversalProperty := by
+    intro U d h i hi_comp τ hi
+    rw [←assoc] at hi_comp
+    let π := IsPullbackInducedMap hφ rfl (IsPullbackInducedMap_IsHomLift hψ hi_comp hi)
+    existsi π
+    refine ⟨⟨IsPullbackInducedMap_IsHomLift hφ rfl (IsPullbackInducedMap_IsHomLift hψ hi_comp hi), ?_⟩, ?_⟩
+    · rw [←(IsPullbackInducedMap_Diagram hψ hi_comp hi)]
+      rw [←(IsPullbackInducedMap_Diagram hφ rfl (IsPullbackInducedMap_IsHomLift hψ hi_comp hi)), assoc]
+    intro π' hπ'
+    apply IsPullbackInducedMap_unique hφ _ _ hπ'.1
+    apply IsPullbackInducedMap_unique hψ _ _ (IsHomLift_comp hπ'.1 hφ.toIsHomLift)
+    simpa only [assoc] using hπ'.2
 
 /-- Given two commutative squares
 ```
@@ -304,22 +304,22 @@ such that the composite φ ≫ ψ and ψ are pullbacks, then so is φ. -/
 lemma IsPullback_of_comp {p : 𝒳 ⥤ 𝒮} {R S T : 𝒮} {a b c: 𝒳} {f : R ⟶ S} {g : S ⟶ T}
   {φ : a ⟶ b} {ψ : b ⟶ c} (hψ : IsPullback p g ψ) (hcomp : IsPullback p (f ≫ g) (φ ≫ ψ))
   (hφ : IsHomLift p f φ) : IsPullback p f φ where
-    toIsHomLift := hφ
-    UniversalProperty := by
-      intro U d h i hi_comp τ hi
-      have h₁ : IsHomLift p (i ≫ g) (τ ≫ ψ) := IsHomLift_comp hi hψ.toIsHomLift
-      have h₂ : i ≫ g = h ≫ f ≫ g := by rw [hi_comp, assoc]
-      let π := IsPullbackInducedMap hcomp h₂ h₁
-      existsi π
-      refine ⟨⟨IsPullbackInducedMap_IsHomLift hcomp h₂ h₁, ?_⟩,?_⟩
-      · have h₃ := IsHomLift_comp (IsPullbackInducedMap_IsHomLift hcomp h₂ h₁) hφ
-        rw [←assoc] at h₂
-        rw [IsPullbackInducedMap_unique hψ h₂ h₁ (by rwa [←hi_comp]) rfl]
-        apply IsPullbackInducedMap_unique hψ h₂ h₁ h₃ _
-        rw [assoc] at h₂
-        rw [assoc, (IsPullbackInducedMap_Diagram hcomp h₂ h₁)]
-      intro π' hπ'
-      apply IsPullbackInducedMap_unique _ _ _ hπ'.1 (by rw [←hπ'.2, assoc])
+  toIsHomLift := hφ
+  UniversalProperty := by
+    intro U d h i hi_comp τ hi
+    have h₁ : IsHomLift p (i ≫ g) (τ ≫ ψ) := IsHomLift_comp hi hψ.toIsHomLift
+    have h₂ : i ≫ g = h ≫ f ≫ g := by rw [hi_comp, assoc]
+    let π := IsPullbackInducedMap hcomp h₂ h₁
+    existsi π
+    refine ⟨⟨IsPullbackInducedMap_IsHomLift hcomp h₂ h₁, ?_⟩,?_⟩
+    · have h₃ := IsHomLift_comp (IsPullbackInducedMap_IsHomLift hcomp h₂ h₁) hφ
+      rw [←assoc] at h₂
+      rw [IsPullbackInducedMap_unique hψ h₂ h₁ (by rwa [←hi_comp]) rfl]
+      apply IsPullbackInducedMap_unique hψ h₂ h₁ h₃ _
+      rw [assoc] at h₂
+      rw [assoc, (IsPullbackInducedMap_Diagram hcomp h₂ h₁)]
+    intro π' hπ'
+    apply IsPullbackInducedMap_unique _ _ _ hπ'.1 (by rw [←hπ'.2, assoc])
 
 lemma IsPullbackofIso {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳}
   {f : R ⟶ S} {φ : a ⟶ b} (hlift : IsHomLift p f φ) [IsIso φ] : IsPullback p f φ where
@@ -332,7 +332,6 @@ lemma IsPullbackofIso {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳}
         -- TODO: make these two lines into a lemma somehow?
         haveI := IsIsoofIsHomliftisIso hlift
         have h₁ := IsHomLift_comp hφ' (IsHomLift_inv hlift)
-
         simp only [hf', assoc, IsIso.hom_inv_id, comp_id] at h₁
         exact h₁
       intro ψ hψ
@@ -357,33 +356,31 @@ lemma IsPullback_comp_eqToHom {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b c : 𝒳} {f
 
 -- NEED TO CHECK PROOFS FROM HERE ONWARDS
 lemma IsPullbackIsoofIso {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} {f : R ⟶ S} {φ : a ⟶ b}
-  (hφ : IsPullback p f φ) (hf : IsIso f): IsIso φ :=
-  by
-    constructor
-    set φ' := IsPullbackInducedMap hφ (IsIso.inv_hom_id f).symm (IsHomLift_id hφ.ObjLiftCodomain)
-    existsi φ'
-    refine ⟨?_, IsPullbackInducedMap_Diagram hφ (IsIso.inv_hom_id f).symm (IsHomLift_id hφ.ObjLiftCodomain)⟩
-    have h₁ : IsHomLift p (𝟙 R) (φ ≫ φ') := {
-      ObjLiftDomain := hφ.ObjLiftDomain
-      ObjLiftCodomain := hφ.ObjLiftDomain
-      HomLift := by
-        constructor
-        simp only [map_comp, assoc, comp_id]
-        have h₁ := hφ.HomLift.1
-        rw [comp_eqToHom_iff] at h₁
-        rw [h₁]
-        have h₂ := (IsPullbackInducedMap_IsHomLift hφ (IsIso.inv_hom_id f).symm (IsHomLift_id hφ.ObjLiftCodomain)).HomLift.1
-        rw [comp_eqToHom_iff] at h₂
-        rw [h₂]
-        simp only [assoc, eqToHom_trans, eqToHom_refl, comp_id, eqToHom_trans_assoc, id_comp, IsIso.hom_inv_id]
-    }
-    have h₂ : IsHomLift p f (φ ≫ φ' ≫ φ) := by
-      rw [IsPullbackInducedMap_Diagram hφ (IsIso.inv_hom_id f).symm (IsHomLift_id hφ.ObjLiftCodomain), comp_id]
-      apply hφ.toIsHomLift
-    rw [IsPullbackInducedMap_unique hφ (show f = 𝟙 R ≫ f by simp) h₂ h₁ (by apply Category.assoc)]
-    apply (IsPullbackInducedMap_unique hφ (show f = 𝟙 R ≫ f by simp) _ (IsHomLift_id hφ.ObjLiftDomain) _).symm
-    rw [IsPullbackInducedMap_Diagram hφ (IsIso.inv_hom_id f).symm (IsHomLift_id hφ.ObjLiftCodomain)]
-    simp only [id_comp, comp_id]
+  (hφ : IsPullback p f φ) (hf : IsIso f): IsIso φ := by
+  constructor
+  set φ' := IsPullbackInducedMap hφ (IsIso.inv_hom_id f).symm (IsHomLift_id hφ.ObjLiftCodomain)
+  existsi φ'
+  refine ⟨?_, IsPullbackInducedMap_Diagram hφ (IsIso.inv_hom_id f).symm (IsHomLift_id hφ.ObjLiftCodomain)⟩
+  have h₁ : IsHomLift p (𝟙 R) (φ ≫ φ') := {
+    ObjLiftDomain := hφ.ObjLiftDomain
+    ObjLiftCodomain := hφ.ObjLiftDomain
+    HomLift := by
+      constructor
+      simp only [map_comp, assoc, comp_id]
+      have h₁ := hφ.HomLift.1
+      rw [comp_eqToHom_iff] at h₁
+      rw [h₁]
+      have h₂ := (IsPullbackInducedMap_IsHomLift hφ (IsIso.inv_hom_id f).symm (IsHomLift_id hφ.ObjLiftCodomain)).HomLift.1
+      rw [comp_eqToHom_iff] at h₂
+      rw [h₂]
+      simp only [assoc, eqToHom_trans, eqToHom_refl, comp_id, eqToHom_trans_assoc, id_comp, IsIso.hom_inv_id] }
+  have h₂ : IsHomLift p f (φ ≫ φ' ≫ φ) := by
+    rw [IsPullbackInducedMap_Diagram hφ (IsIso.inv_hom_id f).symm (IsHomLift_id hφ.ObjLiftCodomain), comp_id]
+    apply hφ.toIsHomLift
+  rw [IsPullbackInducedMap_unique hφ (show f = 𝟙 R ≫ f by simp) h₂ h₁ (by apply Category.assoc)]
+  apply (IsPullbackInducedMap_unique hφ (show f = 𝟙 R ≫ f by simp) _ (IsHomLift_id hφ.ObjLiftDomain) _).symm
+  rw [IsPullbackInducedMap_Diagram hφ (IsIso.inv_hom_id f).symm (IsHomLift_id hφ.ObjLiftCodomain)]
+  simp only [id_comp, comp_id]
 
 -- TODO: Keep this as a separate lemma...?
 noncomputable def IsPullbackInducedMapIsoofIso {p : 𝒳 ⥤ 𝒮}
@@ -561,22 +558,19 @@ R × T ≅ T × R ----> R
 ```
 and a : 𝒳 above S, we have a canonical isomorphism a|_R×T ≅ a|_T×R -/
 noncomputable def PullbackPullbackIso'' {p : 𝒳 ⥤ 𝒮} (hp : IsFibered p)
-  {R S T : 𝒮} {a : 𝒳} (ha : p.obj a = S) (f : R ⟶ S) (g : T ⟶ S)
-  [Limits.HasPullback f g] :
-    PullbackObj hp ha (Limits.pullback.fst (f := f) (g := g) ≫ f)
-      ≅ PullbackObj hp ha (@Limits.pullback.fst _ _ _ _ _ g f
-        (Limits.hasPullback_symmetry f g) ≫ g) :=
-  by
-    have lem₁ : IsPullback p (Limits.pullback.fst (f := f) (g := g) ≫ f)
-      (PullbackMap hp ha (Limits.pullback.fst (f := f) (g := g) ≫ f)) := by
-      apply PullbackMapIsPullback hp ha (Limits.pullback.fst (f := f) (g := g) ≫ f)
-    have lem₂ : IsPullback p (@Limits.pullback.fst _ _ _ _ _ g f (Limits.hasPullback_symmetry f g) ≫ g)
-      (PullbackMap hp ha (@Limits.pullback.fst _ _ _ _ _ g f (Limits.hasPullback_symmetry f g) ≫ g)) := by
-      apply PullbackMapIsPullback hp ha
-    have H : (Limits.pullbackSymmetry f g).hom ≫ (@Limits.pullback.fst _ _ _ _ _ g f
-      (Limits.hasPullback_symmetry f g) ≫ g) = (Limits.pullback.fst (f := f) (g := g) ≫ f) :=
-      by rw [Limits.pullbackSymmetry_hom_comp_fst_assoc, Limits.pullback.condition]
-    exact IsPullbackInducedMapIsoofIso H.symm lem₂ lem₁
+  {R S T : 𝒮} {a : 𝒳} (ha : p.obj a = S) (f : R ⟶ S) (g : T ⟶ S) [Limits.HasPullback f g] :
+  PullbackObj hp ha (Limits.pullback.fst (f := f) (g := g) ≫ f)
+    ≅ PullbackObj hp ha (@Limits.pullback.fst (f := g) (g := f) (Limits.hasPullback_symmetry f g) ≫ g) := by
+  have lem₁ : IsPullback p (Limits.pullback.fst (f := f) (g := g) ≫ f)
+    (PullbackMap hp ha (Limits.pullback.fst (f := f) (g := g) ≫ f)) := by
+    apply PullbackMapIsPullback hp ha (Limits.pullback.fst (f := f) (g := g) ≫ f)
+  have lem₂ : IsPullback p (@Limits.pullback.fst (f := g) (g := f) (Limits.hasPullback_symmetry f g)  ≫ g)
+    (PullbackMap hp ha (@Limits.pullback.fst (f := g) (g := f) (Limits.hasPullback_symmetry f g) ≫ g)) := by
+    apply PullbackMapIsPullback hp ha
+  have H : (Limits.pullbackSymmetry f g).hom ≫ (@Limits.pullback.fst (f := g) (g := f)
+    (Limits.hasPullback_symmetry f g) ≫ g) = (Limits.pullback.fst (f := f) (g := g) ≫ f) :=
+    by rw [Limits.pullbackSymmetry_hom_comp_fst_assoc, Limits.pullback.condition]
+  exact IsPullbackInducedMapIsoofIso H.symm lem₂ lem₁
 
 /-- Given a diagram in 𝒫
 ```
@@ -591,12 +585,10 @@ noncomputable def pullback_iso_pullback'  {p : 𝒳 ⥤ 𝒮} (hp : IsFibered p)
   {R S T : 𝒮} {a : 𝒳} (ha : p.obj a = S) (f : R ⟶ S) (g : T ⟶ S)
   [Limits.HasPullback f g] :
   PullbackObj hp (PullbackObjLiftDomain hp ha f) (Limits.pullback.fst (f := f) (g := g))
-    ≅ PullbackObj hp (PullbackObjLiftDomain hp ha g) (Limits.pullback.snd (f := f) (g := g))
-    :=
-    Iso.trans (PullbackCompIsoPullbackPullback hp ha f (Limits.pullback.fst (f := f) (g := g))).symm
-    (by
-      have lem₃ := PullbackCompIsoPullbackPullback hp ha g (Limits.pullback.snd (f := f) (g := g))
-      rwa [←Limits.pullback.condition] at lem₃)
+    ≅ PullbackObj hp (PullbackObjLiftDomain hp ha g) (Limits.pullback.snd (f := f) (g := g)) :=
+  Iso.trans (PullbackCompIsoPullbackPullback hp ha f (Limits.pullback.fst (f := f) (g := g))).symm (by
+    have lem₃ := PullbackCompIsoPullbackPullback hp ha g (Limits.pullback.snd (f := f) (g := g))
+    rwa [←Limits.pullback.condition] at lem₃)
 
 /-- Given a diagram in 𝒫
 ```
@@ -608,11 +600,9 @@ R × T ≅ T × R ----> R
 
 -/
 noncomputable def PullbackPullbackIso''' {p : 𝒳 ⥤ 𝒮} (hp : IsFibered p)
-  {R S T : 𝒮} {a : 𝒳} (ha : p.obj a = R) (f : R ⟶ S) (g : T ⟶ S)
-  [Limits.HasPullback f g] :
-    PullbackObj hp ha (Limits.pullback.fst (f := f) (g := g)) ≅
-      PullbackObj hp ha (@Limits.pullback.snd _ _ _ _ _ g f (Limits.hasPullback_symmetry f g)) :=
-by
+  {R S T : 𝒮} {a : 𝒳} (ha : p.obj a = R) (f : R ⟶ S) (g : T ⟶ S) [Limits.HasPullback f g] :
+  PullbackObj hp ha (Limits.pullback.fst (f := f) (g := g)) ≅
+    PullbackObj hp ha (@Limits.pullback.snd _ _ _ _ _ g f (Limits.hasPullback_symmetry f g)) := by
   --For now this is a tactic "proof" to make it more readable. This will be easy to inline!
   have lem₁ : IsPullback p (Limits.pullback.fst (f := f) (g := g))
     (PullbackMap hp ha (Limits.pullback.fst (f := f) (g := g))) :=
