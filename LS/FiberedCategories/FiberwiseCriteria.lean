@@ -314,11 +314,11 @@ noncomputable def InvOfFiberwiseIsEquivalence {𝒳 𝒴 : FiberedCat 𝒮} (F :
     apply Functor.ext_of_iso (OfFiberwiseEquivalence.InvFunctor_w hF)
     { exact fun y => OfFiberwiseEquivalence.InvFunctor_w_hom_app hF y }
 
+  -- TODO: do I need these? Should functoriality be defined differently?
   onFib := fun S => (hF S).inverse -- maybe use more complicated defn to make it easier
   fib_w := by
     intro S
-    simp
-    sorry -- this one will also be annoying
+    sorry
 
   pullback := by
     intro a b R S f φ hφ

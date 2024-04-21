@@ -4,7 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Calle Sönne, Paul Lezeau
 -/
 
-import LS.FiberedCategories.HasFibers
+
+-- DEPRECATED: Use `FiberedCat` for definition of functoriality, and `Fiberwise` for
+-- fiberwise criteria of functors.
+
+import LS.HasFibers
 
 universe u₁ v₁ u₂ v₂ u₃ w
 
