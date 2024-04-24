@@ -85,7 +85,7 @@ def Fibered.TwoMorphism.comp {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {f g h : Fi
     aboveId := by
       intro a S ha
       rw [CategoryTheory.NatTrans.vcomp_app, show 𝟙 S = 𝟙 S ≫ 𝟙 S by simp only [comp_id]]
-      apply IsHomLift_comp (α.aboveId ha) (β.aboveId ha)
+      apply IsHomLift.comp (α.aboveId ha) (β.aboveId ha)
   }
 
 @[simp]
@@ -154,7 +154,7 @@ def Fibered.TwoIsomorphism.comp {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} {f g h :
     aboveId := by
       intro a S ha
       rw [Iso.trans_hom, NatTrans.comp_app, show 𝟙 S = 𝟙 S ≫ 𝟙 S by simp only [comp_id]]
-      apply IsHomLift_comp (α.aboveId ha) (β.aboveId ha)
+      apply IsHomLift.comp (α.aboveId ha) (β.aboveId ha)
   }
 
 @[simp]

@@ -15,7 +15,7 @@ either full, faithful or an equivalence.
 
 universe u₁ v₁ u₂ v₂
 
-open CategoryTheory Functor Category Bicategory
+open CategoryTheory Functor Category Bicategory IsHomLift
 
 open scoped Bicategory
 
@@ -53,11 +53,11 @@ lemma FaithfulofFiberwiseFaithful {𝒳 𝒴 : FiberedCat 𝒮} {F : FiberedFunc
     -- Let ψ : c ⟶ b be a pullback over h such that c : Fib (p.obj a)
     rcases HasFibersPullback' rfl h with ⟨c, ψ, hψ⟩
     -- Both φ₁ and φ₁' are lifts of h
-    have hφ₁ : IsHomLift 𝒳.p h φ₁ := (IsHomLift_eqToHom_comp' _).2 (IsHomLift_self 𝒳.p φ₁)
+    have hφ₁ : IsHomLift 𝒳.p h φ₁ := (lift_eqToHom_comp_iff _).2 (IsHomLift.self 𝒳.p φ₁)
     have hφ₁' : IsHomLift 𝒳.p h φ₁' :=  by
-      rw [IsHomLift_eqToHom_comp', congr_hom F.w.symm, Functor.comp_map]
+      rw [lift_eqToHom_comp_iff, congr_hom F.w.symm, Functor.comp_map]
       rw [heq₁, ←Functor.comp_map, ←congr_hom F.w.symm]
-      apply IsHomLift_self 𝒳.p φ₁'
+      apply IsHomLift.self 𝒳.p φ₁'
     -- Let τ, τ' be the induced maps from a' to c given by φ and φ'
     rcases HasFibersFactorization hφ₁ hψ with ⟨τ, hτ⟩
     rcases HasFibersFactorization hφ₁' hψ with ⟨τ', hτ'⟩
@@ -133,7 +133,7 @@ lemma FullofFullFiberwise  { 𝒳 𝒴 : FiberedCat 𝒮} {F : 𝒳 ⟶ 𝒴} (h
 
   have hφ₁ : IsHomLift 𝒴.p h φ₁ := by
     simp [φ₁, h]
-    apply IsHomLift_of_IsHomLiftId_comp (IsHomLift_self 𝒴.p φ) (F.pres_IsHomLift hΦ)
+    apply comp_lift_id_right (IsHomLift.self 𝒴.p φ) (F.pres_IsHomLift hΦ)
 
   -- The following could be some hF.preservesPullbacks (wrt HasFibers) API
   have hc : (𝒴.hasFib.ι R).obj ((F.onFib R).obj c) = F.obj ((𝒳.hasFib.ι R).obj c) := by
@@ -187,10 +187,10 @@ lemma FiberwiseIsEquivalenceOfEquivalence {𝒳 𝒴 : FiberedCat 𝒮} (F : �
 
   have hΨ : IsHomLift 𝒴.p (𝟙 S) Ψ.hom := by
     simp only [Iso.trans_hom, Iso.app_hom, Ψ, Φ']
-    apply IsHomLift_id_comp _ (F.counit.hom.aboveId (HasFibersObjLift _))
-    apply IsHomLift_id_comp _ (F.hom.pres_IsHomLift hΦ)
+    apply lift_id_comp _ (F.counit.hom.aboveId (HasFibersObjLift _))
+    apply lift_id_comp _ (F.hom.pres_IsHomLift hΦ)
     simp only [eqToIso.hom]
-    apply IsHomLift_id_eqToHom
+    apply eqToHom_domain_lift_id
     simp only [BasedFunctor.obj_proj, HasFibersObjLift]
 
   use b'
@@ -231,8 +231,8 @@ lemma InvOfFiberwiseIsEquivalence.ObjIso_IsHomLift {𝒳 𝒴 : FiberedCat 𝒮}
       HomLift := ⟨by
         unfold ObjIso
         simp only [Iso.trans_hom, eqToIso.hom, mapIso_hom, map_comp, eqToHom_refl, comp_id]
-        rw [←IsHomLift_congr' (HasFibersHomLift _)]
-        rw [←IsHomLift_congr' (Classical.choose_spec (Classical.choose_spec (HasFibersEssSurj' (rfl (a:=𝒴.p.obj y)))))]
+        rw [IsHomLift.hom_eq' (HasFibersHomLift _)]
+        rw [IsHomLift.hom_eq' (Classical.choose_spec (Classical.choose_spec (HasFibersEssSurj' (rfl (a:=𝒴.p.obj y)))))]
         simp only [eqToHom_map, HasFibersObjLift, eqToHom_naturality, comp_id, eqToHom_trans,
           eqToHom_refl]⟩
 
@@ -264,16 +264,16 @@ noncomputable def OfFiberwiseEquivalence.InvFunctor_w {𝒳 𝒴 : FiberedCat �
           naturality := by
             intros y y' φ
             simp only [Functor.comp_map]
-            rw [←IsHomLift_congr (F.IsHomLift_map ((InvFunctor hF).map φ))]
+            rw [IsHomLift.hom_eq (F.IsHomLift_map ((InvFunctor hF).map φ))]
             -- This all should be factored out
             simp only [comp_obj, InvFunctor_obj, InvFunctor_map, assoc,
               image_preimage, map_comp, eqToHom_trans]
-            rw [←IsHomLift_congr' (InvOfFiberwiseIsEquivalence.ObjIso_IsHomLift hF y)]
+            rw [IsHomLift.hom_eq' (InvOfFiberwiseIsEquivalence.ObjIso_IsHomLift hF y)]
             -- TODO: maybe I should restate this lemma better
-            have := (IsHomLift_inv_id (InvOfFiberwiseIsEquivalence.ObjIso_IsHomLift hF y'))
+            have := (lift_id_inv (InvOfFiberwiseIsEquivalence.ObjIso_IsHomLift hF y'))
             simp only [IsIso.Iso.inv_hom] at this
 
-            rw [←IsHomLift_congr' this]
+            rw [IsHomLift.hom_eq' this]
             simp only [InvFunctor_obj, eqToHom_refl, comp_id, id_comp, eqToHom_trans,
               eqToHom_trans_assoc, comp_obj]
         }
@@ -334,7 +334,7 @@ noncomputable def InvOfFiberwiseIsEquivalence {𝒳 𝒴 : FiberedCat 𝒮} (F :
     apply IsPullback_comp hφ
     apply IsPullbackofIso
     -- TODO: maybe I should restate this lemma better
-    have := (IsHomLift_inv_id (InvOfFiberwiseIsEquivalence.ObjIso_IsHomLift hF b))
+    have := (lift_id_inv (InvOfFiberwiseIsEquivalence.ObjIso_IsHomLift hF b))
     simp only [IsIso.Iso.inv_hom] at this
     rw [←hφ.ObjLiftCodomain]
     apply this
@@ -366,7 +366,7 @@ noncomputable def EquivalenceOfFiberwiseIsEquivalence {𝒳 𝒴 : FiberedCat �
         simp only
         apply PreimageIsHomLift
         -- TODO: I should restate this lemma better
-        have := (IsHomLift_inv_id (InvOfFiberwiseIsEquivalence.ObjIso_IsHomLift hF (F.obj ((FiberedFunctor.id 𝒳).obj x))))
+        have := (lift_id_inv (InvOfFiberwiseIsEquivalence.ObjIso_IsHomLift hF (F.obj ((FiberedFunctor.id 𝒳).obj x))))
         simp only [IsIso.Iso.inv_hom] at this
         rw [←hx, ←F.obj_proj x]
         exact this
@@ -405,7 +405,7 @@ noncomputable def EquivalenceOfFiberwiseIsEquivalence {𝒳 𝒴 : FiberedCat �
       aboveId := by
         intro y S hy
         -- TODO: restate lemma giving this
-        have := (IsHomLift_inv_id (InvOfFiberwiseIsEquivalence.ObjIso_IsHomLift hF y))
+        have := (lift_id_inv (InvOfFiberwiseIsEquivalence.ObjIso_IsHomLift hF y))
         simp only [IsIso.Iso.inv_hom] at this
         rw [←hy]
         apply this

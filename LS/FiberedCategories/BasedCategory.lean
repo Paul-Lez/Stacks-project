@@ -132,7 +132,7 @@ def BasedNatTrans.comp {𝒳 𝒴 : BasedCategory 𝒮} {F G H : BasedFunctor �
     aboveId := by
       intro a S ha
       rw [CategoryTheory.NatTrans.vcomp_app, show 𝟙 S = 𝟙 S ≫ 𝟙 S by simp only [comp_id]]
-      apply IsHomLift_comp (α.aboveId ha) (β.aboveId ha)
+      apply IsHomLift.comp (α.aboveId ha) (β.aboveId ha)
   }
 
 @[simp]
@@ -198,13 +198,13 @@ def BasedFunctor.associator {𝒳 𝒴 𝒵 𝒱 : BasedCategory 𝒮} (F : Base
       app := fun _ => 𝟙 _
       aboveId := by
         intro a S ha
-        apply IsHomLift_id
+        apply IsHomLift.id
         simp only [obj_proj, ha] }
     inv := {
       app := fun _ => 𝟙 _
       aboveId := by
         intro a S ha
-        apply IsHomLift_id
+        apply IsHomLift.id
         simp only [obj_proj, ha] }
 
 @[simps]
@@ -217,13 +217,13 @@ def BasedFunctor.leftUnitor {𝒳 𝒴 : BasedCategory 𝒮} (F : BasedFunctor �
         simp
       aboveId := by
         intro a S ha
-        apply IsHomLift_id
+        apply IsHomLift.id
         simp only [obj_proj, ha] }
     inv := {
       app := fun a => 𝟙 (F.obj a)
       aboveId := by
         intro a S ha
-        apply IsHomLift_id
+        apply IsHomLift.id
         simp only [obj_proj, ha] }
 
 @[simps]
@@ -236,13 +236,13 @@ def BasedFunctor.rightUnitor {𝒳 𝒴 : BasedCategory 𝒮} (F : BasedFunctor 
         simp
       aboveId := by
         intro a S ha
-        apply IsHomLift_id
+        apply IsHomLift.id
         simp only [obj_proj, ha] }
     inv := {
       app := fun a => 𝟙 (F.obj a)
       aboveId := by
         intro a S ha
-        apply IsHomLift_id
+        apply IsHomLift.id
         simp only [obj_proj, ha] }
 
 @[simps!]

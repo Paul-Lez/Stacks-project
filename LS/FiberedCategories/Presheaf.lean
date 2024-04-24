@@ -116,8 +116,8 @@ lemma ℱ.map_ext_iff {X Y : ℱ F} (f g : X ⟶ Y) : f = g ↔ f.1 = g.1 where
 
 lemma ℱ.IsHomLift_eq_snd {R S : 𝒮} {f : R ⟶ S} {X Y : ℱ F} {φ : Y ⟶ X} (hφ : IsHomLift (ℱ.π F) f φ) :
     Y.2 = Discrete.mk ((F.map (ℱ.mk_map₁ f hφ.2 hφ.1).op) X.2.1) := by
-  have h : ℱ.mk_map₁ f hφ.2 hφ.1 = φ.1 := IsHomLift_congr' hφ
-  rw [h]
+  have h : φ.1 = ℱ.mk_map₁ f hφ.2 hφ.1 := IsHomLift.hom_eq' hφ
+  rw [←h]
   ext
   apply (Discrete.eq_of_hom φ.2)
 
@@ -139,9 +139,9 @@ lemma ℱ.mk_map_IsPullback {R S : 𝒮} {f : R ⟶ S} {X Y : ℱ F} {hX : X.1 =
         simp [w, IsHomLift_eq_snd hφ', hXY]
       use ℱ.mk_map hZY
       refine ⟨⟨ℱ.mk_map_IsHomLift hZY, ?_⟩, ?_⟩
-      { simpa [w] using IsHomLift_congr' hφ'}
+      { simpa [w] using (IsHomLift.hom_eq' hφ').symm}
       intro ψ hψ
-      simp [IsHomLift_congr' hψ.1]}
+      simp [IsHomLift.hom_eq hψ.1]}
 
 /-- `ℱ.π` is a fibered category. -/
 instance : IsFibered (ℱ.π F) where
@@ -176,12 +176,12 @@ noncomputable instance (S : 𝒮) : Full (FiberInducedFunctor (ℱ.comp_const F 
   intro X Y f
   have hXY : X.as = Y.as := by
     have h : X.as = F.map f.val.1.op Y.as := eq_of_hom f.1.2
-    have h' : 𝟙 S = f.val.1 := by simpa using IsHomLift_congr' f.2
+    have h' : 𝟙 S = f.val.1 := by simpa using (IsHomLift.hom_eq' f.2).symm
     rw [←h'] at h
     simpa using h
   use (Discrete.eqToHom hXY)
   ext
-  simpa using IsHomLift_congr' f.2
+  simpa using (IsHomLift.hom_eq' f.2).symm
 
 instance (S : 𝒮) : Faithful (FiberInducedFunctor (ℱ.comp_const F S)) where
   map_injective _ := Subsingleton.elim _ _

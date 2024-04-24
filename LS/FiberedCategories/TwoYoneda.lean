@@ -63,17 +63,17 @@ lemma IsPullbackInducedMap_IsPullback {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : �
 
 noncomputable instance {p : 𝒳 ⥤ 𝒮} [IsFiberedInGroupoids p] {S : 𝒮} : Groupoid (Fiber p S) where
   inv {a b} f :=
-    Fiber.mk_map b.prop a.prop (IsPullbackInducedMap (p := p) (f := 𝟙 S) (g := 𝟙 S) (f' := 𝟙 S) (hf' := by simp only [comp_id]) (Fiber.map_IsPullback_id f) (φ' := 𝟙 b.val) (IsHomLift_id b.prop)) (IsPullbackInducedMap_IsHomLift _ _ _)
+    Fiber.mk_map b.prop a.prop (IsPullbackInducedMap (p := p) (f := 𝟙 S) (g := 𝟙 S) (f' := 𝟙 S) (hf' := by simp only [comp_id]) (Fiber.map_IsPullback_id f) (φ' := 𝟙 b.val) (IsHomLift.id b.prop)) (IsPullbackInducedMap_IsHomLift _ _ _)
   inv_comp {a b} f := by
     ext
     simp only [FiberCategory_comp_coe, FiberCategory_id_coe]
     simp_rw [Fiber.mk_map]
     apply IsPullbackInducedMap_Diagram
   comp_inv {a b} f := by
-    let f'' : b.val ⟶ a.val := (IsPullbackInducedMap (p := p) (f := 𝟙 S) (g := 𝟙 S) (f' := 𝟙 S) (hf' := by simp only [comp_id]) (Fiber.map_IsPullback_id f) (φ' := 𝟙 b.val) (IsHomLift_id b.prop))
+    let f'' : b.val ⟶ a.val := (IsPullbackInducedMap (p := p) (f := 𝟙 S) (g := 𝟙 S) (f' := 𝟙 S) (hf' := by simp only [comp_id]) (Fiber.map_IsPullback_id f) (φ' := 𝟙 b.val) (IsHomLift.id b.prop))
     have : IsPullback p (𝟙 S) f'' := IsPullbackInducedMap_IsPullback _ _ _
     let f' := Fiber.mk_map b.prop a.prop f'' (IsPullbackInducedMap_IsHomLift _ _ _)
-    let h : a ⟶ b := Fiber.mk_map a.prop b.prop (IsPullbackInducedMap (p := p) (f := 𝟙 S) (g := 𝟙 S) (f' := 𝟙 S) (hf' := by simp only [comp_id]) this (φ' := 𝟙 a.val) (IsHomLift_id a.prop)) (IsPullbackInducedMap_IsHomLift _ _ _)
+    let h : a ⟶ b := Fiber.mk_map a.prop b.prop (IsPullbackInducedMap (p := p) (f := 𝟙 S) (g := 𝟙 S) (f' := 𝟙 S) (hf' := by simp only [comp_id]) this (φ' := 𝟙 a.val) (IsHomLift.id a.prop)) (IsPullbackInducedMap_IsHomLift _ _ _)
     have : f' ≫ f = 𝟙 _ := by
       ext
       simp only [FiberCategory_comp_coe, FiberCategory_id_coe, Fiber.mk_map_coe]

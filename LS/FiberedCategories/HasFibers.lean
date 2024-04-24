@@ -54,8 +54,8 @@ def Fiber (p : 𝒳 ⥤ 𝒮) (S : 𝒮) := {a : 𝒳 // p.obj a = S}
 @[simps]
 instance FiberCategory (p : 𝒳 ⥤ 𝒮) (S : 𝒮) : Category (Fiber p S) where
   Hom a b := {φ : a.1 ⟶ b.1 // IsHomLift p (𝟙 S) φ}
-  id a := ⟨𝟙 a.1, IsHomLift_id a.2⟩
-  comp φ ψ := ⟨φ.val ≫ ψ.val, by apply (comp_id (𝟙 S)) ▸ IsHomLift_comp φ.2 ψ.2⟩
+  id a := ⟨𝟙 a.1, IsHomLift.id a.2⟩
+  comp φ ψ := ⟨φ.val ≫ ψ.val, by apply (comp_id (𝟙 S)) ▸ IsHomLift.comp φ.2 ψ.2⟩
 
 def Fiber.mk_obj {p : 𝒳 ⥤ 𝒮} {S : 𝒮} {a : 𝒳} (ha : p.obj a = S) : Fiber p S := ⟨a, ha⟩
 
@@ -88,7 +88,7 @@ lemma Fiber.val_comp {p : 𝒳 ⥤ 𝒮} {S : 𝒮} {a b c : Fiber p S} (φ : a 
 
 lemma Fiber.mk_map_com {p :𝒳 ⥤ 𝒮} {S : 𝒮} {a b c : 𝒳} (ha : p.obj a = S) (hb : p.obj b = S)
     (hc : p.obj c = S) (φ : a ⟶ b) (ψ : b ⟶ c) (hφ : IsHomLift p (𝟙 S) φ)
-    (hψ : IsHomLift p (𝟙 S) ψ) : Fiber.mk_map ha hc (φ ≫ ψ) (IsHomLift_id_comp hφ hψ) =
+    (hψ : IsHomLift p (𝟙 S) ψ) : Fiber.mk_map ha hc (φ ≫ ψ) (IsHomLift.lift_id_comp hφ hψ) =
     Fiber.mk_map ha hb φ hφ ≫ Fiber.mk_map hb hc ψ hψ := rfl
 
 /-- Given a functor F : C ⥤ 𝒳 mapping constantly to some S in the base,
@@ -193,11 +193,11 @@ instance HasFibers.canonical (p : 𝒳 ⥤ 𝒮) : HasFibers p where
   equiv := fun S => {
     inverse :=  𝟭 (Fiber p S)
     unitIso := {
-      hom := { app := fun x => ⟨𝟙 x.1, IsHomLift_id x.2⟩ }
-      inv := { app := fun x => ⟨𝟙 x.1, IsHomLift_id x.2⟩ } }
+      hom := { app := fun x => ⟨𝟙 x.1, IsHomLift.id x.2⟩ }
+      inv := { app := fun x => ⟨𝟙 x.1, IsHomLift.id x.2⟩ } }
     counitIso := {
-      hom := { app := fun x => ⟨𝟙 x.1, IsHomLift_id x.2⟩}
-      inv := { app := fun x => ⟨𝟙 x.1, IsHomLift_id x.2⟩} } }
+      hom := { app := fun x => ⟨𝟙 x.1, IsHomLift.id x.2⟩}
+      inv := { app := fun x => ⟨𝟙 x.1, IsHomLift.id x.2⟩} } }
 
 /-- A version of fullness of the functor `Fib S ⥤ Fiber p S` that can be used inside the category `𝒳` -/
 lemma HasFibersFull {p : 𝒳 ⥤ 𝒮} [hp : HasFibers p] {S : 𝒮} {a b : hp.Fib S} {φ : (hp.ι S).obj a ⟶ (hp.ι S).obj b}
@@ -221,7 +221,7 @@ def HasFibersPreimageIso {p : 𝒳 ⥤ 𝒮} [hp : HasFibers p] {S : 𝒮} {a b 
   let b' : Fiber p S := (HasFibers.InducedFunctor p S).obj b
   let Φ' : a' ≅ b' := {
     hom := ⟨Φ.hom, hΦ⟩
-    inv := ⟨Φ.inv, by simpa using IsHomLift_inv_id hΦ⟩ -- TODO: this could be improved..
+    inv := ⟨Φ.inv, by simpa using IsHomLift.lift_id_inv hΦ⟩ -- TODO: this could be improved..
   }
   exact ((hp.InducedFunctor S).preimageIso Φ')
 
