@@ -2,13 +2,18 @@ import LS.FiberedCategories.HasFibers
 import Mathlib.CategoryTheory.Category.Cat
 import Mathlib.CategoryTheory.Bicategory.LocallyDiscrete
 
-universe v₁ v₂ u₁ u₂
+universe w v₁ v₂ u₁ u₂
 
 
 open CategoryTheory Functor Category Fibered Opposite Discrete Bicategory
 
 -- TODO: lemmas about pseudofunctors from a locally discrete bicategory (simplifies assumptions!)
+variable {𝒮 : Type u₁} [Category.{v₁} 𝒮] {F : Pseudofunctor (LocallyDiscrete 𝒮) Cat.{v₂, u₂}}
 
+-- TODO: pseudofunctor/prelax functor version?
+theorem CategoryTheory.Prefunctor.congr_map {V : Type u₁} [Quiver.{v₁} V] {W : Type u₂} [Quiver.{v₂} W] (F : Prefunctor V W)
+    {X Y : V} {f g : X ⟶ Y} (h : f = g) : F.map f = F.map g := by
+  rw [h]
 
 variable {𝒮 : Type u₁} [Category.{v₁} 𝒮] {F : Pseudofunctor (LocallyDiscrete 𝒮ᵒᵖ) Cat.{v₂, u₂}}
 
@@ -30,6 +35,8 @@ instance : Category (ℱ F) where
     ext1
     simp
     dsimp -- map id ≫ (f ◁ mapComp).app!
+    rw [←assoc, ←(F.mapId (op a.1)).inv.naturality f.2]
+
     sorry -- need interaction with pseudofunctor & locally discrete for this!!
 
   comp_id := sorry
