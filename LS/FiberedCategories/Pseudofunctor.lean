@@ -10,13 +10,6 @@ open CategoryTheory Functor Category Fibered Opposite Discrete Bicategory
 -- TODO: lemmas about pseudofunctors from a locally discrete bicategory (simplifies assumptions!)
 variable {𝒮 : Type u₁} [Category.{v₁} 𝒮] {F : Pseudofunctor (LocallyDiscrete 𝒮) Cat.{v₂, u₂}}
 
--- TODO: pseudofunctor/prelax functor version?
-theorem CategoryTheory.Prefunctor.congr_map {V : Type u₁} [Quiver.{v₁} V] {W : Type u₂} [Quiver.{v₂} W] (F : Prefunctor V W)
-    {X Y : V} {f g : X ⟶ Y} (h : f = g) : F.map f = F.map g := by
-  rw [h]
-
-variable {𝒮 : Type u₁} [Category.{v₁} 𝒮] {F : Pseudofunctor (LocallyDiscrete 𝒮ᵒᵖ) Cat.{v₂, u₂}}
-
 /-- The type of objects in the fibered category associated to a presheaf valued in types. -/
 def ℱ (F : Pseudofunctor (LocallyDiscrete 𝒮ᵒᵖ) Cat.{v₂, u₂}) := (S : 𝒮) × (F.obj (op S))
 

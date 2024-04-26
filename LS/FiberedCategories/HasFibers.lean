@@ -76,7 +76,7 @@ def FiberInclusion (p : 𝒳 ⥤ 𝒮) (S : 𝒮) : (Fiber p S) ⥤ 𝒳 where
   obj a := a.1
   map φ := φ.1
 
-instance FiberInclusionFaithful (p : 𝒳 ⥤ 𝒮) (S : 𝒮) : Faithful (FiberInclusion p S) where
+instance FiberInclusionFaithful (p : 𝒳 ⥤ 𝒮) (S : 𝒮) : Functor.Faithful (FiberInclusion p S) where
   map_injective := Subtype.val_inj.1
 
 @[ext]
@@ -121,7 +121,7 @@ class HasFibers (p : 𝒳 ⥤ 𝒮) where
   [isCategory (S : 𝒮) : Category (Fib S)]
   (ι (S : 𝒮) : (Fib S) ⥤ 𝒳)
   (comp_const (S : 𝒮) : (ι S) ⋙ p = (const (Fib S)).obj S)
-  [equiv (S : 𝒮) : IsEquivalence (FiberInducedFunctor (comp_const S))]
+  [equiv (S : 𝒮) : Functor.IsEquivalence (FiberInducedFunctor (comp_const S))]
 
 instance {p : 𝒳 ⥤ 𝒮} [hp : HasFibers p] {S : 𝒮} : Category (hp.Fib S) := hp.isCategory S
 
@@ -138,14 +138,14 @@ lemma HasFibers.InducedFunctorComp {p : 𝒳 ⥤ 𝒮} [hp : HasFibers p] (S : �
   FiberInducedFunctorComp (hp.comp_const S)
 
 -- TODO: state these in terms of InducedFunctor
-instance {p : 𝒳 ⥤ 𝒮} [HasFibers p] {S : 𝒮} : IsEquivalence (HasFibers.InducedFunctor p S) :=
+instance {p : 𝒳 ⥤ 𝒮} [HasFibers p] {S : 𝒮} : Functor.IsEquivalence (HasFibers.InducedFunctor p S) :=
   HasFibers.equiv S
 
-instance {p : 𝒳 ⥤ 𝒮} [HasFibers p] {S : 𝒮} : EssSurj (HasFibers.InducedFunctor p S) :=
+instance {p : 𝒳 ⥤ 𝒮} [HasFibers p] {S : 𝒮} : Functor.EssSurj (HasFibers.InducedFunctor p S) :=
   Equivalence.essSurj_of_equivalence (HasFibers.InducedFunctor p S)
 
-instance {p : 𝒳 ⥤ 𝒮} [hp : HasFibers p] {S : 𝒮} : Faithful (hp.ι S) :=
-  Faithful.of_iso (hp.InducedFunctorNat S).symm
+instance {p : 𝒳 ⥤ 𝒮} [hp : HasFibers p] {S : 𝒮} : Functor.Faithful (hp.ι S) :=
+  Functor.Faithful.of_iso (hp.InducedFunctorNat S).symm
 
 -- BASIC API CONSTRUCTIONS
 def HasFibersProj {p : 𝒳 ⥤ 𝒮} [hp : HasFibers p] {S R : 𝒮} {a : hp.Fib S} {b : hp.Fib R}
