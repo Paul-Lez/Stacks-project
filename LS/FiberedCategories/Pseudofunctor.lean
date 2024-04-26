@@ -21,35 +21,36 @@ instance ℱ.CategoryStruct : CategoryStruct (ℱ F) where
   id X := ⟨𝟙 X.1, (F.mapId ⟨op X.1⟩).inv.app X.2⟩
   comp {_ _ Z} f g := ⟨f.1 ≫ g.1, f.2 ≫ (F.map f.1.op.toLoc).map g.2 ≫ (F.mapComp g.1.op.toLoc f.1.op.toLoc).inv.app Z.2⟩
 
+#check Prod.ext
+
+@[ext]
+lemma ℱ.hom_ext {a b : ℱ F} (f g : a ⟶ b) (hfg₁ : f.1 = g.1)
+    (hfg₂ : f.2 = g.2 ≫ eqToHom (hfg₁ ▸ rfl)) : f = g := by
+  apply Sigma.ext
+  exact hfg₁
+  rw [←conj_eqToHom_iff_heq _ _ rfl (hfg₁ ▸ rfl)]
+  simp only [hfg₂, eqToHom_refl, id_comp]
+
 /-- The category structure on the fibered category associated to a presheaf valued in types. -/
 instance : Category (ℱ F) where
   toCategoryStruct := ℱ.CategoryStruct
   id_comp {a b} f := by
-    simp
-    -- need manual ext lemma here!
-    ext1
-    simp
+    ext
+    · simp
     dsimp
     rw [←assoc, ←(F.mapId ⟨op a.1⟩).inv.naturality f.2, assoc]
     rw [←whiskerLeft_app, ←NatTrans.comp_app]
-    -- TODO: fix
     erw [map₂_right_unitor' (F:=F) f.1.op]
     nth_rw 1 [←assoc]
-    -- TODO: fix
     erw [←CategoryTheory.whiskerLeft_comp]
-    simp
+    dsimp
     rw [eqToHom_app]
-    rw [←conj_eqToHom_iff_heq]
     simp
-    rfl
-    simp only [comp_id]
-
   comp_id := sorry
   assoc f g h := by
-    simp
     ext
-    simp
-    simp
+    · simp
+    dsimp
     sorry
 
 /-- The projection `ℱ F ⥤ 𝒮` given by projecting both objects and homs to the first factor -/
