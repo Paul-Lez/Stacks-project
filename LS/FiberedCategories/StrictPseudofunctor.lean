@@ -34,7 +34,7 @@ variable {F : Pseudofunctor (LocallyDiscrete I) B}
 -- These should be stated in terms of strict bicategories
 
 -- Pseudofunctors from locally discrete categories to strict bicategories
-lemma map₂_left_unitor' {a b : I} (f : a ⟶ b) : (F.mapComp (𝟙 a).toLoc f.toLoc).inv =
+lemma map₂_left_unitor' {a b : I} (f : a ⟶ b) : (F.mapComp (𝟙 ⟨a⟩) f.toLoc).inv =
     (F.mapId ⟨a⟩).hom ▷ F.map f.toLoc ≫ eqToHom (by simp) := by
   have h := F.map₂_left_unitor f.toLoc
   simp at h
@@ -42,7 +42,7 @@ lemma map₂_left_unitor' {a b : I} (f : a ⟶ b) : (F.mapComp (𝟙 a).toLoc f.
   simp at h
   apply h
 
-lemma map₂_right_unitor' {a b : I} (f : a ⟶ b) : (F.mapComp f.toLoc (𝟙 b).toLoc).inv =
+lemma map₂_right_unitor' {a b : I} (f : a ⟶ b) : (F.mapComp f.toLoc (𝟙 (LocallyDiscrete.mk b))).inv =
     F.map f.toLoc ◁ (F.mapId ⟨b⟩).hom ≫ eqToHom (by simp) := by
   have h := F.map₂_right_unitor f.toLoc
   simp at h
@@ -50,10 +50,21 @@ lemma map₂_right_unitor' {a b : I} (f : a ⟶ b) : (F.mapComp f.toLoc (𝟙 b)
   simp at h
   apply h
 
-lemma map₂_associator' {a b c d : I} (f : a ⟶ b) (g : b ⟶ c) (h : c ⟶ d) :
+lemma map₂_associator_hom' {a b c d : I} (f : a ⟶ b) (g : b ⟶ c) (h : c ⟶ d) :
     (F.mapComp f.toLoc (g.toLoc ≫ h.toLoc)).hom ≫ (F.map f.toLoc) ◁ (F.mapComp g.toLoc h.toLoc).hom
     = eqToHom (by simp) ≫ (F.mapComp (f.toLoc ≫ g.toLoc) h.toLoc).hom ≫
     (F.mapComp f.toLoc g.toLoc).hom ▷ F.map h.toLoc ≫ eqToHom (by simp)
+    := by
+  have h := F.map₂_associator f.toLoc g.toLoc h.toLoc
+  simp at h
+  rw [F.map₂_eqToHom, ←Iso.inv_comp_eq] at h
+  -- TODO: rewrite thing as inv then move to LHS (+ restate lemma to use this notation instead!)
+  sorry
+
+lemma map₂_associator_inv' {a b c d : I} (f : a ⟶ b) (g : b ⟶ c) (h : c ⟶ d) :
+    (F.map f.toLoc) ◁ (F.mapComp g.toLoc h.toLoc).inv ≫ (F.mapComp f.toLoc (g.toLoc ≫ h.toLoc)).inv
+    = eqToHom (by simp) ≫ (F.mapComp f.toLoc g.toLoc).inv ▷ F.map h.toLoc
+    ≫ (F.mapComp (f.toLoc ≫ g.toLoc) h.toLoc).inv ≫ eqToHom (by simp)
     := by
   have h := F.map₂_associator f.toLoc g.toLoc h.toLoc
   simp at h
