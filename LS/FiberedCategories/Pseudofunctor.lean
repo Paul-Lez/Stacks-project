@@ -76,6 +76,7 @@ instance : Category (ℱ F) where
     rw [←(F.mapComp g.1.op.toLoc f.1.op.toLoc).inv.naturality h.2]
     rw [←Cat.whiskerLeft_app, assoc, ←NatTrans.comp_app]
     rw [map₂_associator_inv' (F:=F) h.1.op g.1.op f.1.op]
+    -- End of this proof is VERY slow...
     simp
     congr
     apply eqToHom_app
@@ -85,3 +86,55 @@ instance : Category (ℱ F) where
 def ℱ.π (F : Pseudofunctor (LocallyDiscrete 𝒮ᵒᵖ) Cat.{v₂, u₂}) : ℱ F ⥤ 𝒮 where
   obj := fun X => X.1
   map := fun f => f.1
+
+-- TODO: improve comment after I know final form of this...
+/-- An object of `ℱ F` lying over `S`, given by some `a : F(T)` and `S ⟶ T` -/
+@[simps]
+def ℱ.pullback_obj {R S : 𝒮} (a : F.obj ⟨op S⟩) (f : R ⟶ S) : ℱ F :=
+  ⟨R, (F.map f.op.toLoc).obj a⟩
+
+@[simps]
+def ℱ.pullback_map {R S : 𝒮} (a : F.obj ⟨op S⟩) (f : R ⟶ S) : ℱ.pullback_obj a f ⟶ ⟨S, a⟩ :=
+  ⟨f, 𝟙 _⟩
+
+-- @[simp]
+-- def ℱ.mk_map₁ {R S : 𝒮} (f : R ⟶ S) {X Y : ℱ F} (hX : X.1 = S)
+--     (hY : Y.1 = R) : Y.1 ⟶ X.1 := eqToHom hY ≫ f ≫ eqToHom hX.symm
+
+-- @[simp]
+-- def ℱ.mk_map {R S : 𝒮} {f : R ⟶ S} {X Y : ℱ F} {hX : X.1 = S}
+--     {hY : Y.1 = R} (hXY : Y.2 = Discrete.mk ((F.map (ℱ.mk_map₁ f hX hY).op) X.2.1)) : Y ⟶ X :=
+--   ⟨ℱ.mk_map₁ f hX hY, eqToHom hXY⟩
+
+/- API ISSUE:
+  - The "equalities" we save by using HomLift etc are now put on the user when
+  defining these things.
+  - Need API to avoid these equalities during construction...
+
+
+-/
+
+/-- `ℱ.π` is a fibered category. -/
+instance : IsFibered (ℱ.π F) where
+  has_pullbacks := by
+    intros a R S hS f
+    -- This should be hidden by API (in `Basic.lean`)
+    subst hS
+    let b : ℱ F := ⟨R, (F.map f.op.toLoc).obj a.2⟩
+    use b, ⟨f, 𝟙 _⟩
+    exact {
+      ObjLiftDomain := rfl
+      ObjLiftCodomain := rfl
+      HomLift := {
+        w := by simp
+      }
+      UniversalProperty := by
+        intro R' a' g f' hw φ' hφ'
+        -- this subst should be hidden by API (shouldnt even be necessary?) (in `Basic.lean`)
+        subst hw
+        -- NEED API: to go from fiber over T to fiber over T'=T... i.e. mkmap!!
+        let τ' : a'.2 ⟶ (F.map φ'.1.op.toLoc).obj a.2 := φ'.2
+
+
+        sorry
+    }
