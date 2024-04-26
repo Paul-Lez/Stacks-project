@@ -76,11 +76,7 @@ protected lemma comp {p : 𝒳 ⥤ 𝒮} {R S T : 𝒮} {a b c : 𝒳} {f : R �
   (hψ : IsHomLift p g ψ) : IsHomLift p (f ≫ g) (φ ≫ ψ) where
     ObjLiftDomain := hφ.1
     ObjLiftCodomain := hψ.2
-    HomLift := by
-      -- TODO: could use composition of CommSq (once mathlib is updated)
-      constructor
-      rw [←Category.assoc, ←hφ.3.1]
-      simp only [map_comp, assoc, hψ.3.1]
+    HomLift := (p.map_comp _ _).symm ▸ CommSq.horiz_comp hφ.3 hψ.3
 
 /-- If `φ : a ⟶ b` and `ψ : b ⟶ c` lift `𝟙 S`, then so does `φ ≫ ψ` -/
 lemma lift_id_comp {p : 𝒳 ⥤ 𝒮} {R : 𝒮} {a b c : 𝒳} {φ : a ⟶ b} {ψ : b ⟶ c} (hφ : IsHomLift p (𝟙 R) φ)
@@ -172,21 +168,22 @@ lemma IsIso_of_lift_IsIso {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} {f : R �
     (hφ : IsHomLift p f φ) [IsIso φ] : IsIso f :=
   (IsHomLift.hom_eq hφ) ▸ inferInstance
 
--- TODO: Iso version of this lemma? What would that be called? (also maybe name this `inv_lift_inv`)
+-- TODO: Better names for these lemmas, e.g. `inv_lift_inv` and `inv_lift_inv_IsIso`?
+/-- Given `φ : a ≅ b` and `f : R ≅ S`, such that `φ.hom` lifts `f.hom`, then `φ.inv` lifts `f.inv`. -/
+protected lemma inv_iso {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} {f : R ≅ S} {φ : a ≅ b}
+    (hφ : IsHomLift p f.hom φ.hom) : IsHomLift p f.inv φ.inv where
+  ObjLiftDomain := hφ.2
+  ObjLiftCodomain := hφ.1
+  HomLift := CommSq.horiz_inv (f:=p.mapIso φ) (i:=f) hφ.3
+
 /-- If `φ : a ⟶ b` lifts `f : R ⟶ S` and both are isomorphisms, then `φ⁻¹` lifts `f⁻¹`. -/
 protected lemma inv {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} {f : R ⟶ S} {φ : a ⟶ b}
-    (hlift : IsHomLift p f φ) [IsIso φ] [IsIso f] : IsHomLift p (inv f) (inv φ) where
-  ObjLiftDomain := hlift.2
-  ObjLiftCodomain := hlift.1
-  HomLift := by
-    -- TODO: can also simplify once mathlib is updated (comp_vert/horiz or something)
-    constructor
-    simp only [map_inv, IsIso.eq_comp_inv, assoc, IsIso.inv_comp_eq]
-    exact hlift.3.1.symm
+    (hφ : IsHomLift p f φ) [IsIso φ] [IsIso f] : IsHomLift p (inv f) (inv φ) :=
+  IsHomLift.inv_iso (f:=asIso f) (φ:= asIso φ) hφ
 
 /-- If `φ : a ⟶ b` is an isomorphism, and lifts `𝟙 S` for some `S : 𝒮`, then `φ⁻¹` also lifts `𝟙 S` -/
 lemma lift_id_inv {p : 𝒳 ⥤ 𝒮} {S : 𝒮} {a b : 𝒳} {φ : a ⟶ b} [IsIso φ]
-    (hlift : IsHomLift p (𝟙 S) φ) : IsHomLift p (𝟙 S) (inv φ) :=
-  (IsIso.inv_id (X:=S)) ▸ IsHomLift.inv hlift
+    (hφ : IsHomLift p (𝟙 S) φ) : IsHomLift p (𝟙 S) (inv φ) :=
+  (IsIso.inv_id (X:=S)) ▸ IsHomLift.inv hφ
 
 end IsHomLift
