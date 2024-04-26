@@ -115,26 +115,24 @@ def ℱ.pullback_map {R S : 𝒮} (a : F.obj ⟨op S⟩) (f : R ⟶ S) : ℱ.pul
 -/
 
 /-- `ℱ.π` is a fibered category. -/
-instance : IsFibered (ℱ.π F) where
-  has_pullbacks := by
-    intros a R S hS f
-    -- This should be hidden by API (in `Basic.lean`)
-    subst hS
-    let b : ℱ F := ⟨R, (F.map f.op.toLoc).obj a.2⟩
-    use b, ⟨f, 𝟙 _⟩
-    exact {
-      ObjLiftDomain := rfl
-      ObjLiftCodomain := rfl
-      HomLift := {
-        w := by simp
-      }
-      UniversalProperty := by
-        intro R' a' g f' hw φ' hφ'
-        -- this subst should be hidden by API (shouldnt even be necessary?) (in `Basic.lean`)
-        subst hw
-        -- NEED API: to go from fiber over T to fiber over T'=T... i.e. mkmap!!
-        let τ' : a'.2 ⟶ (F.map φ'.1.op.toLoc).obj a.2 := φ'.2
-
-
-        sorry
+instance : IsFibered (ℱ.π F) := by
+  apply IsFibered.mk'
+  intros a R f
+  let b : ℱ F := ⟨R, (F.map f.op.toLoc).obj a.2⟩
+  use b, ⟨f, 𝟙 _⟩
+  exact {
+    ObjLiftDomain := rfl
+    ObjLiftCodomain := rfl
+    HomLift := {
+      w := by simp
     }
+    UniversalProperty := by
+      intro R' a' g f' hw φ' hφ'
+      -- this subst should be hidden by API (shouldnt even be necessary?) (in `Basic.lean`)
+      subst hw
+      -- NEED API: to go from fiber over T to fiber over T'=T... i.e. mkmap!!
+      let τ' : a'.2 ⟶ (F.map φ'.1.op.toLoc).obj a.2 := φ'.2
+
+
+      sorry
+  }

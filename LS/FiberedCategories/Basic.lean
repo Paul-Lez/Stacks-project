@@ -100,7 +100,25 @@ lemma IsPullbackInducedMap_self_eq_id {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : �
   (hφ : IsPullback p f φ) : IsPullbackInducedMap hφ (id_comp f).symm hφ.toIsHomLift = 𝟙 a:=
   (IsPullbackInducedMap_unique hφ (id_comp f).symm hφ.toIsHomLift (IsHomLift.id hφ.ObjLiftDomain) (id_comp _)).symm
 
-/-- TODO IS THIS PARTICULAR STATEMENT OPTIMAL? Assumes "big" squares are commutative...
+-- TODO: make this standard .mk (TODO: make h hypthesis use explicit notation)
+lemma IsPullback.mk' {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} {f : R ⟶ S} {φ : b ⟶ a}
+    (hφ : IsHomLift p f φ) (h : ∀ {a' : 𝒳} {g : p.obj a' ⟶ R} {φ' : a' ⟶ a},
+      IsHomLift p (g ≫ f) φ' → ∃! χ : a' ⟶ b, IsHomLift p g χ ∧ χ ≫ φ = φ') :
+        IsPullback p f φ where
+  toIsHomLift := hφ
+  UniversalProperty := by
+    intro R' a' g f' hf' φ' hφ'
+    have := hφ'.ObjLiftDomain.symm
+    subst this
+    subst hf'
+    apply @h a' g φ' hφ'
+
+lemma IsFibered.mk' {p : 𝒳 ⥤ 𝒮} (h : ∀ (a : 𝒳) (R : 𝒮) (f : R ⟶ p.obj a),
+    ∃ (b : 𝒳) (φ : b ⟶ a), IsPullback p f φ) : IsFibered p where
+  has_pullbacks := @fun a R S ha f => by subst ha; apply h a R f
+
+
+/-- TODO: is this particular statement optional? Assumes "big" squares are commutative...
 ```
 
 
