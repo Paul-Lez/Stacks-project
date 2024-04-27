@@ -331,11 +331,6 @@ lemma IsPullbackNaturalityHom_id {p : 𝒳 ⥤ 𝒮}
   constructor
   aesop
 
-lemma CommSq.comp {C : Type*} [Category C] {U V W X Y Z : C} {c : U ⟶ W} {d : U ⟶ V} {e : V ⟶ Y} {f : W ⟶ X} {g : W ⟶ Y} {h : X ⟶ Z} {i : Y ⟶ Z} (h₁ : CommSq c d g e) (h₂ : CommSq f g h i) :
-  CommSq (c ≫ f) d h (e ≫ i) := by
-  constructor
-  rw [←Category.assoc, ←h₁.w, Category.assoc c g, ← h₂.w, Category.assoc]
-
 /--The construction of `IsPullbackNaturalityHom` preserves compositions. More precisely if we have
       a  ⟶ b
             |
@@ -356,7 +351,7 @@ lemma IsPullbackNaturalityHom_comp {p : 𝒳 ⥤ 𝒮}
   {ψ : b ⟶ b'} (hψ : IsHomLift p (𝟙 S) ψ)
   {ψ' : b' ⟶ b''} (hψ' : IsHomLift p (𝟙 S) ψ') :
   IsPullbackNaturalityHom hφ hφ'' (lift_id_comp hψ hψ') = IsPullbackNaturalityHom hφ hφ' hψ ≫ IsPullbackNaturalityHom hφ' hφ'' hψ' := (IsPullbackNaturalityHom_uniqueness _ _ _ (lift_id_comp (IsPullbackNaturalityHom_IsHomLift _ _ _)
-    (IsPullbackNaturalityHom_IsHomLift _ _ _)) (CommSq.comp (IsPullbackNaturalityHom_CommSq _ _ _) (IsPullbackNaturalityHom_CommSq _ _ _))).symm
+    (IsPullbackNaturalityHom_IsHomLift _ _ _)) (CommSq.horiz_comp (IsPullbackNaturalityHom_CommSq _ _ _) (IsPullbackNaturalityHom_CommSq _ _ _))).symm
 
 
 /- API FOR FIBERED CATEGORIES -/

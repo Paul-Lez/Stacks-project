@@ -33,10 +33,14 @@ instance ℱ.CategoryStruct : CategoryStruct (ℱ F) where
 lemma ℱ.hom_ext {a b : ℱ F} (f g : a ⟶ b) (hfg₁ : f.1 = g.1)
     -- Is the substitution here problematic...?
     (hfg₂ : f.2 = g.2 ≫ eqToHom (hfg₁ ▸ rfl)) : f = g := by
-  apply Sigma.ext
-  exact hfg₁
+  apply Sigma.ext hfg₁
   rw [←conj_eqToHom_iff_heq _ _ rfl (hfg₁ ▸ rfl)]
   simp only [hfg₂, eqToHom_refl, id_comp]
+
+-- Might not need this lemma in the end
+lemma ℱ.hom_ext_iff {a b : ℱ F} (f g : a ⟶ b) : f = g ↔ ∃ (hfg : f.1 = g.1), f.2 = g.2 ≫ eqToHom (hfg ▸ rfl) where
+  mp := fun hfg => ⟨by rw [hfg], by simp [hfg]⟩
+  mpr := fun ⟨hfg₁, hfg₂⟩ => ℱ.hom_ext f g hfg₁ hfg₂
 
 lemma ℱ.id_comp {a b : ℱ F} (f : a ⟶ b) : 𝟙 a ≫ f = f := by
   ext
@@ -89,50 +93,56 @@ def ℱ.π (F : Pseudofunctor (LocallyDiscrete 𝒮ᵒᵖ) Cat.{v₂, u₂}) : �
 
 -- TODO: improve comment after I know final form of this...
 /-- An object of `ℱ F` lying over `S`, given by some `a : F(T)` and `S ⟶ T` -/
-@[simps]
-def ℱ.pullback_obj {R S : 𝒮} (a : F.obj ⟨op S⟩) (f : R ⟶ S) : ℱ F :=
+abbrev ℱ.pullback_obj {R S : 𝒮} (a : F.obj ⟨op S⟩) (f : R ⟶ S) : ℱ F :=
   ⟨R, (F.map f.op.toLoc).obj a⟩
 
-@[simps]
-def ℱ.pullback_map {R S : 𝒮} (a : F.obj ⟨op S⟩) (f : R ⟶ S) : ℱ.pullback_obj a f ⟶ ⟨S, a⟩ :=
+abbrev ℱ.pullback_map {R S : 𝒮} (a : F.obj ⟨op S⟩) (f : R ⟶ S) : ℱ.pullback_obj a f ⟶ ⟨S, a⟩ :=
   ⟨f, 𝟙 _⟩
 
--- @[simp]
--- def ℱ.mk_map₁ {R S : 𝒮} (f : R ⟶ S) {X Y : ℱ F} (hX : X.1 = S)
---     (hY : Y.1 = R) : Y.1 ⟶ X.1 := eqToHom hY ≫ f ≫ eqToHom hX.symm
+lemma ℱ.pullback_IsHomLift {R S : 𝒮} (a : F.obj ⟨op S⟩) (f : R ⟶ S) :
+    IsHomLift (ℱ.π F) f (ℱ.pullback_map a f) where
+  ObjLiftDomain := rfl
+  ObjLiftCodomain := rfl
+  HomLift := {
+    w := by simp
+  }
 
--- @[simp]
--- def ℱ.mk_map {R S : 𝒮} {f : R ⟶ S} {X Y : ℱ F} {hX : X.1 = S}
---     {hY : Y.1 = R} (hXY : Y.2 = Discrete.mk ((F.map (ℱ.mk_map₁ f hX hY).op) X.2.1)) : Y ⟶ X :=
---   ⟨ℱ.mk_map₁ f hX hY, eqToHom hXY⟩
+abbrev ℱ.pullback_inducedMap {R S : 𝒮} (a : F.obj ⟨op S⟩) {f : R ⟶ S} {a' : ℱ F}
+    {φ' : a' ⟶ ⟨S, a⟩} {g : a'.1 ⟶ R} (hφ' : IsHomLift (ℱ.π F) (g ≫ f) φ') : a' ⟶ ℱ.pullback_obj a f :=
+  have : g ≫ f = φ'.1 := by simpa using IsHomLift.hom_eq hφ'
+  have : φ'.1.op.toLoc = f.op.toLoc ≫ g.op.toLoc := by simp [this.symm]
+  ⟨g, φ'.2 ≫ eqToHom (by rw [this]) ≫ (F.mapComp f.op.toLoc g.op.toLoc).hom.app a⟩
 
-/- API ISSUE:
-  - The "equalities" we save by using HomLift etc are now put on the user when
-  defining these things.
-  - Need API to avoid these equalities during construction...
+lemma ℱ.pullback_inducedMap_isHomLift {R S : 𝒮} (a : F.obj ⟨op S⟩) {f : R ⟶ S} {a' : ℱ F}
+    {φ' : a' ⟶ ⟨S, a⟩} {g : a'.1 ⟶ R} (hφ' : IsHomLift (ℱ.π F) (g ≫ f) φ') :
+      IsHomLift (ℱ.π F) g (ℱ.pullback_inducedMap a hφ') where
+  ObjLiftDomain := rfl
+  ObjLiftCodomain := rfl
+  HomLift := ⟨by simp⟩
 
-
--/
+lemma ℱ.pullback_IsPullback {R S : 𝒮} (a : F.obj ⟨op S⟩) (f : R ⟶ S) :
+    IsPullback (ℱ.π F) f (ℱ.pullback_map a f) := by
+  apply IsPullback.mk' (ℱ.pullback_IsHomLift a f)
+  intros a' g φ' hφ'
+  -- This should be included in API somehow...
+  have : g ≫ f = φ'.1 := by simpa using IsHomLift.hom_eq hφ'
+  use ℱ.pullback_inducedMap a hφ'
+  refine ⟨⟨ℱ.pullback_inducedMap_isHomLift a hφ', ?_⟩, ?_⟩
+  ext
+  · exact this
+  · simp
+  rintro χ' ⟨hχ', hχ'₁⟩
+  symm at hχ'₁
+  subst hχ'₁
+  have hgχ' : g = χ'.1 := by simpa using IsHomLift.hom_eq hχ'
+  subst hgχ'
+  ext
+  · simp
+  simp
 
 /-- `ℱ.π` is a fibered category. -/
 instance : IsFibered (ℱ.π F) := by
   apply IsFibered.mk'
   intros a R f
-  let b : ℱ F := ⟨R, (F.map f.op.toLoc).obj a.2⟩
-  use b, ⟨f, 𝟙 _⟩
-  exact {
-    ObjLiftDomain := rfl
-    ObjLiftCodomain := rfl
-    HomLift := {
-      w := by simp
-    }
-    UniversalProperty := by
-      intro R' a' g f' hw φ' hφ'
-      -- this subst should be hidden by API (shouldnt even be necessary?) (in `Basic.lean`)
-      subst hw
-      -- NEED API: to go from fiber over T to fiber over T'=T... i.e. mkmap!!
-      let τ' : a'.2 ⟶ (F.map φ'.1.op.toLoc).obj a.2 := φ'.2
-
-
-      sorry
-  }
+  use ℱ.pullback_obj a.2 f, ℱ.pullback_map a.2 f
+  exact ℱ.pullback_IsPullback a.2 f
