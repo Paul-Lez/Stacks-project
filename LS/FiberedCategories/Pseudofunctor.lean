@@ -10,11 +10,13 @@ open CategoryTheory Functor Category Fibered Opposite Discrete Bicategory
 -- TODO: add @[pp_dot] in LocallyDiscrete
 section mathlib_lemmas
 
-lemma Cat.whiskerLeft_app {C D E : Cat} (X : C) (F : C ⟶ D) {G H : D ⟶ E} (η : G ⟶ H) :
-  (F ◁ η).app X = η.app (F.obj X) := by dsimp
+lemma Cat.whiskerLeft_app {C D E : Cat} (F : C ⟶ D) {G H : D ⟶ E} (η : G ⟶ H) (X : C) :
+    (F ◁ η).app X = η.app (F.obj X) :=
+  CategoryTheory.whiskerLeft_app F η X
 
-lemma Cat.whiskerRight_app {C D E : Cat} (X : C) {F G : C ⟶ D} (H : D ⟶ E) (η : F ⟶ G) :
-  (η ▷ H).app X = H.map (η.app X) := by dsimp
+lemma Cat.whiskerRight_app {C D E : Cat} {F G : C ⟶ D} (H : D ⟶ E) (η : F ⟶ G) (X : C) :
+    (η ▷ H).app X = H.map (η.app X) :=
+  CategoryTheory.whiskerRight_app η H X
 
 end mathlib_lemmas
 
@@ -60,7 +62,7 @@ lemma ℱ.comp_id {a b : ℱ F} (f : a ⟶ b) : f ≫ 𝟙 b = f := by
   · simp
   dsimp
   rw [←Cat.whiskerRight_app, ←NatTrans.comp_app]
-  rw [map₂_left_unitor' (F:=F) f.1.op]
+  rw [map₂_left_unitor' (F:=F) f.1.op.toLoc]
   nth_rw 1 [←assoc]
   rw [←Bicategory.comp_whiskerRight]
   simp_rw [NatTrans.comp_app]
@@ -134,6 +136,7 @@ lemma ℱ.pullback_IsPullback {R S : 𝒮} (a : F.obj ⟨op S⟩) (f : R ⟶ S) 
   rintro χ' ⟨hχ', hχ'₁⟩
   symm at hχ'₁
   subst hχ'₁
+  -- Again this should also be included in API somehow
   have hgχ' : g = χ'.1 := by simpa using IsHomLift.hom_eq hχ'
   subst hgχ'
   ext
@@ -146,3 +149,68 @@ instance : IsFibered (ℱ.π F) := by
   intros a R f
   use ℱ.pullback_obj a.2 f, ℱ.pullback_map a.2 f
   exact ℱ.pullback_IsPullback a.2 f
+
+variable (F)
+
+@[simps]
+def ℱ.ι (S : 𝒮) : F.obj ⟨op S⟩ ⥤ ℱ F where
+  obj := fun a => ⟨S, a⟩
+  map := @fun a b φ => ⟨𝟙 S, φ ≫ (F.mapId ⟨op S⟩).inv.app b⟩
+  map_id := by
+    intro a
+    dsimp
+    -- why doesnt ext work as I think it should?!
+    ext
+    · simp
+    rw [←conj_eqToHom_iff_heq _ _ rfl (by simp)]
+    simp
+  map_comp := by
+    intro a b c φ ψ
+    dsimp
+    ext
+    · simp
+    rw [←conj_eqToHom_iff_heq _ _ rfl (by simp)]
+    simp
+    nth_rw 3 [←assoc]
+    rw [←(F.mapId ⟨op S⟩).inv.naturality ψ]
+    rw [←Cat.whiskerRight_app, ←assoc (h:= eqToHom _), ←NatTrans.comp_app]
+    rw [map₂_left_unitor' (F:=F)]
+    nth_rw 2 [←assoc (h:= eqToHom _)]
+    rw [inv_hom_whiskerRight, NatTrans.comp_app, eqToHom_app]
+    simp
+
+@[simps]
+def ℱ.comp_iso (S : 𝒮) : (ℱ.ι F S) ⋙ ℱ.π F ≅ (const (F.obj ⟨op S⟩)).obj S where
+  hom := { app := fun a => 𝟙 _ }
+  inv := { app := fun a => 𝟙 _ }
+
+lemma ℱ.comp_const (S : 𝒮) : (ℱ.ι F S) ⋙ ℱ.π F = (const (F.obj ⟨op S⟩)).obj S := by
+  apply Functor.ext_of_iso (ℱ.comp_iso F S) <;> simp
+
+noncomputable instance (S : 𝒮) : Functor.Full (FiberInducedFunctor (ℱ.comp_const F S)) := by
+  apply fullOfExists
+  intro X Y f
+  let f' := f.1.2 -- need to use f.1=𝟙 S to rewrite this in correct form! Then use f.1.2 should work
+  sorry
+
+instance (S : 𝒮) : Functor.Faithful (FiberInducedFunctor (ℱ.comp_const F S)) where
+  map_injective := by
+    intros a b f g heq
+    rw [←Subtype.val_inj] at heq
+    obtain ⟨_, heq₂⟩ := (ℱ.hom_ext_iff _ _).1 heq
+    dsimp at heq₂
+    rw [←CategoryTheory.NatIso.app_inv, CategoryTheory.Iso.comp_inv_eq] at heq₂
+    simpa using heq₂
+
+noncomputable instance (S : 𝒮) : Functor.EssSurj (FiberInducedFunctor (ℱ.comp_const F S)) where
+  mem_essImage Y := by
+    sorry
+    -- use Y.1.2    first subst via Y.1
+
+noncomputable instance (S : 𝒮) : Functor.IsEquivalence (FiberInducedFunctor (ℱ.comp_const F S)) :=
+  Functor.IsEquivalence.ofFullyFaithfullyEssSurj _
+
+noncomputable instance : HasFibers (ℱ.π F) where
+  Fib S := F.obj ⟨op S⟩
+  ι := ℱ.ι F
+  comp_const := ℱ.comp_const F

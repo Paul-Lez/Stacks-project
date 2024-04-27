@@ -32,11 +32,12 @@ variable {I : Type u₁} [Category.{v₁} I] {B : Type u₂} [Bicategory.{w₂, 
 variable {F : Pseudofunctor (LocallyDiscrete I) B}
 
 -- These should be stated in terms of strict bicategories
+-- (and avoid .toLoc!!)
 
 -- Pseudofunctors from locally discrete categories to strict bicategories
-lemma map₂_left_unitor' {a b : I} (f : a ⟶ b) : (F.mapComp (𝟙 ⟨a⟩) f.toLoc).inv =
-    (F.mapId ⟨a⟩).hom ▷ F.map f.toLoc ≫ eqToHom (by simp) := by
-  have h := F.map₂_left_unitor f.toLoc
+lemma map₂_left_unitor' {a b : I} (f : LocallyDiscrete.mk a ⟶ LocallyDiscrete.mk b) : (F.mapComp (𝟙 ⟨a⟩) f).inv =
+    (F.mapId ⟨a⟩).hom ▷ F.map f ≫ eqToHom (by simp) := by
+  have h := F.map₂_left_unitor f
   simp at h
   rw [F.map₂_eqToHom, ←Iso.inv_comp_eq, comp_eqToHom_iff] at h
   simp at h
