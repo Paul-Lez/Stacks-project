@@ -35,6 +35,8 @@ open CategoryTheory Functor Category
 
 variable {𝒮 : Type u₁} {𝒳 : Type u₂} [Category 𝒳] [Category 𝒮]
 
+-- TODO: make choice/order c --> b --> a consistent
+
 /-- The proposition that an arrow a --φ--> b lifts an arrow R --f--> S in 𝒮 via p. This is
 often drawn as:
 ```
@@ -51,6 +53,7 @@ class IsHomLift (p : 𝒳 ⥤ 𝒮) {R S : 𝒮} {a b : 𝒳} (f : R ⟶ S) (φ 
 
 namespace IsHomLift
 
+-- TODO: better names for these
 protected lemma hom_eq {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} {f : R ⟶ S} {φ : a ⟶ b}
     (hφ : IsHomLift p f φ) : f = eqToHom hφ.ObjLiftDomain.symm ≫ p.map φ ≫ eqToHom hφ.ObjLiftCodomain :=
   ((eqToHom_comp_iff hφ.ObjLiftDomain _ _).1 hφ.HomLift.w.symm)
@@ -59,6 +62,10 @@ protected lemma hom_eq' {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} {f : R ⟶
     (hφ : IsHomLift p f φ) : p.map φ = eqToHom hφ.ObjLiftDomain ≫ f ≫ eqToHom hφ.ObjLiftCodomain.symm:= by
   rw [←assoc, ←comp_eqToHom_iff hφ.ObjLiftCodomain _ _]
   exact hφ.HomLift.w
+
+lemma eq_of_isHomLift {p : 𝒳 ⥤ 𝒮} (a b : 𝒳) {f : p.obj a ⟶ p.obj b} {φ : a ⟶ b}
+    (hφ : IsHomLift p f φ) : f = p.map φ := by
+  simpa using IsHomLift.hom_eq hφ
 
 /-- For any arrow `φ : a ⟶ b` in `𝒳`, `φ` lifts the arrow `p.map φ` in the base `𝒮`-/
 @[simp]

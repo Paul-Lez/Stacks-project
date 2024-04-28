@@ -190,8 +190,11 @@ lemma ℱ.comp_const (S : 𝒮) : (ℱ.ι F S) ⋙ ℱ.π F = (const (F.obj ⟨o
 noncomputable instance (S : 𝒮) : Functor.Full (FiberInducedFunctor (ℱ.comp_const F S)) := by
   apply fullOfExists
   intro X Y f
-  let f' := f.1.2 -- need to use f.1=𝟙 S to rewrite this in correct form! Then use f.1.2 should work
-  sorry
+  have hf : f.1.1 = 𝟙 S := by simpa using IsHomLift.hom_eq' f.2
+  use f.1.2 ≫ eqToHom (by simp [hf]) ≫ (F.mapId ⟨op S⟩).hom.app Y
+  ext
+  · simp [hf]
+  · simp
 
 instance (S : 𝒮) : Functor.Faithful (FiberInducedFunctor (ℱ.comp_const F S)) where
   map_injective := by
@@ -204,8 +207,36 @@ instance (S : 𝒮) : Functor.Faithful (FiberInducedFunctor (ℱ.comp_const F S)
 
 noncomputable instance (S : 𝒮) : Functor.EssSurj (FiberInducedFunctor (ℱ.comp_const F S)) where
   mem_essImage Y := by
-    sorry
-    -- use Y.1.2    first subst via Y.1
+    -- should be in API!
+    have hYS : Y.1.1 = S := by simpa using Y.2
+    --let X := ℱ.pullback_obj Y.1.2 (eqToHom hYS.symm)
+    use (F.map (eqToHom (by rw [hYS])).toLoc).obj Y.1.2
+    constructor
+    exact {
+      hom := {
+        val := ⟨eqToHom hYS.symm, eqToHom (by simp)⟩
+        property := {
+          ObjLiftDomain := by simp
+          ObjLiftCodomain := hYS
+          HomLift := {
+            w := by simp
+          }
+        }
+
+      }
+      inv := {
+        val := ⟨eqToHom hYS, sorry⟩
+        property := {
+          ObjLiftDomain := hYS
+          ObjLiftCodomain := by simp
+          HomLift := {
+            w := by simp
+          }
+        }
+      }
+      hom_inv_id := sorry
+      inv_hom_id := sorry
+    }
 
 noncomputable instance (S : 𝒮) : Functor.IsEquivalence (FiberInducedFunctor (ℱ.comp_const F S)) :=
   Functor.IsEquivalence.ofFullyFaithfullyEssSurj _
