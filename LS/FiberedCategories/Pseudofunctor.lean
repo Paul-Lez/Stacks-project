@@ -18,6 +18,12 @@ lemma Cat.whiskerRight_app {C D E : Cat} {F G : C ⟶ D} (H : D ⟶ E) (η : F �
     (η ▷ H).app X = H.map (η.app X) :=
   CategoryTheory.whiskerRight_app η H X
 
+@[simp]
+lemma Quiver.Hom.eqToHom_toLoc {C : Type u₁} [Category.{v₁} C] {a b : C}
+    (h : a = b) : (eqToHom h).toLoc = eqToHom (congrArg LocallyDiscrete.mk h) := by
+  subst h; rfl
+
+
 end mathlib_lemmas
 
 variable {𝒮 : Type u₁} [Category.{v₁} 𝒮] {F : Pseudofunctor (LocallyDiscrete 𝒮ᵒᵖ) Cat.{v₂, u₂}}
@@ -205,12 +211,21 @@ instance (S : 𝒮) : Functor.Faithful (FiberInducedFunctor (ℱ.comp_const F S)
     rw [←CategoryTheory.NatIso.app_inv, CategoryTheory.Iso.comp_inv_eq] at heq₂
     simpa using heq₂
 
-noncomputable instance (S : 𝒮) : Functor.EssSurj (FiberInducedFunctor (ℱ.comp_const F S)) where
-  mem_essImage Y := by
-    -- should be in API!
-    have hYS : Y.1.1 = S := by simpa using Y.2
-    --let X := ℱ.pullback_obj Y.1.2 (eqToHom hYS.symm)
-    use (F.map (eqToHom (by rw [hYS])).toLoc).obj Y.1.2
+noncomputable instance (S : 𝒮) : Functor.EssSurj (FiberInducedFunctor (ℱ.comp_const F S)) := by
+  apply essSurj_of_surj
+  intro Y
+  have hYS : Y.1.1 = S := by simpa using Y.2
+  let a : F.obj ⟨op S⟩ := by
+    rw [←hYS]
+    exact Y.1.2
+  use a
+  simp
+  apply Subtype.val_inj.1
+  apply Sigma.ext
+  simp [hYS]
+  simp [a]
+
+/- DEPRECATED VERSION OF THIS PROOF
     constructor
     exact {
       hom := {
@@ -225,7 +240,13 @@ noncomputable instance (S : 𝒮) : Functor.EssSurj (FiberInducedFunctor (ℱ.co
 
       }
       inv := {
-        val := ⟨eqToHom hYS, sorry⟩
+        val := ⟨eqToHom hYS, by
+          apply eqToHom (show Y.1.2 = (𝟭 (F.obj ⟨op Y.1.1⟩)).obj Y.1.2 by simp) ≫ _
+          apply (F.mapId ⟨op Y.1.1⟩).inv.app Y.1.2 ≫ _
+          apply _ ≫ (F.mapComp _ _).hom.app Y.1.2
+          apply eqToHom
+          simp
+        ⟩
         property := {
           ObjLiftDomain := hYS
           ObjLiftCodomain := by simp
@@ -234,9 +255,13 @@ noncomputable instance (S : 𝒮) : Functor.EssSurj (FiberInducedFunctor (ℱ.co
           }
         }
       }
-      hom_inv_id := sorry
+      hom_inv_id := by
+        ext
+        · simp
+        simp
+        sorry
       inv_hom_id := sorry
-    }
+    } -/
 
 noncomputable instance (S : 𝒮) : Functor.IsEquivalence (FiberInducedFunctor (ℱ.comp_const F S)) :=
   Functor.IsEquivalence.ofFullyFaithfullyEssSurj _
