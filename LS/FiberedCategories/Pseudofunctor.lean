@@ -1,7 +1,45 @@
+/-
+Copyright (c) 2024 Calle Sönne. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Paul Lezeau, Calle Sönne
+-/
+
 import LS.FiberedCategories.HasFibers
 import LS.FiberedCategories.StrictPseudofunctor
 import Mathlib.CategoryTheory.Category.Cat
 import Mathlib.CategoryTheory.Bicategory.LocallyDiscrete
+
+/-!
+# Fibered category associated to a pseudofunctor
+
+Given a category `𝒮` and any pseudofunctor valued in `Cat` we associate to it a fibered category
+category `ℱ F ⥤ 𝒮`.
+
+The category `ℱ F` is defined as follows:
+* Objects: pairs `(S, a)` where `S` is an object of the base category and `a` is an object of the
+  category `F(S)`
+* Morphisms: morphisms `(R, b) ⟶ (S, a)` are defined as pairs `(f, h)` where `f : R ⟶ S` is a
+  morphism in `𝒮` and `h : b ⟶ F(f)(a)`
+
+The projection functor `ℱ F ⥤ 𝒮` is then given by projecting to the first factors, i.e.
+* On objects, it sends `(S, a)` to `S`
+* On morphisms, it sends `(f, h)` to `f`
+
+We also provide a `HasFibers` instance `ℱ F`, such that the fiber over `S` is the category `F(S)`.
+
+## References
+[Vistoli2008] "Notes on Grothendieck Topologies, Fibered Categories and Descent Theory" by Angelo Vistoli
+-/
+
+/-
+TODO:
+- Fix naming
+- (Later) splittings & functoriality
+- Make `presheaf.lean` a special instance of the above
+  - Isomorphism between the overcategory and fibered category associated to the corresponding presheaf?
+-/
+
+
 
 universe w v₁ v₂ v₃ u₁ u₂ u₃
 
@@ -215,17 +253,22 @@ noncomputable instance (S : 𝒮) : Functor.EssSurj (FiberInducedFunctor (ℱ.co
   apply essSurj_of_surj
   intro Y
   have hYS : Y.1.1 = S := by simpa using Y.2
-  let a : F.obj ⟨op S⟩ := by
-    rw [←hYS]
-    exact Y.1.2
-  use a
-  simp
+  use (hYS.symm ▸ Y.1.2)
   apply Subtype.val_inj.1
   apply Sigma.ext
-  simp [hYS]
-  simp [a]
+  · simp [hYS]
+  simp
 
-/- DEPRECATED VERSION OF THIS PROOF
+
+noncomputable instance (S : 𝒮) : Functor.IsEquivalence (FiberInducedFunctor (ℱ.comp_const F S)) :=
+  Functor.IsEquivalence.ofFullyFaithfullyEssSurj _
+
+noncomputable instance : HasFibers (ℱ.π F) where
+  Fib S := F.obj ⟨op S⟩
+  ι := ℱ.ι F
+  comp_const := ℱ.comp_const F
+
+/- DEPRECATED VERSION OF EssSurj proof (bicategory hell)
     constructor
     exact {
       hom := {
@@ -262,11 +305,3 @@ noncomputable instance (S : 𝒮) : Functor.EssSurj (FiberInducedFunctor (ℱ.co
         sorry
       inv_hom_id := sorry
     } -/
-
-noncomputable instance (S : 𝒮) : Functor.IsEquivalence (FiberInducedFunctor (ℱ.comp_const F S)) :=
-  Functor.IsEquivalence.ofFullyFaithfullyEssSurj _
-
-noncomputable instance : HasFibers (ℱ.π F) where
-  Fib S := F.obj ⟨op S⟩
-  ι := ℱ.ι F
-  comp_const := ℱ.comp_const F
