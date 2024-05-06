@@ -307,8 +307,8 @@ def EquivOfFiberFunctorEquiv {𝒳 𝒴 : FiberedCat 𝒮} (F : 𝒳 ≌ 𝒴) :
   CategoryTheory.Equivalence.mk F.hom.toFunctor F.inv.toFunctor (IsoOfBasedIso F.unit)
     (IsoOfBasedIso F.counit)
 
-instance IsEquivOfFiberFunctorEquiv {𝒳 𝒴 : FiberedCat 𝒮} (F : 𝒳 ≌ 𝒴) : IsEquivalence F.hom.toFunctor := by
-  change IsEquivalence (EquivOfFiberFunctorEquiv F).functor
+instance IsEquivOfFiberFunctorEquiv {𝒳 𝒴 : FiberedCat 𝒮} (F : 𝒳 ≌ 𝒴) : Functor.IsEquivalence F.hom.toFunctor := by
+  change Functor.IsEquivalence (EquivOfFiberFunctorEquiv F).functor
   apply IsEquivalence.ofEquivalence
 
 end Fibered

@@ -15,7 +15,7 @@ either full, faithful or an equivalence.
 
 universe u₁ v₁ u₂ v₂
 
-open CategoryTheory Functor Category Bicategory IsHomLift
+open CategoryTheory Functor Category Bicategory IsHomLift IsPullback
 
 open scoped Bicategory
 
@@ -24,15 +24,15 @@ namespace Fibered
 variable {𝒮 : Type u₁} [Category.{v₂} 𝒮]
 
 /-- If a morphism F is faithFul, then it is also faithful fiberwise -/
-lemma FiberwiseFaithfulofFaithful {𝒳 𝒴 : FiberCat 𝒮} (F : 𝒳 ⟶ 𝒴) [Faithful F.toFunctor] :
-    ∀ (S : 𝒮), Faithful (F.onFib S) := by
+lemma FiberwiseFaithfulofFaithful {𝒳 𝒴 : FiberCat 𝒮} (F : 𝒳 ⟶ 𝒴) [Functor.Faithful  F.toFunctor] :
+    ∀ (S : 𝒮), Functor.Faithful  (F.onFib S) := by
   intro S
-  haveI h : Faithful ((F.onFib S) ⋙ (𝒴.hasFib.ι S)) := (F.fib_w S).symm ▸ Faithful.comp (𝒳.hasFib.ι S) F.toFunctor
-  apply Faithful.of_comp _ (𝒴.hasFib.ι S)
+  haveI h :Functor.Faithful  ((F.onFib S) ⋙ (𝒴.hasFib.ι S)) := (F.fib_w S).symm ▸ Faithful.comp (𝒳.hasFib.ι S) F.toFunctor
+  apply Functor.Faithful.of_comp _ (𝒴.hasFib.ι S)
 
 /-- A FiberMorphism F is faithful if it is so pointwise. For proof see [Olsson] -/
 lemma FaithfulofFiberwiseFaithful {𝒳 𝒴 : FiberedCat 𝒮} {F : FiberedFunctor 𝒳 𝒴}
-    (hF₁ : ∀ (S : 𝒮), Faithful (F.onFib S)) : Faithful F.toFunctor where
+    (hF₁ : ∀ (S : 𝒮), Functor.Faithful  (F.onFib S)) : Functor.Faithful  F.toFunctor where
   map_injective := by
     intro a b φ φ' heq
     /- We start by reducing to a setting when the domains lie in some fiber of the HasFibers.
@@ -70,9 +70,9 @@ lemma FaithfulofFiberwiseFaithful {𝒳 𝒴 : FiberedCat 𝒮} {F : FiberedFunc
       rw [←Functor.map_comp, hτ']
       apply heq₁.symm
     -- Hence we get that F(τ) = F(τ'), so we can conclude by fiberwise injectivity
-    have hτ₂ := IsPullbackInducedMap_unique hψ' ((id_comp h).symm)
+    have hτ₂ := InducedMap_unique hψ' ((id_comp h).symm)
       (F.pres_IsHomLift hφ₁) (F.pres_IsHomLift (HasFibersHomLift τ)) hτ₁
-    have hτ'₂ := IsPullbackInducedMap_unique hψ' ((id_comp h).symm)
+    have hτ'₂ := InducedMap_unique hψ' ((id_comp h).symm)
       (F.pres_IsHomLift hφ₁) (F.pres_IsHomLift (HasFibersHomLift τ')) hτ'₁
     have heqττ' : F.map ((𝒳.hasFib.ι (𝒳.p.obj a)).map τ) = F.map ((𝒳.hasFib.ι (𝒳.p.obj a)).map τ') := by rw [hτ₂, hτ'₂]
     have heqττ'₁ : (F.onFib _).map τ = (F.onFib _).map τ' := by
@@ -81,13 +81,13 @@ lemma FaithfulofFiberwiseFaithful {𝒳 𝒴 : FiberedCat 𝒮} {F : FiberedFunc
       rw [heqττ']
     apply Functor.map_injective (F.onFib (𝒳.p.obj a)) heqττ'₁
 
-lemma PreimageIsHomLift {𝒳 𝒴 : FiberCat 𝒮} (F : 𝒳 ⟶ 𝒴) [hF₁ : Full F.toFunctor]
+lemma PreimageIsHomLift {𝒳 𝒴 : FiberCat 𝒮} (F : 𝒳 ⟶ 𝒴) [hF₁ : Functor.Full F.toFunctor]
     {a b : 𝒳.cat} {φ : F.obj a ⟶ F.obj b} {R S : 𝒮} {f : R ⟶ S} (hφ : IsHomLift 𝒴.p f φ) :
     IsHomLift 𝒳.p f (hF₁.preimage φ) := (hF₁.witness φ ▸ F.HomLift_ofImage) hφ
 
 /- We now show that a morphism F is full if and only if its full fiberwise -/
-lemma FiberwiseFullofFull  { 𝒳 𝒴 : FiberCat 𝒮} (F : 𝒳 ⟶ 𝒴) [hF₁ : Full F.toFunctor] :
-    ∀ (S : 𝒮), Full (F.onFib S) := by
+lemma FiberwiseFullofFull  { 𝒳 𝒴 : FiberCat 𝒮} (F : 𝒳 ⟶ 𝒴) [hF₁ : Functor.Full F.toFunctor] :
+    ∀ (S : 𝒮), Functor.Full (F.onFib S) := by
   intro S
   apply fullOfExists
   intro a b φ
@@ -105,8 +105,8 @@ lemma FiberwiseFullofFull  { 𝒳 𝒴 : FiberCat 𝒮} (F : 𝒳 ⟶ 𝒴) [hF�
   rw [←Functor.comp_map, congr_hom (F.fib_w S), Functor.comp_map]
   simp [Classical.choose_spec (HasFibersFull hφ₁), φ₁]
 
-lemma FullofFullFiberwise  { 𝒳 𝒴 : FiberedCat 𝒮} {F : 𝒳 ⟶ 𝒴} (hF₁ : ∀ (S : 𝒮), Full (F.onFib S)) :
-    Full F.toFunctor := by
+lemma FullofFullFiberwise  { 𝒳 𝒴 : FiberedCat 𝒮} {F : 𝒳 ⟶ 𝒴} (hF₁ : ∀ (S : 𝒮), Functor.Full (F.onFib S)) :
+    Functor.Full F.toFunctor := by
   apply fullOfExists
   intro a b φ
 
@@ -139,7 +139,7 @@ lemma FullofFullFiberwise  { 𝒳 𝒴 : FiberedCat 𝒮} {F : 𝒳 ⟶ 𝒴} (h
   have hc : (𝒴.hasFib.ι R).obj ((F.onFib R).obj c) = F.obj ((𝒳.hasFib.ι R).obj c) := by
     rw [←comp_obj, ←comp_obj, F.fib_w] --
   let ψ' := eqToHom hc ≫ F.map ψ
-  have hψ' : IsPullback 𝒴.p h ψ' := IsPullback_eqToHom_comp (F.pullback hψ) _
+  have hψ' : IsPullback 𝒴.p h ψ' := eqToHom_comp (F.pullback hψ) _
 
   -- Let τ be the induced map from a' to c given by φ₁
   let τ := Classical.choose (HasFibersFactorization hφ₁ hψ')
@@ -159,7 +159,7 @@ lemma FullofFullFiberwise  { 𝒳 𝒴 : FiberedCat 𝒮} {F : 𝒳 ⟶ 𝒴} (h
 
 
 lemma FiberwiseIsEquivalenceOfEquivalence {𝒳 𝒴 : FiberedCat 𝒮} (F : 𝒳 ≌ 𝒴) :
-    ∀ S : 𝒮, IsEquivalence (F.hom.onFib S) := by
+    ∀ S : 𝒮, Functor.IsEquivalence (F.hom.onFib S) := by
   intro S
   refine @Equivalence.ofFullyFaithfullyEssSurj _ _ _ _ _ ?_ ?_ ?_
   { exact FiberwiseFullofFull F.hom.toFiberFunctor S }
@@ -198,7 +198,7 @@ lemma FiberwiseIsEquivalenceOfEquivalence {𝒳 𝒴 : FiberedCat 𝒮} (F : �
   exact HasFibersPreimageIso Ψ hΨ
 
 noncomputable def InvOfFiberWiseIsEquivalence.Obj {𝒳 𝒴 : FiberedCat 𝒮} {F : 𝒳 ⟶ 𝒴}
-    (hF : ∀ S : 𝒮, IsEquivalence (F.onFib S)) (y : 𝒴.cat) : 𝒳.cat := by
+    (hF : ∀ S : 𝒮, Functor.IsEquivalence (F.onFib S)) (y : 𝒴.cat) : 𝒳.cat := by
   let S := 𝒴.p.obj y
   -- let `y'` be an object of `𝒴.hasFib.Fib S` with an isomorphism `Φ : y' ≅ y`
   let y' := Classical.choose (HasFibersEssSurj' (rfl (a:=S)))
@@ -209,7 +209,7 @@ noncomputable def InvOfFiberWiseIsEquivalence.Obj {𝒳 𝒴 : FiberedCat 𝒮} 
   exact (𝒳.hasFib.ι S).obj x
 
 noncomputable def InvOfFiberwiseIsEquivalence.ObjIso {𝒳 𝒴 : FiberedCat 𝒮} {F : 𝒳 ⟶ 𝒴}
-    (hF : ∀ S : 𝒮, IsEquivalence (F.onFib S)) (y : 𝒴.cat) :
+    (hF : ∀ S : 𝒮, Functor.IsEquivalence (F.onFib S)) (y : 𝒴.cat) :
       F.obj (InvOfFiberWiseIsEquivalence.Obj hF y) ≅ y := by
   let S := 𝒴.p.obj y
   haveI := Equivalence.essSurj_of_equivalence (F.onFib S)
@@ -224,7 +224,7 @@ noncomputable def InvOfFiberwiseIsEquivalence.ObjIso {𝒳 𝒴 : FiberedCat �
   exact Φ'
 
 lemma InvOfFiberwiseIsEquivalence.ObjIso_IsHomLift {𝒳 𝒴 : FiberedCat 𝒮} {F : 𝒳 ⟶ 𝒴}
-      (hF : ∀ S : 𝒮, IsEquivalence (F.onFib S)) (y : 𝒴.cat) :
+      (hF : ∀ S : 𝒮, Functor.IsEquivalence (F.onFib S)) (y : 𝒴.cat) :
     IsHomLift 𝒴.p (𝟙 (𝒴.p.obj y)) (InvOfFiberwiseIsEquivalence.ObjIso hF y).hom where
       ObjLiftDomain := by rw [F.obj_proj]; apply HasFibersObjLift
       ObjLiftCodomain := rfl
@@ -238,26 +238,26 @@ lemma InvOfFiberwiseIsEquivalence.ObjIso_IsHomLift {𝒳 𝒴 : FiberedCat 𝒮}
 
 @[simps]
 noncomputable def OfFiberwiseEquivalence.InvFunctor {𝒳 𝒴 : FiberedCat 𝒮} {F : 𝒳 ⟶ 𝒴}
-    (hF : ∀ S : 𝒮, IsEquivalence (F.onFib S)) : 𝒴.cat ⥤ 𝒳.cat where
+    (hF : ∀ S : 𝒮, Functor.IsEquivalence (F.onFib S)) : 𝒴.cat ⥤ 𝒳.cat where
       obj y := InvOfFiberWiseIsEquivalence.Obj hF y
       map {y y'} φ := by
         -- define `φ' : .. ≅ y ⟶ y' ≅ ..`
         let φ' := (InvOfFiberwiseIsEquivalence.ObjIso hF y).hom ≫ φ ≫
           (InvOfFiberwiseIsEquivalence.ObjIso hF y').inv
-        let h₁ : Full F.toFunctor := FullofFullFiberwise inferInstance
+        let h₁ : Functor.Full F.toFunctor := FullofFullFiberwise inferInstance
         exact F.preimage φ'
 
       map_id y := by
-        have : Faithful F.toFunctor := FaithfulofFiberwiseFaithful inferInstance
-        simp only [id_comp, Iso.hom_inv_id, preimage_id]
+        have : Functor.Faithful  F.toFunctor := FaithfulofFiberwiseFaithful inferInstance
+        simp only [id_comp, Iso.hom_inv_id, Functor.preimage_id]
 
       map_comp {x y z} φ ψ := by
-        have : Faithful F.toFunctor := FaithfulofFiberwiseFaithful inferInstance
-        simp only [assoc, ← preimage_comp, Iso.inv_hom_id_assoc]
+        have : Functor.Faithful  F.toFunctor := FaithfulofFiberwiseFaithful inferInstance
+        simp only [assoc, ← Functor.preimage_comp, Iso.inv_hom_id_assoc]
 
 @[simps]
 noncomputable def OfFiberwiseEquivalence.InvFunctor_w {𝒳 𝒴 : FiberedCat 𝒮} {F : 𝒳 ⟶ 𝒴}
-    (hF : ∀ S : 𝒮, IsEquivalence (F.onFib S)) :
+    (hF : ∀ S : 𝒮, Functor.IsEquivalence (F.onFib S)) :
       (OfFiberwiseEquivalence.InvFunctor hF) ⋙ 𝒳.p ≅ 𝒴.p where
         hom := {
           app := fun y => eqToHom (HasFibersObjLift _)
@@ -282,33 +282,33 @@ noncomputable def OfFiberwiseEquivalence.InvFunctor_w {𝒳 𝒴 : FiberedCat �
           naturality := sorry -- same as above
         }
 
-lemma PreimageIsPullback {𝒳 𝒴 : FiberCat 𝒮} (F : 𝒳 ⟶ 𝒴) [Full F.toFunctor]
-    [Faithful F.toFunctor] {a b : 𝒳.cat} {φ : F.obj a ⟶ F.obj b} {R S : 𝒮} {f : R ⟶ S}
+lemma PreimageIsPullback {𝒳 𝒴 : FiberCat 𝒮} (F : 𝒳 ⟶ 𝒴) [Functor.Full F.toFunctor]
+    [Functor.Faithful  F.toFunctor] {a b : 𝒳.cat} {φ : F.obj a ⟶ F.obj b} {R S : 𝒮} {f : R ⟶ S}
     (hφ : IsPullback 𝒴.p f φ) : IsPullback 𝒳.p f (F.preimage φ) :=
     { PreimageIsHomLift F hφ.toIsHomLift with
       UniversalProperty := by
         intro R' a' g f' hgf φ' hφ'
         have hFφ' := F.pres_IsHomLift hφ'
-        let ψ := IsPullbackInducedMap hφ hgf hFφ'
+        let ψ := InducedMap hφ hgf hFφ'
         use F.preimage ψ
         refine ⟨⟨?_, ?_⟩, ?_⟩
         { apply PreimageIsHomLift
-          apply (IsPullbackInducedMap_IsHomLift hφ hgf hFφ') }
+          apply (InducedMap_IsHomLift hφ hgf hFφ') }
         { apply F.map_injective
           simp
-          apply IsPullbackInducedMap_Diagram hφ hgf hFφ'}
+          apply InducedMap_Diagram hφ hgf hFφ'}
 
         simp only [and_imp]
         intro χ hχ hχ_comp
         apply F.map_injective
         rw [F.image_preimage]
-        apply IsPullbackInducedMap_unique hφ hgf hFφ'
+        apply InducedMap_unique hφ hgf hFφ'
         apply F.pres_IsHomLift hχ
         simpa using congrArg F.map hχ_comp }
 
 @[simps!]
 noncomputable def InvOfFiberwiseIsEquivalence {𝒳 𝒴 : FiberedCat 𝒮} (F : 𝒳 ⟶ 𝒴)
-    (hF : ∀ S : 𝒮, IsEquivalence (F.onFib S)) : 𝒴 ⟶ 𝒳 :=
+    (hF : ∀ S : 𝒮, Functor.IsEquivalence (F.onFib S)) : 𝒴 ⟶ 𝒳 :=
 { OfFiberwiseEquivalence.InvFunctor hF with
   w := by
     apply Functor.ext_of_iso (OfFiberwiseEquivalence.InvFunctor_w hF)
@@ -322,17 +322,17 @@ noncomputable def InvOfFiberwiseIsEquivalence {𝒳 𝒴 : FiberedCat 𝒮} (F :
 
   pullback := by
     intro a b R S f φ hφ
-    let h₁ : Full F.toFunctor := FullofFullFiberwise inferInstance
-    have h₂ : Faithful F.toFunctor := FaithfulofFiberwiseFaithful inferInstance
+    let h₁ : Functor.Full F.toFunctor := FullofFullFiberwise inferInstance
+    have h₂ : Functor.Faithful  F.toFunctor := FaithfulofFiberwiseFaithful inferInstance
     simp only [OfFiberwiseEquivalence.InvFunctor_map]
     apply PreimageIsPullback _
     rw [show f = 𝟙 R ≫ f ≫ 𝟙 S by simp]
-    apply IsPullback_comp
-    apply IsPullbackofIso
+    apply IsPullback.comp
+    apply of_isIso
     rw [←hφ.ObjLiftDomain]
     apply InvOfFiberwiseIsEquivalence.ObjIso_IsHomLift
-    apply IsPullback_comp hφ
-    apply IsPullbackofIso
+    apply IsPullback.comp hφ
+    apply of_isIso
     -- TODO: maybe I should restate this lemma better
     have := (lift_id_inv (InvOfFiberwiseIsEquivalence.ObjIso_IsHomLift hF b))
     simp only [IsIso.Iso.inv_hom] at this
@@ -341,7 +341,7 @@ noncomputable def InvOfFiberwiseIsEquivalence {𝒳 𝒴 : FiberedCat 𝒮} (F :
   }
 
 noncomputable def EquivalenceOfFiberwiseIsEquivalence {𝒳 𝒴 : FiberedCat 𝒮} (F : 𝒳 ⟶ 𝒴)
-    (hF : ∀ S : 𝒮, IsEquivalence (F.onFib S)) : 𝒳 ≌ 𝒴 where
+    (hF : ∀ S : 𝒮, Functor.IsEquivalence (F.onFib S)) : 𝒳 ≌ 𝒴 where
   hom := F
   inv := InvOfFiberwiseIsEquivalence F hF
   -- unit is from last part of Olssons proof
@@ -349,7 +349,7 @@ noncomputable def EquivalenceOfFiberwiseIsEquivalence {𝒳 𝒴 : FiberedCat �
     hom := {
       app := by
         intro x
-        let hF₁ : Full F.toFunctor := FullofFullFiberwise inferInstance
+        let hF₁ : Functor.Full F.toFunctor := FullofFullFiberwise inferInstance
         apply F.preimage
         -- TODO: 𝟙 notation doesnt work here for some reason...
         let h := (FiberedFunctor.id 𝒳).obj
@@ -357,12 +357,12 @@ noncomputable def EquivalenceOfFiberwiseIsEquivalence {𝒳 𝒴 : FiberedCat �
 
       naturality := by
         intros
-        have : Faithful F.toFunctor := FaithfulofFiberwiseFaithful inferInstance
+        have : Functor.Faithful  F.toFunctor := FaithfulofFiberwiseFaithful inferInstance
         apply F.map_injective
         simp
       aboveId := by
         intro x S hx
-        let h₁ : Full F.toFunctor := FullofFullFiberwise inferInstance
+        let h₁ : Functor.Full F.toFunctor := FullofFullFiberwise inferInstance
         simp only
         apply PreimageIsHomLift
         -- TODO: I should restate this lemma better
@@ -374,7 +374,7 @@ noncomputable def EquivalenceOfFiberwiseIsEquivalence {𝒳 𝒴 : FiberedCat �
     inv := {
       app := by
         intro x
-        let hF₁ : Full F.toFunctor := FullofFullFiberwise inferInstance
+        let hF₁ : Functor.Full F.toFunctor := FullofFullFiberwise inferInstance
         apply F.preimage
         -- TODO: 𝟙 notation doesnt work here for some reason...
         let h := (FiberedFunctor.id 𝒳).obj
@@ -387,7 +387,7 @@ noncomputable def EquivalenceOfFiberwiseIsEquivalence {𝒳 𝒴 : FiberedCat �
       ext x
       -- TODO: should make these two lines into some sort of simp lemma,
       -- then some proofs will get automated
-      have : Faithful F.toFunctor := FaithfulofFiberwiseFaithful inferInstance
+      have : Functor.Faithful  F.toFunctor := FaithfulofFiberwiseFaithful inferInstance
       apply F.map_injective
       simp
     inv_hom_id := sorry -- same as above

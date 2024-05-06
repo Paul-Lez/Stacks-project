@@ -176,6 +176,7 @@ lemma IsIso_of_lift_IsIso {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} {f : R �
   (IsHomLift.hom_eq hφ) ▸ inferInstance
 
 -- TODO: Better names for these lemmas, e.g. `inv_lift_inv` and `inv_lift_inv_IsIso`?
+-- TODO: these shouldnt need to assume that base is an isomorphism...
 /-- Given `φ : a ≅ b` and `f : R ≅ S`, such that `φ.hom` lifts `f.hom`, then `φ.inv` lifts `f.inv`. -/
 protected lemma inv_iso {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} {f : R ≅ S} {φ : a ≅ b}
     (hφ : IsHomLift p f.hom φ.hom) : IsHomLift p f.inv φ.inv where

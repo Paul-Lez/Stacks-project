@@ -94,11 +94,11 @@ instance Morphism.IsFiber_canonical {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} (F :
 
 /-- If a morphism F is faithFul, then it is also faithful fiberwise -/
 lemma FiberwiseFaithfulofFaithful  {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [hp : HasFibers p] [hq : HasFibers q]
-    (F : Morphism p q) [hF : IsFiberMorphism F] [Faithful F.toFunctor] : ∀ (S : 𝒮),
-    Faithful (hF.fiber_functor S) := by
+    (F : Morphism p q) [hF : IsFiberMorphism F] [Functor.Faithful F.toFunctor] : ∀ (S : 𝒮),
+    Functor.Faithful (hF.fiber_functor S) := by
     intro S
-    haveI h : Faithful ((hF.fiber_functor S) ⋙ (hq.ι S)) := (hF.comp_eq S).symm ▸ Faithful.comp (hp.ι S) F.toFunctor
-    apply Faithful.of_comp _ (hq.ι S)
+    haveI h : Functor.Faithful ((hF.fiber_functor S) ⋙ (hq.ι S)) := (hF.comp_eq S).symm ▸ Faithful.comp (hp.ι S) F.toFunctor
+    apply Functor.Faithful.of_comp _ (hq.ι S)
 
 -- /-- A FiberMorphism F is faithful if it is so pointwise. For proof see [Olsson] -/
 -- lemma FaithfulofFiberwiseFaithful {p : 𝒳 ⥤ 𝒮} {q : 𝒴 ⥤ 𝒮} [IsFibered p] [hp : HasFibers p]

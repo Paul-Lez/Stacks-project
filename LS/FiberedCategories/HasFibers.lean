@@ -41,10 +41,11 @@ In this case, the `HasFibers` instance is given by the categories `F(S)` and the
 
 universe u₁ v₁ u₂ v₂ u₃ w
 
-open CategoryTheory Functor Category
+open CategoryTheory Functor Category IsPullback
 
 variable {𝒮 : Type u₁} {𝒳 : Type u₂} [Category 𝒳] [Category 𝒮]
 
+-- TODO: should it be this namespace?
 namespace Fibered
 
 /-- Fiber p S is the type of elements of 𝒳 mapping to S via p  -/
@@ -262,7 +263,7 @@ lemma HasFibersPullback {p : 𝒳 ⥤ 𝒮} [hp : HasFibers p] [IsFibered p] {R 
   rcases HasFibersEssSurj hφ.ObjLiftDomain with ⟨b', ψ, ⟨_, hψ⟩⟩
   use b', ψ ≫ φ
   rw [←id_comp f]
-  exact IsPullback_comp (IsPullbackofIso hψ) hφ
+  exact IsPullback.comp (IsPullback.of_isIso hψ) hφ
 
 -- TODO MAYBE REPLACE THE ABOVE WITH THIS LEMMA
 lemma HasFibersPullback' {p : 𝒳 ⥤ 𝒮} [hp : HasFibers p] [IsFibered p] {R S : 𝒮} {a : 𝒳}
@@ -272,7 +273,7 @@ lemma HasFibersPullback' {p : 𝒳 ⥤ 𝒮} [hp : HasFibers p] [IsFibered p] {R
   rcases HasFibersEssSurj hφ.ObjLiftDomain with ⟨b', ψ, ⟨_, hψ⟩⟩
   use b', ψ ≫ φ
   rw [←id_comp f]
-  exact IsPullback_comp (IsPullbackofIso hψ) hφ
+  exact IsPullback.comp (IsPullback.of_isIso hψ) hφ
 
 /-- Given a fibered category p, b' b in Fib R, an a pullback ψ : b ⟶ a in 𝒳, i.e.
 ```
@@ -287,10 +288,10 @@ lemma HasFibersFactorization {p : 𝒳 ⥤ 𝒮} [hp : HasFibers p] [IsFibered p
     (hφ : IsHomLift p f φ) {ψ : (hp.ι R).obj b' ⟶ a} (hψ : IsPullback p f ψ) :
       ∃ (τ : b ⟶ b'), (hp.ι R).map τ ≫ ψ = φ := by
   -- By fullness, we can pull back τ to the fiber over R
-  rcases HasFibersFull (IsPullbackInducedMap_IsHomLift hψ (id_comp f).symm hφ) with ⟨τ, hτ⟩
+  rcases HasFibersFull (InducedMap_IsHomLift hψ (id_comp f).symm hφ) with ⟨τ, hτ⟩
   use τ
   rw [hτ]
-  exact (IsPullbackInducedMap_Diagram hψ (id_comp f).symm hφ)
+  exact (InducedMap_Diagram hψ (id_comp f).symm hφ)
 
 noncomputable def HasFibersInducedMap {p : 𝒳 ⥤ 𝒮} [hp : HasFibers p] [IsFibered p] {R S : 𝒮}
     {a : 𝒳} {b b' : hp.Fib R} {f : R ⟶ S} {φ : (hp.ι R).obj b ⟶ a}

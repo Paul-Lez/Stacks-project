@@ -6,7 +6,7 @@ Authors: Paul Lezeau, Calle Sönne
 
 import LS.FiberedCategories.TwoMorphism
 
-open CategoryTheory Functor Category Fibered
+open CategoryTheory Functor Category Fibered IsPullback IsFibered
 
 variable {𝒮 : Type u₁} {𝒳 : Type u₂} {𝒴 : Type u₃} [Category 𝒳] [Category 𝒮]
   [Category 𝒴]
@@ -36,14 +36,14 @@ def TwoYoneda.toFun (p : 𝒳 ⥤ 𝒮) (S : 𝒮) [IsFiberedInGroupoids p] : Fi
 noncomputable def TwoIsomorphism.Fibered_Morphism_of_fiber_obj {p : 𝒳 ⥤ 𝒮} {S : 𝒮} (hp : IsFiberedInGroupoids p) (a : Fiber p S) : Fibered.Morphism (Over.forget S) p where
   obj := fun b => PullbackObj hp.toIsFibered a.2 b.hom
   map := fun f => by
-    apply IsPullbackInducedMap (p:= p) (f := (_ : Over S).hom) (g := f.left) (f' := f.left ≫ (_ : Over S).hom) (φ := PullbackMap hp.toIsFibered a.2 (_ : Over S).hom) (φ' := PullbackMap hp.toIsFibered a.2 (_ : Over S).hom) (PullbackMapIsPullback _ _ _) rfl
+    apply InducedMap (p:= p) (f := (_ : Over S).hom) (g := f.left) (f' := f.left ≫ (_ : Over S).hom) (φ := PullbackMap hp.toIsFibered a.2 (_ : Over S).hom) (φ' := PullbackMap hp.toIsFibered a.2 (_ : Over S).hom) (PullbackMapIsPullback _ _ _) rfl
     rw [Over.w]
     apply (PullbackMapIsPullback _ _ _).toIsHomLift
   map_id X := by
-    simp only [id_obj, const_obj_obj, id_eq, eq_mpr_eq_cast, Over.id_left, id_comp, IsPullbackInducedMap_self_eq_id]
+    simp only [id_obj, const_obj_obj, id_eq, eq_mpr_eq_cast, Over.id_left, id_comp, InducedMap_self_eq_id]
   map_comp := by
     simp only [id_obj, const_obj_obj, id_eq, eq_mpr_eq_cast, Over.comp_left, assoc, Over.w,
-      IsPullbackInducedMap_comp, implies_true]
+      InducedMap_comp, implies_true]
   w := by
     apply Functor.ext ?_ ?_
     · intro X
@@ -52,28 +52,28 @@ noncomputable def TwoIsomorphism.Fibered_Morphism_of_fiber_obj {p : 𝒳 ⥤ �
       simp only [id_obj, const_obj_obj, id_eq, Over.id_left, Over.comp_left, comp_obj,
         Functor.comp_map, Over.w, Over.forget_obj, Over.forget_map]
       rw [←Category.assoc, ←comp_eqToHom_iff]
-      apply (IsPullbackInducedMap_IsHomLift _ _ _).HomLift.w
+      apply (InducedMap_IsHomLift _ _ _).HomLift.w
 
 lemma Fiber.map_IsPullback_id {p : 𝒳 ⥤ 𝒮} {S : 𝒮} {a b : Fiber p S} (f : a ⟶ b) : IsPullback p (𝟙 S) f.val := sorry
 
-lemma IsPullbackInducedMap_IsPullback {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} {f : R ⟶ S} {φ : a ⟶ b}
+lemma InducedMap_IsPullback {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} {f : R ⟶ S} {φ : a ⟶ b}
   (hφ : IsPullback p f φ) {R' : 𝒮} {a' : 𝒳} {g : R' ⟶ R} {f' : R' ⟶ S} (hf' : f' = g ≫ f)
-  {φ' : a' ⟶ b} (hφ' : IsHomLift p f' φ') : IsPullback p g (IsPullbackInducedMap hφ hf' hφ') := by
+  {φ' : a' ⟶ b} (hφ' : IsHomLift p f' φ') : IsPullback p g (InducedMap hφ hf' hφ') := by
   sorry
 
 noncomputable instance {p : 𝒳 ⥤ 𝒮} [IsFiberedInGroupoids p] {S : 𝒮} : Groupoid (Fiber p S) where
   inv {a b} f :=
-    Fiber.mk_map b.prop a.prop (IsPullbackInducedMap (p := p) (f := 𝟙 S) (g := 𝟙 S) (f' := 𝟙 S) (hf' := by simp only [comp_id]) (Fiber.map_IsPullback_id f) (φ' := 𝟙 b.val) (IsHomLift.id b.prop)) (IsPullbackInducedMap_IsHomLift _ _ _)
+    Fiber.mk_map b.prop a.prop (InducedMap (p := p) (f := 𝟙 S) (g := 𝟙 S) (f' := 𝟙 S) (hf' := by simp only [comp_id]) (Fiber.map_IsPullback_id f) (φ' := 𝟙 b.val) (IsHomLift.id b.prop)) (InducedMap_IsHomLift _ _ _)
   inv_comp {a b} f := by
     ext
     simp only [FiberCategory_comp_coe, FiberCategory_id_coe]
     simp_rw [Fiber.mk_map]
-    apply IsPullbackInducedMap_Diagram
+    apply InducedMap_Diagram
   comp_inv {a b} f := by
-    let f'' : b.val ⟶ a.val := (IsPullbackInducedMap (p := p) (f := 𝟙 S) (g := 𝟙 S) (f' := 𝟙 S) (hf' := by simp only [comp_id]) (Fiber.map_IsPullback_id f) (φ' := 𝟙 b.val) (IsHomLift.id b.prop))
-    have : IsPullback p (𝟙 S) f'' := IsPullbackInducedMap_IsPullback _ _ _
-    let f' := Fiber.mk_map b.prop a.prop f'' (IsPullbackInducedMap_IsHomLift _ _ _)
-    let h : a ⟶ b := Fiber.mk_map a.prop b.prop (IsPullbackInducedMap (p := p) (f := 𝟙 S) (g := 𝟙 S) (f' := 𝟙 S) (hf' := by simp only [comp_id]) this (φ' := 𝟙 a.val) (IsHomLift.id a.prop)) (IsPullbackInducedMap_IsHomLift _ _ _)
+    let f'' : b.val ⟶ a.val := (InducedMap (p := p) (f := 𝟙 S) (g := 𝟙 S) (f' := 𝟙 S) (hf' := by simp only [comp_id]) (Fiber.map_IsPullback_id f) (φ' := 𝟙 b.val) (IsHomLift.id b.prop))
+    have : IsPullback p (𝟙 S) f'' := InducedMap_IsPullback _ _ _
+    let f' := Fiber.mk_map b.prop a.prop f'' (InducedMap_IsHomLift _ _ _)
+    let h : a ⟶ b := Fiber.mk_map a.prop b.prop (InducedMap (p := p) (f := 𝟙 S) (g := 𝟙 S) (f' := 𝟙 S) (hf' := by simp only [comp_id]) this (φ' := 𝟙 a.val) (IsHomLift.id a.prop)) (InducedMap_IsHomLift _ _ _)
     have : f' ≫ f = 𝟙 _ := by
       ext
       simp only [FiberCategory_comp_coe, FiberCategory_id_coe, Fiber.mk_map_coe]
@@ -93,7 +93,7 @@ noncomputable instance {p : 𝒳 ⥤ 𝒮} [IsFiberedInGroupoids p] {S : 𝒮} :
 noncomputable def TwoIsomorphism.TwoIsomorphism_of_fiber_morphism {p : 𝒳 ⥤ 𝒮} {S : 𝒮}
   (hp : IsFiberedInGroupoids p) {a b : Fiber p S} (f : a ⟶ b) : Fibered.TwoIsomorphism (TwoIsomorphism.Fibered_Morphism_of_fiber_obj hp a) (TwoIsomorphism.Fibered_Morphism_of_fiber_obj hp b) where
     hom := {
-      app := fun x => IsPullbackNaturalityHom (p := p) (PullbackMapIsPullback hp.toIsFibered a.2 _) (PullbackMapIsPullback hp.toIsFibered b.2 _) (ψ := f.1) (HasFibersHomLift  _)
+      app := fun x => NaturalityHom (p := p) (PullbackMapIsPullback hp.toIsFibered a.2 _) (PullbackMapIsPullback hp.toIsFibered b.2 _) (ψ := f.1) (HasFibersHomLift  _)
       naturality := by
         intro X Y f
         simp only [id_obj]
@@ -105,7 +105,7 @@ noncomputable def TwoIsomorphism.TwoIsomorphism_of_fiber_morphism {p : 𝒳 ⥤ 
     }
     inv := {
       app := fun x => sorry
-        /- IsPullbackNaturalityHom (p := p) (PullbackMapIsPullback hp.toIsFibered b.2 _) (PullbackMapIsPullback hp.toIsFibered a.2 _) f.1 (HasFibersHomLift  _)  -/
+        /- NaturalityHom (p := p) (PullbackMapIsPullback hp.toIsFibered b.2 _) (PullbackMapIsPullback hp.toIsFibered a.2 _) f.1 (HasFibersHomLift  _)  -/
       naturality := sorry
     }
     hom_inv_id := sorry
@@ -124,17 +124,17 @@ noncomputable def TwoYoneda.invFun (p : 𝒳 ⥤ 𝒮) (S : 𝒮) [IsFiberedInGr
     simp only [TwoIsomorphism.Fibered_Morphism_of_fiber_obj_obj, id_obj,
       TwoIsomorphism.TwoIsomorphism_of_fiber_morphism_hom_app, FiberCategory_id_coe]
     rw [Fibered.Morphism_Cat_id_apply]
-    rw [IsPullbackNaturalityHom_id]
+    rw [NaturalityHom_id]
   map_comp := by
     intro X Y Z f g
     apply Fibered.TwoIsomorphism.ext
     ext x
-    simp only [IsPullbackNaturalityHom_comp]
+    simp only [NaturalityHom_comp]
     simp only [TwoIsomorphism.Fibered_Morphism_of_fiber_obj_obj, id_obj,
       TwoIsomorphism.TwoIsomorphism_of_fiber_morphism_hom_app, FiberCategory_comp_coe]
     simp only [id_obj, TwoIsomorphism.Fibered_Morphism_of_fiber_obj_obj, Morphism_Cat_comp_apply,
       TwoIsomorphism.TwoIsomorphism_of_fiber_morphism_hom_app]
-    rw [IsPullbackNaturalityHom_comp]
+    rw [NaturalityHom_comp]
 
 noncomputable def TwoYoneda.Equivalence (p : 𝒳 ⥤ 𝒮) (S : 𝒮) [IsFiberedInGroupoids p] :
   Fibered.Morphism (Over.forget S) p  ≌ Fiber p S  where
