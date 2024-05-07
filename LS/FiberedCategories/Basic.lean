@@ -42,19 +42,19 @@ variable {𝒮 : Type u₁} {𝒳 : Type u₂} [Category 𝒳] [Category 𝒮]
 ```
 is a pullback.
 -/
-class IsPullback (p : 𝒳 ⥤ 𝒮) {R S : 𝒮} {a b : 𝒳} (f : R ⟶ S) (φ : a ⟶ b) extends IsHomLift p f φ : Prop where
+class IsPullback (p : 𝒳 ⥤ 𝒮) {R S : 𝒮} {a b : 𝒳} (f : R ⟶ S) (φ : a ⟶ b) extends IsHomLift p f φ : Prop where mk' ::
   (UniversalProperty {R' : 𝒮} {a' : 𝒳} {g : R' ⟶ R} {f' : R' ⟶ S}
     (_ : f' = g ≫ f) {φ' : a' ⟶ b} (_ : IsHomLift p f' φ') :
       ∃! χ : a' ⟶ a, IsHomLift p g χ ∧ χ ≫ φ = φ')
 
 /-- Definition of a Fibered category. -/
-class IsFibered (p : 𝒳 ⥤ 𝒮) : Prop where
+class IsFibered (p : 𝒳 ⥤ 𝒮) : Prop where mk' ::
   (has_pullbacks {a : 𝒳} {R S : 𝒮} (_ : p.obj a = S) (f : R ⟶ S) :
     ∃ (b : 𝒳) (φ : b ⟶ a), IsPullback p f φ)
 
--- TODO: make this standard .mk (TODO: make h hypthesis use explicit notation)
-protected lemma IsPullback.mk' {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} {f : R ⟶ S} {φ : b ⟶ a}
+protected lemma IsPullback.mk {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} {f : R ⟶ S} {φ : b ⟶ a}
     (hφ : IsHomLift p f φ) (h : ∀ {a' : 𝒳} {g : p.obj a' ⟶ R} {φ' : a' ⟶ a},
+    -- can simplify this even more if I assume R = p.obj b already?
       IsHomLift p (g ≫ f) φ' → ∃! χ : a' ⟶ b, IsHomLift p g χ ∧ χ ≫ φ = φ') :
         IsPullback p f φ where
   toIsHomLift := hφ
@@ -65,7 +65,7 @@ protected lemma IsPullback.mk' {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} {f 
     subst hf'
     apply @h a' g φ' hφ'
 
-protected lemma IsFibered.mk' {p : 𝒳 ⥤ 𝒮} (h : ∀ (a : 𝒳) (R : 𝒮) (f : R ⟶ p.obj a),
+protected lemma IsFibered.mk {p : 𝒳 ⥤ 𝒮} (h : ∀ (a : 𝒳) (R : 𝒮) (f : R ⟶ p.obj a),
     ∃ (b : 𝒳) (φ : b ⟶ a), IsPullback p f φ) : IsFibered p where
   has_pullbacks := @fun a R S ha f => by subst ha; apply h a R f
 
