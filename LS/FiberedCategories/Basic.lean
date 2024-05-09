@@ -220,7 +220,7 @@ lemma of_isIso {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳}
     {f : R ⟶ S} {φ : a ⟶ b} (hφ : IsHomLift p f φ) [IsIso φ] : IsPullback p f φ :=
   IsPullback.of_iso (φ := asIso φ) hφ
 
-/- eqToHom interactions -/
+/- eqToHom interactions. LEAVE THESE OUT OF FIRST PR! -/
 
 -- TODO: eqToHom is a pullback over eqToHom (should be only one lemma! Should assume IsHomLift!)
 
@@ -240,53 +240,40 @@ lemma comp_eqToHom {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b c : 𝒳} {f : R ⟶ S}
     {φ : b ⟶ a} (hφ : IsPullback p f φ) (hc : a = c) : IsPullback p f (φ ≫ eqToHom hc) :=
   comp_id f ▸ IsPullback.comp hφ (eqToHom_domain hc hφ.ObjLiftCodomain)
 
+-- iso version of this...?
+
 -- NEED TO CHECK PROOFS FROM HERE ONWARDS
 lemma isIso_of_base_isIso {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} {f : R ⟶ S} {φ : a ⟶ b}
-  (hφ : IsPullback p f φ) (hf : IsIso f): IsIso φ := by
-  constructor
-  set φ' := InducedMap hφ (IsIso.inv_hom_id f).symm (IsHomLift.id hφ.ObjLiftCodomain)
-  existsi φ'
+  (hφ : IsPullback p f φ) (hf : IsIso f) : IsIso φ := by
+  -- The inverse will be given by applying the universal property to f⁻¹ : S ⟶ R and 𝟙 b
+  let φ' := InducedMap hφ (IsIso.inv_hom_id f).symm (IsHomLift.id hφ.ObjLiftCodomain)
+  use φ'
   refine ⟨?_, InducedMap_Diagram hφ (IsIso.inv_hom_id f).symm (IsHomLift.id hφ.ObjLiftCodomain)⟩
-  have h₁ : IsHomLift p (𝟙 R) (φ ≫ φ') := {
-    ObjLiftDomain := hφ.ObjLiftDomain
-    ObjLiftCodomain := hφ.ObjLiftDomain
-    HomLift := by
-      constructor
-      simp only [map_comp, assoc, comp_id]
-      have h₁ := hφ.HomLift.1
-      rw [comp_eqToHom_iff] at h₁
-      rw [h₁]
-      have h₂ := (InducedMap_IsHomLift hφ (IsIso.inv_hom_id f).symm (IsHomLift.id hφ.ObjLiftCodomain)).HomLift.1
-      rw [comp_eqToHom_iff] at h₂
-      rw [h₂]
-      simp only [assoc, eqToHom_trans, eqToHom_refl, comp_id, eqToHom_trans_assoc, id_comp, IsIso.hom_inv_id] }
+  have h₁ : IsHomLift p (𝟙 R) (φ  ≫ φ') := by
+    rw [←IsIso.hom_inv_id f]
+    apply IsHomLift.comp hφ.toIsHomLift
+    apply InducedMap_IsHomLift
   have h₂ : IsHomLift p f (φ ≫ φ' ≫ φ) := by
     rw [InducedMap_Diagram hφ (IsIso.inv_hom_id f).symm (IsHomLift.id hφ.ObjLiftCodomain), comp_id]
     apply hφ.toIsHomLift
-  rw [InducedMap_unique hφ (show f = 𝟙 R ≫ f by simp) h₂ h₁ (by apply Category.assoc)]
-  apply (InducedMap_unique hφ (show f = 𝟙 R ≫ f by simp) _ (IsHomLift.id hφ.ObjLiftDomain) _).symm
+  -- really rw here?
+  rw [InducedMap_unique hφ (id_comp f).symm h₂ h₁ (Category.assoc _ _ _)]
+  apply (InducedMap_unique hφ (id_comp f).symm _ (IsHomLift.id hφ.ObjLiftDomain) _).symm
   rw [InducedMap_Diagram hφ (IsIso.inv_hom_id f).symm (IsHomLift.id hφ.ObjLiftCodomain)]
   simp only [id_comp, comp_id]
 
 -- TODO: Keep this as a separate lemma...?
+/-- The canonical isomorphism between two pullbacks lying over isomorphic objects. -/
 noncomputable def InducedMap_Iso_of_Iso {p : 𝒳 ⥤ 𝒮}
   {R R' S : 𝒮} {a a' b : 𝒳} {f : R ⟶ S} {f' : R' ⟶ S} {g : R' ≅ R}
   (H : f' = g.hom ≫ f) {φ : a ⟶ b} {φ' : a' ⟶ b}
   (hφ : IsPullback p f φ) (hφ' : IsPullback p f' φ') : a' ≅ a where
     hom := InducedMap hφ H hφ'.toIsHomLift
-    inv := InducedMap hφ' (show g.inv ≫ g.hom ≫ f = g.inv ≫ f' by simp only [Iso.inv_hom_id_assoc, H])
-      -- TODO DO THIS BETTER.....
-      (by
-          rw [←assoc, g.inv_hom_id, id_comp]
-          exact hφ.toIsHomLift)
-    hom_inv_id := by
-      simp only [Iso.inv_hom_id_assoc, InducedMap_comp, Iso.hom_inv_id, InducedMap_self_eq_id]
-    inv_hom_id := by
-      simp only [Iso.inv_hom_id_assoc, InducedMap_comp, Iso.inv_hom_id, InducedMap_self_eq_id]
+    inv := InducedMap hφ' (congrArg (g.inv ≫ ·) H.symm) (by simpa using hφ.toIsHomLift)
 
 -- TODO: naming... NaturalityIso??
 noncomputable def IsPullbackIso {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a' a b : 𝒳} {f : R ⟶ S} {φ : a ⟶ b}
-  {φ' : a' ⟶ b} (hφ : IsPullback p f φ) (hφ' : IsPullback p f φ') : a' ≅ a :=
+    {φ' : a' ⟶ b} (hφ : IsPullback p f φ) (hφ' : IsPullback p f φ') : a' ≅ a :=
   InducedMap_Iso_of_Iso (show f = (Iso.refl R).hom ≫ f by simp only [Iso.refl_hom, id_comp]) hφ hφ'
 
 /-- Given a diagram
