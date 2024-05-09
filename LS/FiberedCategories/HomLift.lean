@@ -46,7 +46,7 @@ often drawn as:
   v        v
   R --f--> S
 ``` -/
-class IsHomLift (p : 𝒳 ⥤ 𝒮) {R S : 𝒮} {a b : 𝒳} (f : R ⟶ S) (φ : a ⟶ b) : Prop where
+structure IsHomLift (p : 𝒳 ⥤ 𝒮) {R S : 𝒮} {a b : 𝒳} (f : R ⟶ S) (φ : a ⟶ b) : Prop where
   (ObjLiftDomain : p.obj a = R)
   (ObjLiftCodomain : p.obj b = S)
   (HomLift : CommSq (p.map φ) (eqToHom ObjLiftDomain) (eqToHom ObjLiftCodomain) f)
@@ -161,6 +161,7 @@ lemma lift_comp_eqToHom_iff {p : 𝒳 ⥤ 𝒮} {R S T: 𝒮} {a b : 𝒳} {f : 
     comp_id φ ▸ IsHomLift.comp hφ (IsHomLift.id_lift_eqToHom_domain hST hφ.ObjLiftCodomain)
 
 /-- The isomorphism `R ≅ S` obtained from an isomorphism `φ : a ≅ b` lifting `f` -/
+-- TODO: better name
 def Iso_of_lift_Iso {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} {f : R ⟶ S} {φ : a ≅ b}
    (hφ : IsHomLift p f φ.hom) : R ≅ S :=
   eqToIso hφ.ObjLiftDomain.symm ≪≫ p.mapIso φ ≪≫ eqToIso hφ.ObjLiftCodomain
@@ -169,6 +170,18 @@ def Iso_of_lift_Iso {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} {f : R ⟶ S} 
 lemma Iso_of_lift_Iso_hom {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} {f : R ⟶ S} {φ : a ≅ b}
    (hφ : IsHomLift p f φ.hom) : (Iso_of_lift_Iso hφ).hom = f := by
   simp [Iso_of_lift_Iso, IsHomLift.hom_eq hφ]
+
+@[simp]
+lemma Iso_of_lift_Iso_comp {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} {f : R ⟶ S} {φ : a ≅ b}
+    (hφ : IsHomLift p f φ.hom) : (Iso_of_lift_Iso hφ).inv ≫ f = 𝟙 S := by
+  rw [CategoryTheory.Iso.inv_comp_eq]
+  simp only [Iso_of_lift_Iso_hom, comp_id]
+
+@[simp]
+lemma comp_Iso_of_lift_Iso {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} {f : R ⟶ S} {φ : a ≅ b}
+    (hφ : IsHomLift p f φ.hom) : f ≫ (Iso_of_lift_Iso hφ).inv = 𝟙 R := by
+  rw [CategoryTheory.Iso.comp_inv_eq]
+  simp only [Iso_of_lift_Iso_hom, id_comp]
 
 /-- If `φ : a ⟶ b` lifts `f : R ⟶ S` and `φ` is an isomorphism, then so is `f`. -/
 lemma IsIso_of_lift_IsIso {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} {f : R ⟶ S} {φ : a ⟶ b}
@@ -184,7 +197,14 @@ protected lemma inv_iso {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} {f : R ≅
   ObjLiftCodomain := hφ.1
   HomLift := CommSq.horiz_inv (f:=p.mapIso φ) (i:=f) hφ.3
 
+protected lemma inv_iso' {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} {f : R ⟶ S} {φ : a ≅ b}
+    (hφ : IsHomLift p f φ.hom) : IsHomLift p (Iso_of_lift_Iso hφ).inv φ.inv where
+  ObjLiftDomain := hφ.2
+  ObjLiftCodomain := hφ.1
+  HomLift := CommSq.horiz_inv (f:=p.mapIso φ) (i:=Iso_of_lift_Iso hφ) (by simpa using hφ.3)
+
 /-- If `φ : a ⟶ b` lifts `f : R ⟶ S` and both are isomorphisms, then `φ⁻¹` lifts `f⁻¹`. -/
+-- TODO: this is slightly annoying since you need to "separately" prove that f is an iso...
 protected lemma inv {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b : 𝒳} {f : R ⟶ S} {φ : a ⟶ b}
     (hφ : IsHomLift p f φ) [IsIso φ] [IsIso f] : IsHomLift p (inv f) (inv φ) :=
   IsHomLift.inv_iso (f:=asIso f) (φ:= asIso φ) hφ
