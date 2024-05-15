@@ -5,6 +5,8 @@ Authors: Calle Sönne, Paul Lezeau
 -/
 
 import LS.FiberedCategories.Basic
+import Mathlib.CategoryTheory.Functor.Const
+
 
 /-!
 # Fibers of functors

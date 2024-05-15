@@ -6,26 +6,17 @@ Authors: Paul Lezeau, Calle Sönne
 
 import Mathlib.CategoryTheory.Functor.Category
 import Mathlib.CategoryTheory.CommSq
-import Mathlib.CategoryTheory.Functor.Const
-import Mathlib.CategoryTheory.Limits.Shapes.Pullbacks
 
 /-!
 
-# Fibered categories
+# HomLift
 
-This file defines what it means for a functor `p : 𝒳 ⥤ 𝒮` to be fibered`.
+Given a functor `p : 𝒳 ⥤ 𝒮`, this file provides API for expressing the fact that `p(φ) = f`
+for a given arrow `φ` in `𝒳` and a given arrow `f` in `𝒮`. This makes it possible to also
+express such equalities even when the domain and codomain of `f` are not definitionally equal
+to ....
 
-## Main definitions
-
-- `IsHomLift p f φ` expresses that a morphism `φ` in `𝒳` is a lift of a morphism `f` in `𝒮`
-along the functor `p`. This class is introduced to deal with the issues related to equalities of
-morphisms in a category.
-- `IsPullback p f φ` expresses that `φ` is a pullback of `f` along `p`.
-- `IsFibered p` expresses that `p` gives `𝒳` the structure of a fibered category over `𝒮`,
-i.e. that for every morphism `f` in `𝒮` and every object `a` in `𝒳` there is a pullback of `f`
-with domain `a`.
-
-## Implementation
+The notion `p(φ) = f` is captured in the structure `IsHomLift p φ f`, which consists of
 
 -/
 
