@@ -15,21 +15,52 @@ This file defines what it means for a functor `p : 𝒳 ⥤ 𝒮` to be fibered`
 
 ## Main definitions
 
-- `IsPullback p f φ`, extends `IsHomLift p f φ`, and expresses that `φ` is furthermore a pullback of `f` along `p`.
+- `IsPullback p f φ` expresses that `φ` is furthermore a pullback of `f` along `p`. This structure extends
+`IsHomLift p f φ`.
 - `IsFibered p` expresses that `p` gives `𝒳` the structure of a fibered category over `𝒮`,
-i.e. that for every morphism `f` in `𝒮` and every object `a` in `𝒳` there is a pullback of `f`
-with domain `a`.
+i.e. that for every morphism `f : S ⟶ R` in `𝒮` and every object `b` in `𝒳` with `p(b)=R` there is a pullback
+`φ : a ⟶ b`  of `f`.
 
 ## Implementation
+The standard constructors of `IsPullback` and `IsFibered` have both been renamed to `.mk'`. We have provided
+alternate lemmas `IsPullback.mk` and `IsFibered.mk` for constructing instances of these structures, and it is
+recommended to use these instead to minimize the amount of equalities that needs to be carried around in the
+construction.
 
+The reason for this is the following:
+Just like `IsHomLift p f φ`, we have phrased `IsPullback p f φ` in a way to make its usage flexible as possible
+with respect to non-definitional equalities of domains / codomains. In particular, given a lift
+```
+  a --φ--> b
+  -        -
+  |        |
+  v        v
+  R --f--> S
+```
+(by which we mean an object of `IsHomLift p f φ`). We say that it is a pullback, if for all arrows `g : R' ⟶ R`,
+and all lifts
+```
+  a' --φ'--> b
+  -          -
+  |          |
+  v          v
+  R' --f'--> S
+```
+such that `f' = g ≫ f`, there is a unique induced map ....
+This definition gives us some flexibility in that it allows us to take `f'` to be non-definitionally equal to `g ≫ f`,
+and `p(a')` to be non-definitionally equal to `R'`.
+
+Similarly, `IsFibered p` is phrased as saying that for every `f : R ⟶ S`, and every `a` such that `p(a)=S`, there is
+a pullback `φ` lying over `f`. The alternate constructor `IsFibered.mk` only requires us to construct this pullback
+for every `a` and every `f : R ⟶ p(a)`.
 -/
+
 /-
 TODO:
 - naming convention with R S a b and so on
 
-
 -/
-universe v₁ v₂ u₁ u₂ u₃ w
+universe v₁ v₂ u₁ u₂
 
 open CategoryTheory Functor Category IsHomLift
 
@@ -45,7 +76,8 @@ variable {𝒮 : Type u₁} {𝒳 : Type u₂} [Category.{v₁} 𝒮] [Category.
 ```
 is a pullback.
 -/
-class IsPullback (p : 𝒳 ⥤ 𝒮) {R S : 𝒮} {a b : 𝒳} (f : R ⟶ S) (φ : a ⟶ b) extends IsHomLift p f φ : Prop where mk' ::
+structure IsPullback (p : 𝒳 ⥤ 𝒮) {R S : 𝒮} {a b : 𝒳} (f : R ⟶ S) (φ : a ⟶ b) extends
+    IsHomLift p f φ : Prop where mk' ::
   (UniversalProperty {R' : 𝒮} {a' : 𝒳} {g : R' ⟶ R} {f' : R' ⟶ S}
     (_ : f' = g ≫ f) {φ' : a' ⟶ b} (_ : IsHomLift p f' φ') :
       ∃! χ : a' ⟶ a, IsHomLift p g χ ∧ χ ≫ φ = φ')

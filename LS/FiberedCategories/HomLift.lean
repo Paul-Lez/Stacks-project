@@ -20,13 +20,11 @@ The notion `p(φ) = f` is captured in the structure `IsHomLift p φ f`, which co
 
 -/
 
-universe u₁ v₁ u₂ v₂ u₃ w
+universe u₁ v₁ u₂ v₂
 
 open CategoryTheory Functor Category
 
 variable {𝒮 : Type u₁} {𝒳 : Type u₂} [Category 𝒳] [Category 𝒮]
-
--- TODO: make choice/order c --> b --> a consistent
 
 /-- The proposition that an arrow a --φ--> b lifts an arrow R --f--> S in 𝒮 via p. This is
 often drawn as:
@@ -83,25 +81,26 @@ lemma lift_id_comp {p : 𝒳 ⥤ 𝒮} {R : 𝒮} {a b c : 𝒳} {φ : a ⟶ b} 
 
 /-- If `φ : a ⟶ b` lifts `f` and `ψ : b ⟶ c` lifts `𝟙 T`, then `φ  ≫ ψ` lifts `f` -/
 lemma comp_lift_id_right {p : 𝒳 ⥤ 𝒮} {R S T : 𝒮} {a b c : 𝒳} {f : R ⟶ S}
-    {φ : b ⟶ a} (hφ : IsHomLift p f φ) {ψ : c ⟶ b} (hψ : IsHomLift p (𝟙 T) ψ) :
-    IsHomLift p f (ψ ≫ φ) where
-  ObjLiftDomain := by rw [←hφ.ObjLiftDomain, hψ.ObjLiftCodomain, hψ.ObjLiftDomain]
-  ObjLiftCodomain := hφ.ObjLiftCodomain
+    {φ : a ⟶ b} (hφ : IsHomLift p f φ) {ψ : b ⟶ c} (hψ : IsHomLift p (𝟙 T) ψ) :
+    IsHomLift p f (φ ≫ ψ) where
+  ObjLiftDomain := hφ.ObjLiftDomain
+  ObjLiftCodomain := by rw [hψ.ObjLiftCodomain, ←hψ.ObjLiftDomain, hφ.ObjLiftCodomain]
   HomLift := ⟨by simp [IsHomLift.hom_eq' hψ, hφ.3.1]⟩
 
+-- TODO: I think this lemma is uncessarry? Since T above could be S or sth different, it doesnt matter
 /-- If `φ : a ⟶ b` lifts `𝟙 S` and `ψ : b ⟶ c` lifts `f`, then `φ  ≫ ψ` lifts `f` -/
 lemma comp_lift_id_left {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b c : 𝒳} {f : R ⟶ S}
-    {φ : b ⟶ a} (hφ : IsHomLift p f φ) {ψ : a ⟶ c} (hψ : IsHomLift p (𝟙 S) ψ) :
+    {φ : a ⟶ b} (hφ : IsHomLift p f φ) {ψ : b ⟶ c} (hψ : IsHomLift p (𝟙 S) ψ) :
     IsHomLift p f (φ ≫ ψ) where
   ObjLiftDomain := hφ.ObjLiftDomain
   ObjLiftCodomain := by rw [←hφ.ObjLiftCodomain, hψ.ObjLiftDomain, hψ.ObjLiftCodomain]
   HomLift := ⟨by simp [IsHomLift.hom_eq' hψ, hφ.3.1]⟩
 
 @[simp]
-lemma eqToHom_domain_lift_id {p : 𝒳 ⥤ 𝒮} {a b : 𝒳} (hab : a = b) {S : 𝒮}
-    (hS : p.obj a = S) : IsHomLift p (𝟙 S) (eqToHom hab) where
-      ObjLiftDomain := hS
-      ObjLiftCodomain := hab ▸ hS
+lemma eqToHom_domain_lift_id {p : 𝒳 ⥤ 𝒮} {a b : 𝒳} (hab : a = b) {R : 𝒮}
+    (hR : p.obj a = R) : IsHomLift p (𝟙 R) (eqToHom hab) where
+      ObjLiftDomain := hR
+      ObjLiftCodomain := hab ▸ hR
       HomLift := ⟨by simp only [eqToHom_map, eqToHom_trans, comp_id]⟩
 
 @[simp]
@@ -120,36 +119,36 @@ lemma id_lift_eqToHom_domain {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} (hRS : R = S)
 
 @[simp]
 lemma id_lift_eqToHom_codomain {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} (hRS : R = S)
-    {a : 𝒳} (ha : p.obj a = S) : IsHomLift p (eqToHom hRS) (𝟙 a) where
-      ObjLiftDomain := hRS ▸ ha
-      ObjLiftCodomain := ha
+    {b : 𝒳} (hb : p.obj b = S) : IsHomLift p (eqToHom hRS) (𝟙 b) where
+      ObjLiftDomain := hRS ▸ hb
+      ObjLiftCodomain := hb
       HomLift := ⟨by simp only [map_id, id_comp, eqToHom_trans]⟩
 
 @[simp]
-lemma comp_eqToHom_lift_iff {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b c: 𝒳} {f : R ⟶ S}
-    {φ : a ⟶ b} {hca : c = a} : IsHomLift p f (eqToHom hca ≫ φ) ↔ IsHomLift p f φ where
-  mp := by intro hφ'; subst hca; simpa using hφ'
-  mpr := fun hφ => id_comp f ▸ IsHomLift.comp (eqToHom_codomain_lift_id hca hφ.ObjLiftDomain) hφ
+lemma comp_eqToHom_lift_iff {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a' a b : 𝒳} {f : R ⟶ S}
+    {φ : a ⟶ b} {h : a' = a} : IsHomLift p f (eqToHom h ≫ φ) ↔ IsHomLift p f φ where
+  mp := by intro hφ'; subst h; simpa using hφ'
+  mpr := fun hφ => id_comp f ▸ IsHomLift.comp (eqToHom_codomain_lift_id h hφ.ObjLiftDomain) hφ
 
 @[simp]
-lemma eqToHom_comp_lift_iff {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b c: 𝒳} {f : R ⟶ S}
-    {φ : a ⟶ b} {hbc : b = c} : IsHomLift p f (φ ≫ eqToHom hbc) ↔ IsHomLift p f φ where
-  mp := by intro hφ'; subst hbc; simpa using hφ'
-  mpr := fun hφ => comp_id f ▸ IsHomLift.comp hφ (eqToHom_domain_lift_id hbc hφ.ObjLiftCodomain)
+lemma eqToHom_comp_lift_iff {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b b' : 𝒳} {f : R ⟶ S}
+    {φ : a ⟶ b} {h : b = b'} : IsHomLift p f (φ ≫ eqToHom h) ↔ IsHomLift p f φ where
+  mp := by intro hφ'; subst h; simpa using hφ'
+  mpr := fun hφ => comp_id f ▸ IsHomLift.comp hφ (eqToHom_domain_lift_id h hφ.ObjLiftCodomain)
 
 @[simp]
-lemma lift_eqToHom_comp_iff {p : 𝒳 ⥤ 𝒮} {R S T: 𝒮} {a b : 𝒳} {f : R ⟶ S}
-    {φ : a ⟶ b} (hTR : T = R) : IsHomLift p ((eqToHom hTR) ≫ f) φ ↔ IsHomLift p f φ where
-  mp := by intro hφ'; subst hTR; simpa using hφ'
+lemma lift_eqToHom_comp_iff {p : 𝒳 ⥤ 𝒮} {R' R S : 𝒮} {a b : 𝒳} {f : R ⟶ S}
+    {φ : a ⟶ b} (h : R' = R) : IsHomLift p ((eqToHom h) ≫ f) φ ↔ IsHomLift p f φ where
+  mp := by intro hφ'; subst h; simpa using hφ'
   mpr := fun hφ =>
-    id_comp φ ▸ IsHomLift.comp (IsHomLift.id_lift_eqToHom_codomain hTR hφ.ObjLiftDomain) hφ
+    id_comp φ ▸ IsHomLift.comp (IsHomLift.id_lift_eqToHom_codomain h hφ.ObjLiftDomain) hφ
 
 @[simp]
-lemma lift_comp_eqToHom_iff {p : 𝒳 ⥤ 𝒮} {R S T: 𝒮} {a b : 𝒳} {f : R ⟶ S}
-    {φ : a ⟶ b} (hST : S = T) : IsHomLift p (f ≫ (eqToHom hST)) φ ↔ IsHomLift p f φ where
-  mp := by intro hφ'; subst hST; simpa using hφ'
+lemma lift_comp_eqToHom_iff {p : 𝒳 ⥤ 𝒮} {R S S': 𝒮} {a b : 𝒳} {f : R ⟶ S}
+    {φ : a ⟶ b} (h : S = S') : IsHomLift p (f ≫ (eqToHom h)) φ ↔ IsHomLift p f φ where
+  mp := by intro hφ'; subst h; simpa using hφ'
   mpr := fun hφ =>
-    comp_id φ ▸ IsHomLift.comp hφ (IsHomLift.id_lift_eqToHom_domain hST hφ.ObjLiftCodomain)
+    comp_id φ ▸ IsHomLift.comp hφ (IsHomLift.id_lift_eqToHom_domain h hφ.ObjLiftCodomain)
 
 /-- The isomorphism `R ≅ S` obtained from an isomorphism `φ : a ≅ b` lifting `f` -/
 -- TODO: better name
