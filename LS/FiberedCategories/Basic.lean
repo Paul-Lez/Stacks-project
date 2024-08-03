@@ -263,6 +263,14 @@ lemma eqToHom_domain {p : 𝒳 ⥤ 𝒮} {a b : 𝒳} (hba : b = a) {S : 𝒮} (
     IsPullback p (𝟙 S) (eqToHom hba) :=
   of_isIso (eqToHom_domain_lift_id hba hS)
 
+lemma eqToHom_id_codomain {p : 𝒳 ⥤ 𝒮} {a : 𝒳} {S T : 𝒮} (hST : S = T) (hS : p.obj a = T) :
+    IsPullback p (eqToHom hST) (𝟙 a) :=
+  of_isIso (id_lift_eqToHom_codomain hST hS)
+
+lemma eqToHom_id_domain {p : 𝒳 ⥤ 𝒮} {a : 𝒳} {S T : 𝒮} (hST : S = T) (hS : p.obj a = S) :
+    IsPullback p (eqToHom hST) (𝟙 a) :=
+  of_isIso (id_lift_eqToHom_domain hST hS)
+
 lemma eqToHom_comp {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a b c : 𝒳} {f : R ⟶ S}
     {φ : b ⟶ a} (hφ : IsPullback p f φ) (hc : c = b) : IsPullback p f (eqToHom hc ≫ φ) :=
   id_comp f ▸ IsPullback.comp (eqToHom_codomain hc hφ.ObjLiftDomain) hφ
@@ -303,7 +311,6 @@ noncomputable def IsPullbackIso_of_base_Iso {p : 𝒳 ⥤ 𝒮}
 noncomputable def IsPullbackIso {p : 𝒳 ⥤ 𝒮} {R S : 𝒮} {a' a b : 𝒳} {f : R ⟶ S} {φ : a ⟶ b}
     {φ' : a' ⟶ b} (hφ : IsPullback p f φ) (hφ' : IsPullback p f φ') : a' ≅ a :=
   IsPullbackIso_of_base_Iso (show f = (Iso.refl R).hom ≫ f by simp only [Iso.refl_hom, id_comp]) hφ hφ'
-
 
 -- TODO: FIX ASSUMPTIONS FROM THIS POINT ONWARDS...
 /-- Given two pullbacks `φ : a ⟶ b `, `φ' : a' ⟶ b'` and a diagram

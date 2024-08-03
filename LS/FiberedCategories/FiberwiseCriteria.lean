@@ -51,6 +51,8 @@ lemma FaithfulofFiberwiseFaithful {𝒳 𝒴 : FiberedCat 𝒮} {F : FiberedFunc
     faithfulness. -/
     let h : 𝒳.p.obj a ⟶ 𝒳.p.obj b := eqToHom ((HasFibersObjLift a').symm) ≫ 𝒳.p.map φ₁
     -- Let ψ : c ⟶ b be a pullback over h such that c : Fib (p.obj a)
+
+    -- obtain ⟨c, ψ, hψ⟩ := HasFibersPullback' rfl h
     rcases HasFibersPullback' rfl h with ⟨c, ψ, hψ⟩
     -- Both φ₁ and φ₁' are lifts of h
     have hφ₁ : IsHomLift 𝒳.p h φ₁ := (lift_eqToHom_comp_iff _).2 (IsHomLift.self 𝒳.p φ₁)
@@ -59,6 +61,7 @@ lemma FaithfulofFiberwiseFaithful {𝒳 𝒴 : FiberedCat 𝒮} {F : FiberedFunc
       rw [heq₁, ←Functor.comp_map, ←congr_hom F.w.symm]
       apply IsHomLift.self 𝒳.p φ₁'
     -- Let τ, τ' be the induced maps from a' to c given by φ and φ'
+
     rcases HasFibersFactorization hφ₁ hψ with ⟨τ, hτ⟩
     rcases HasFibersFactorization hφ₁' hψ with ⟨τ', hτ'⟩
     -- Thus, it suffices to show that τ = τ'
