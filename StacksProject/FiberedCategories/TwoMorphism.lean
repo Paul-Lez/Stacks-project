@@ -7,8 +7,8 @@ Authors: Paul Lezeau, Calle Sönne
 import Mathlib.CategoryTheory.Sites.Grothendieck
 import Mathlib.CategoryTheory.Comma.Over
 import Mathlib.CategoryTheory.NatIso
-import LS.FiberedCategories.FiberFunctor
-import LS.FiberedCategories.HasFibers
+import StacksProject.FiberedCategories.FiberFunctor
+import StacksProject.FiberedCategories.HasFibers
 
 
 /-TODO Paul:

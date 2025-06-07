@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Calle Sönne, Paul Lezeau
 -/
 
-import LS.FiberedCategories.Basic
+import StacksProject.FiberedCategories.Basic
 import Mathlib.CategoryTheory.Functor.Const
 
 /-!

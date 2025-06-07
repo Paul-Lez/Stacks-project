@@ -5,8 +5,8 @@ Authors: Paul Lezeau, Calle Sönne
 -/
 
 
-import LS.FiberedCategories.BasedCategory
-import LS.FiberedCategories.HasFibers
+import StacksProject.FiberedCategories.BasedCategory
+import StacksProject.FiberedCategories.HasFibers
 
 import Mathlib.CategoryTheory.Bicategory.Adjunction
 

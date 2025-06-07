@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Paul Lezeau, Calle Sönne
 -/
 
-import LS.FiberedCategories.TwoMorphism
+import StacksProject.FiberedCategories.TwoMorphism
 
 open CategoryTheory Functor Category Fibered IsPullback IsFibered
 
