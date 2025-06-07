@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Paul Lezeau, Calle Sönne
 -/
 
-import LS.FiberedCategories.HasFibers
+import StacksProject.FiberedCategories.HasFibers
 import Mathlib.CategoryTheory.Category.Cat
 import Mathlib.CategoryTheory.DiscreteCategory
 

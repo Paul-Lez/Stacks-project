@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Calle Sönne, Paul Lezeau
 -/
 
-import LS.FiberedCategories.HomLift
+import StacksProject.FiberedCategories.HomLift
 import Mathlib.CategoryTheory.Functor.Const
 
 /-!

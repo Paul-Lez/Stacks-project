@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Paul Lezeau, Calle Sönne
 -/
 
-import LS.FiberedCategories.HasFibers
-import LS.FiberedCategories.StrictPseudofunctor
+import StacksProject.FiberedCategories.HasFibers
+import StacksProject.FiberedCategories.StrictPseudofunctor
 import Mathlib.CategoryTheory.Category.Cat
 import Mathlib.CategoryTheory.Bicategory.LocallyDiscrete
 

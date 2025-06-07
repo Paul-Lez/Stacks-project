@@ -8,7 +8,7 @@ Authors: Calle Sönne, Paul Lezeau
 -- DEPRECATED: Use `FiberedCat` for definition of functoriality, and `Fiberwise` for
 -- fiberwise criteria of functors.
 
-import LS.FiberedCategories.HasFibers
+import StacksProject.FiberedCategories.HasFibers
 
 universe u₁ v₁ u₂ v₂ u₃ w
 
