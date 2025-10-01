@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Paul Lezeau, Calle Sönne
 -/
 
-import StacksProject.FiberedCategories.HasFibers
+import Mathlib
 
 /-!
 # Clivages on fibered categories
@@ -16,7 +16,7 @@ A clivage is ... [insert discussion]
 
 universe u₁ v₁ u₂ v₂ u₃ w
 
-open CategoryTheory Functor Category Fibered
+open CategoryTheory Functor Category --Fibered
 
 variable {𝒮 : Type u₁} {𝒳 : Type u₂} [Category 𝒳] [Category 𝒮]
 
