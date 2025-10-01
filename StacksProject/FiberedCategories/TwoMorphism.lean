@@ -4,11 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Paul Lezeau, Calle Sönne
 -/
 
-import Mathlib.CategoryTheory.Sites.Grothendieck
-import Mathlib.CategoryTheory.Comma.Over
-import Mathlib.CategoryTheory.NatIso
-import StacksProject.FiberedCategories.FiberFunctor
-import StacksProject.FiberedCategories.HasFibers
+-- import Mathlib.CategoryTheory.Sites.Grothendieck
+-- import Mathlib.CategoryTheory.Comma.Over
+-- import Mathlib.CategoryTheory.NatIso
+-- import StacksProject.FiberedCategories.FiberFunctor
+-- import StacksProject.FiberedCategories.HasFibers
+import Mathlib
 
 
 /-TODO Paul:
@@ -16,7 +17,7 @@ import StacksProject.FiberedCategories.HasFibers
   -add documentation
 -/
 
-open CategoryTheory Functor Category Fibered
+open CategoryTheory Functor Category --Fibered
 
 variable {𝒮 : Type u₁} {𝒳 : Type u₂} {𝒴 : Type u₃} [Category 𝒳] [Category 𝒮]
   [Category 𝒴]

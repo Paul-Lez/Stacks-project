@@ -1,10 +1,9 @@
-import StacksProject.Deprecated.BasedCategory_old
-import StacksProject.Deprecated.Basic
-import StacksProject.Deprecated.CoFiberedInGroupoids
-import StacksProject.Deprecated.FiberedCategories
-import StacksProject.Deprecated.FiberedInGroupoids
-import StacksProject.Deprecated.HasFibers
-import StacksProject.Deprecated.HomLift_old
+-- import StacksProject.Deprecated.BasedCategory_old
+-- import StacksProject.Deprecated.CoFiberedInGroupoids
+-- import StacksProject.Deprecated.FiberedCategories
+-- import StacksProject.Deprecated.FiberedInGroupoids
+-- import StacksProject.Deprecated.HasFibers
+-- import StacksProject.Deprecated.HomLift_old
 import StacksProject.FiberedCategories.BasedCategory
 import StacksProject.FiberedCategories.Cartesian
 import StacksProject.FiberedCategories.Clivage
@@ -18,8 +17,8 @@ import StacksProject.FiberedCategories.HomLift
 import StacksProject.FiberedCategories.Presheaf
 import StacksProject.FiberedCategories.Pseudofunctor
 import StacksProject.FiberedCategories.StrictPseudofunctor
-import StacksProject.FiberedCategories.TwoMorphism
-import StacksProject.FiberedCategories.TwoYoneda
+-- import StacksProject.FiberedCategories.TwoMorphism
+-- import StacksProject.FiberedCategories.TwoYoneda
 import StacksProject.FiberedInGroupoids.FiberedInGroupoids
 import StacksProject.Stacks.Basic
 import StacksProject.Stacks.EmptyStack

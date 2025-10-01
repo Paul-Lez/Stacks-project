@@ -4,10 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Paul Lezeau, Calle Sönne
 -/
 
-import StacksProject.FiberedCategories.Basic
-import Mathlib.CategoryTheory.Sites.Grothendieck
-import Mathlib.CategoryTheory.Comma.Over
-import Mathlib.CategoryTheory.NatIso
+import StacksProject.FiberedCategories.Fiber
+-- import Mathlib.CategoryTheory.Sites.Grothendieck
+-- import Mathlib.CategoryTheory.Comma.Over
+-- import Mathlib.CategoryTheory.NatIso
+import Mathlib
 
 /-!
 
@@ -21,13 +22,13 @@ This files defines descent data and stacks
 
 -/
 
-open CategoryTheory Functor Category Fibered
+open CategoryTheory Functor Category Fiber
 
 variable {𝒮 : Type u₁} {𝒳 : Type u₂} {𝒴 : Type u₃} [Category 𝒳] [Category 𝒮]
   [Category 𝒴]
 
 class IsFiberedInGroupoids (p : 𝒳 ⥤ 𝒮) extends IsFibered p where
-  (IsPullback {a b : 𝒳} (φ : b ⟶ a) :  IsPullback p (p.map φ) φ)
+  (IsPullback {a b : 𝒳} (φ : b ⟶ a) :  IsStronglyCartesian p (p.map φ) φ)
 section Stack
 
 noncomputable abbrev pb1 [Limits.HasPullbacks 𝒮] {S : 𝒮}
